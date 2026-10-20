@@ -7,6 +7,9 @@ import { PhotoRing } from "./PhotoRing";
 
 type Step = "name" | "email" | "done";
 
+// El contador sigue en la página pero oculto con opacidad. Ponlo en true para mostrarlo.
+const SHOW_COUNTER = false;
+
 export function WaitlistScreen({
   initialCount,
 }: {
@@ -81,10 +84,11 @@ export function WaitlistScreen({
 
       {count !== null ? (
         <motion.div
+          aria-hidden={!SHOW_COUNTER}
           initial={{ opacity: 0 }}
-          animate={{ opacity: revealed ? 1 : 0 }}
+          animate={{ opacity: SHOW_COUNTER && revealed ? 1 : 0 }}
           transition={{ delay: 1.4, duration: 0.8 }}
-          className="absolute right-6 top-5 z-10 flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.08] px-4 py-2 text-sm text-white backdrop-blur-xl"
+          className="pointer-events-none absolute right-6 top-5 z-10 flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.08] px-4 py-2 text-sm text-white backdrop-blur-xl"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           {count.toLocaleString("es-ES")} en la cola
