@@ -4,7 +4,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { AppleIcon, ArrowIcon, AndroidIcon, WaveIcon } from "@/public/icons/icons";
+import { AppleIcon, ArrowIcon, AndroidIcon } from "@/public/icons/icons";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import useSound from "use-sound";

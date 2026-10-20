@@ -36,6 +36,11 @@ function lerp(p1: number, p2: number, t: number) {
   return p1 + (p2 - p1) * t;
 }
 
+type Viewport = {
+  width: number;
+  height: number;
+};
+
 function getViewport(screen: Screen): Viewport {
   const fov = (45 * Math.PI) / 180;
   const cameraZ = 20;

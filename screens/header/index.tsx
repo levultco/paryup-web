@@ -108,7 +108,7 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
     let cleanup: (() => void) | undefined;
 
     const setupLenisListener = async () => {
-      const lenis = (window as Window & { lenis?: LenisScrollInstance }).lenis;
+      const lenis = (window as unknown as { lenis?: LenisScrollInstance }).lenis;
 
       if (lenis) {
         const handleScroll = ({ scroll }: { scroll: number }) => {

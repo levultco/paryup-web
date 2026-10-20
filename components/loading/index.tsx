@@ -1,7 +1,13 @@
 "use client";
 import styles from "./style.module.scss";
 import { useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { animate, motion, useMotionValue, usePresence } from "framer-motion";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  usePresence,
+  type Variants,
+} from "framer-motion";
 import { slideUp } from "./anim";
 
 const logoPath =
@@ -134,7 +140,7 @@ export default function Loader() {
     const targetElement = document.querySelector<HTMLElement>(
       "[data-paryup-header-logo-target]",
     );
-    const animations = [];
+    const animations: { stop: () => void }[] = [];
 
     if (logoElement && targetElement) {
       const logoRect = logoElement.getBoundingClientRect();
@@ -167,7 +173,7 @@ export default function Loader() {
   const initialPath = `M0 0 L${dimension.width} 0 L${dimension.width} ${dimension.height} Q${dimension.width / 2} ${dimension.height + 300} 0 ${dimension.height}  L0 0`;
   const targetPath = `M0 0 L${dimension.width} 0 L${dimension.width} ${dimension.height} Q${dimension.width / 2} ${dimension.height} 0 ${dimension.height}  L0 0`;
 
-  const curve = {
+  const curve: Variants = {
     initial: {
       d: initialPath,
       transition: { duration: 0.7, ease: [0.76, 0, 0.24, 1] },
@@ -180,7 +186,7 @@ export default function Loader() {
 
   return (
     <motion.div
-      variants={slideUp}
+      variants={slideUp as unknown as Variants}
       initial="initial"
       exit="exit"
       className={styles.introduction}

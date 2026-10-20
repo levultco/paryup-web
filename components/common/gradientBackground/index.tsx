@@ -139,7 +139,8 @@ const AnimatedGradientBackground: React.FC<AnimatedGradientBackgroundProps> = ({
   topOffset = 0,
   containerClassName = "",
 }) => {
-  const selectedPreset = GRADIENT_PRESETS[type];
+  const selectedPreset =
+    GRADIENT_PRESETS[type as GradientType] ?? GRADIENT_PRESETS.pary;
   const resolvedGradientColors = gradientColors ?? selectedPreset.colors;
   const resolvedGradientStops = gradientStops ?? selectedPreset.stops;
 

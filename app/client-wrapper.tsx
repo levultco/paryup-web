@@ -50,7 +50,7 @@ export default function ClientWrapper(props: ClientWrapperProps) {
     });
 
     lenisRef.current = lenis;
-    (window as Window & { lenis?: Lenis }).lenis = lenis;
+    (window as unknown as { lenis?: Lenis }).lenis = lenis;
 
     if (isReload) {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -94,7 +94,7 @@ export default function ClientWrapper(props: ClientWrapperProps) {
       if (rafId) cancelAnimationFrame(rafId);
       lenis.destroy();
       lenisRef.current = null;
-      delete (window as Window & { lenis?: Lenis }).lenis;
+      delete (window as unknown as { lenis?: Lenis }).lenis;
       ScrollTrigger.getAll().forEach((t) => t.kill());
       ScrollTrigger.removeEventListener("refresh", onRefresh);
       if (previousScrollRestoration && "scrollRestoration" in window.history) {
