@@ -1,0 +1,48 @@
+.chromaText {
+  background-image: linear-gradient(
+    90deg,
+    #ffffff 0,
+    #ffffff 33.33%,
+    #c679c4 40%,
+    #fa8f1d 45%,
+    #ffb005 50%,
+    #e1e1fe 55%,
+    #03baf7 60%,
+    transparent 66.67%,
+    transparent
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  will-change: background-position;
+}
+
+.chromaTextAnimate {
+  animation: chroma-sweep 0.9s ease-in-out 0.1s forwards;
+  filter: blur(1px);
+}
+
+.chromaTextReady {
+  filter: blur(0);
+}
+
+.chromaChar {
+  background-image: inherit;
+  background-size: inherit;
+  background-position: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+@keyframes chroma-sweep {
+  0% {
+    background-position: 100% 0;
+    filter: blur(1px);
+  }
+
+  to {
+    background-position: 0 0;
+    filter: blur(0);
+  }
+}
