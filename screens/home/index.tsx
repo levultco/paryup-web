@@ -1,236 +1,120 @@
 "use client";
 
-import AnimatedGradientBackground from "@/components/common/gradientBackground";
-import { CircularGallery } from "@/components/common/middleCarrusel";
 import { AppStoreButton, PlayStoreButton } from "@/components/common/store";
-import { MoonIcon } from "@/public/icons/icons";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { IslandPills, Party, Stars } from "@/screens/v2/parts";
+import "@/screens/v2/v2.css";
+import gsap from "gsap";
+import { Plus_Jakarta_Sans } from "next/font/google";
+import useIsMobile from "@/hooks/useIsMobile";
+import { useEffect, useRef } from "react";
 
-export default function Home() {
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const [isDesktop, setIsDesktop] = useState(false);
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+});
+
+// Portada para móvil: el móvil gigante de la v2 en su pose inicial, sin escena
+// fijada. En escritorio la portada vive dentro de la historia (presentation).
+function StaticHero() {
+  const rootRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 768px)");
-    const handleChange = (event: MediaQueryListEvent) => {
-      setIsDesktop(event.matches);
-    };
+    const root = rootRef.current;
+    const phone = root?.querySelector<HTMLElement>(".v2-phone");
+    if (!root || !phone) return;
 
-    setIsDesktop(mediaQuery.matches);
-    mediaQuery.addEventListener("change", handleChange);
+    // Medidas: todo sale del viewport, como en la v2.
+    const measure = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const mobile = vw < 768;
+      const hs = mobile
+        ? Math.min(vh * 0.54, vw * 1.45)
+        : Math.min(vh * 0.65, vw * 0.62);
+      const ws = hs * 0.487;
+      const heroW = mobile ? vw * 0.97 : vw * 0.68;
+      const s = heroW / ws;
+      const heroTop = mobile ? vh * 0.3 : vh * 0.215;
+      root.style.setProperty("--ws", `${ws}px`);
+      root.style.setProperty("--hs", `${hs}px`);
+      root.style.setProperty("--u", String(1 / s));
+      root.style.setProperty("--ty", `${heroTop}px`);
+      root.style.setProperty("--copy-top", mobile ? "27vh" : "29vh");
+      phone.style.transform = `translate3d(0, ${heroTop}px, 0) scale(${s})`;
+    };
+    measure();
+    window.addEventListener("resize", measure);
+
+    const q = gsap.utils.selector(root);
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const intro = reduced
+      ? null
+      : gsap
+          .timeline({ delay: 1.9, defaults: { ease: "expo.out" } })
+          .from(q(".v2-sky"), { opacity: 0, duration: 2 }, 0)
+          .from(
+            q(".v2-herocopy > *"),
+            { opacity: 0, y: 30, duration: 1, stagger: 0.1 },
+            0.4,
+          )
+          .from(
+            q(".v2-coins .v2-party"),
+            { opacity: 0, scale: 0.4, duration: 1.2, stagger: 0.15 },
+            0.9,
+          );
 
     return () => {
-      mediaQuery.removeEventListener("change", handleChange);
+      window.removeEventListener("resize", measure);
+      intro?.kill();
     };
   }, []);
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  const textY = useTransform(scrollYProgress, [0, 1], [0, -540]);
-  const CarusselY = useTransform(scrollYProgress, [0, 1], [0, -240]);
-  const BackgroundY = useTransform(scrollYProgress, [0, 1], [0, -540]);
-  const BackgroundOpacity = useTransform(scrollYProgress, (v) => 1 - v);
-  const phoneY = useTransform(scrollYProgress, [0, 1], [0, -240]);
-  const phoneOpacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
-
   return (
-    <section
-      ref={sectionRef}
-      className="relative flex h-svh w-full flex-col items-center justify-center overflow-hidden "
-    >
-      {/* <div className="relative mx-auto w-full h-full"> */}
-      <motion.div
-        style={{ y: isDesktop ? CarusselY : 0 }}
-        className="absolute top-0 left-0 z-2 hidden h-full w-full md:block"
-      >
-        <CircularGallery
-          items={galleryItems}
-          bend={10}
-          borderRadius={0.1}
-          scrollEase={0.002}
-        />
-      </motion.div>
-      <motion.div
-        style={{ y: isDesktop ? textY : 0 }}
-        className="absolute inset-x-0  md:top-[40%] z-10 mx-auto flex w-full max-w-5xl flex-col items-center px-4 text-center"
-      >
-        <h1
-          style={{
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-            lineHeight: 1.06,
-            color: "#fff",
-            fontSize: "clamp(3.2rem, 7vw, 6.5rem)",
-          }}
-        >
-          <span
-            style={{
-              backgroundImage:
-                "linear-gradient(90deg, #999999 0%, #878787 50%, #999999 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              display: "block",
-              lineHeight: 1.1,
-              marginBottom: "-0.12em",
-            }}
-          >
-            Crea
-          </span>
-          <span
-            style={{
-              backgroundImage:
-                "linear-gradient(90deg, #999999 0%, #878787 50%, #999999 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              display: "block",
-              lineHeight: 1.1,
-              marginBottom: "-0.12em",
-            }}
-          >
-            toda tu noche
-          </span>
-          <span
-            className="flex flex-wrap items-center justify-center gap-3 "
-            style={{ color: "#fff" }}
-          >
-            <span style={{ color: "#999999" }}>sin</span>
-            {/* <VideoIcon src={VIDEO_APP_MESSAGES} size={110} /> */}
-            {/* <StarIcon className="size-10" /> */}
-            <span>dar</span>
-
-            {/* <VideoIcon src={VIDEO_APP_PLAN} size={110} /> */}
-            <MoonIcon className="size-10" />
-            <span>vueltas</span>
-          </span>
-        </h1>
-
-        <p
-          className="mt-4 max-w-xl px-2 text-center"
-          style={{
-            fontSize: "clamp(0.95rem, 2.2vw, 1.2rem)",
-            color: "#888",
-            lineHeight: 1.4,
-            fontWeight: 400,
-          }}
-        >
-          Compra y vende entradas, chatea con tu gente, haz match en los eventos y revive cada noche.
-        </p>
-
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-          <AppStoreButton />
-          <PlayStoreButton />
+    <section ref={rootRef} id="inicio" className={`v2 ${jakarta.variable}`}>
+      <div className="v2-stage">
+        <div className="v2-skywrap" aria-hidden>
+          <div className="v2-sky" />
         </div>
-      </motion.div>
-      <div className="absolute bottom-0 left-0 hero-down-mask w-full z-1 "></div>
-      <div className="absolute bottom-0 left-0 w-full h-full z-1 bg-black/0 backdrop-blur-3xl pointer-events-none"></div>
-      <motion.div className="absolute top-0 left-0 w-full h-full rotate-180">
-        <AnimatedGradientBackground
-          type="pary"
-          containerClassName="z-0 relative w-full h-full "
-        />
-      </motion.div>
+        <Stars />
+
+        <div className="v2-phone">
+          <div className="v2-body">
+            <div className="v2-screen">
+              <div className="v2-screen-bg" />
+              <IslandPills />
+              <div className="v2-herocopy">
+                <p className="v2-kicker">
+                  Entradas, chats y matches con tu gente.
+                </p>
+                <h1 className="v2-title">
+                  <span>Toda tu noche,</span>
+                  <span className="dim">en una sola app.</span>
+                </h1>
+                <div className="v2-badges">
+                  <AppStoreButton />
+                  <PlayStoreButton />
+                </div>
+              </div>
+            </div>
+            <div className="v2-edge" aria-hidden />
+          </div>
+        </div>
+
+        <div className="v2-coins" aria-hidden>
+          <Party emoji="🪩" className="v2-coin-a" delay={0.4} />
+          <Party emoji="🎉" className="v2-coin-b" delay={0} />
+          <Party emoji="🥂" className="v2-coin-c" delay={1.2} />
+          <Party emoji="🎧" className="v2-coin-d" delay={0.8} />
+        </div>
+      </div>
     </section>
   );
 }
 
-const VIDEO_APP_MESSAGES = "/background/present.mp4";
-const VIDEO_APP_PLAN = "/background/present2.mp4";
-
-type VideoIconProps = {
-  src: string;
-  size?: number;
-};
-
-function VideoIcon({ src, size = 72 }: VideoIconProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    videoRef.current?.play().catch(() => {});
-  }, []);
-
-  return (
-    <span
-      className="inline-block align-middle overflow-hidden rounded-full"
-      style={{
-        width: `clamp(48px, 10vw, ${size}px)`,
-        height: `clamp(48px, 4vw, ${size}px)`,
-        flexShrink: 0,
-      }}
-    >
-      <video
-        ref={videoRef}
-        autoPlay
-        loop
-        muted
-        playsInline
-        src={src}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          display: "block",
-        }}
-      />
-    </span>
-  );
+export default function Home() {
+  const isMobile = useIsMobile();
+  if (!isMobile) return null;
+  return <StaticHero />;
 }
-
-interface GalleryItemProps {
-  image: string;
-  text?: string;
-}
-
-const galleryItems: GalleryItemProps[] = [
-  {
-    image: "/hero/1.jpg",
-    text: "sfdsf",
-  },
-  {
-    image: "/hero/2.jpg",
-    text: "Dance Floor",
-  },
-  {
-    image: "/hero/3.jpg",
-    text: "Night Event",
-  },
-  {
-    image: "/hero/4.jpg",
-    text: "Club Lights",
-  },
-  {
-    image: "/hero/5.jpg",
-    text: "Crowd",
-  },
-  {
-    image: "/hero/6.jpg",
-    text: "DJ Set",
-  },
-  {
-    image: "/hero/7.jpg",
-    text: "Santorini",
-  },
-  {
-    image: "/hero/8.jpg",
-    text: "Blurry Lights",
-  },
-  // {
-  //   image: "https://picsum.photos/seed/9/800/600?grayscale",
-  //   text: "New York",
-  // },
-  // {
-  //   image: "https://picsum.photos/seed/10/800/600?grayscale",
-  //   text: "Good Boy",
-  // },
-  // {
-  //   image: "https://picsum.photos/seed/21/800/600?grayscale",
-  //   text: "Coastline",
-  // },
-  // {
-  //   image: "https://picsum.photos/seed/12/800/600?grayscale",
-  //   text: "Palm Trees",
-  // },
-];

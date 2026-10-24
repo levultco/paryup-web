@@ -1,0 +1,109 @@
+/* Capas de la portada que viven dentro de la historia. Reutilizan las clases
+   de la v2; aquí solo se pisa lo que depende de que la raíz sea la sección. */
+.v2.hp-layer {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  background: transparent;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hp-sky {
+  z-index: 5;
+}
+
+.hp-copy {
+  z-index: 40;
+}
+
+.hp-copy .v2-badges {
+  pointer-events: auto;
+}
+
+.hp-screenbg {
+  z-index: 1;
+}
+
+.hp-layer[data-off] * {
+  animation-play-state: paused !important;
+}
+
+/* Degradado de abajo hacia arriba: funde el móvil gigante con el fondo y se
+   apaga mientras el móvil se encoge. */
+.hp-fade {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 35;
+  height: 46%;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--background) 100%, transparent) 0%,
+    color-mix(in srgb, var(--background) 94%, transparent) 10%,
+    color-mix(in srgb, var(--background) 83%, transparent) 20%,
+    color-mix(in srgb, var(--background) 69%, transparent) 30%,
+    color-mix(in srgb, var(--background) 54%, transparent) 40%,
+    color-mix(in srgb, var(--background) 39%, transparent) 50%,
+    color-mix(in srgb, var(--background) 26%, transparent) 60%,
+    color-mix(in srgb, var(--background) 16%, transparent) 70%,
+    color-mix(in srgb, var(--background) 8%, transparent) 80%,
+    color-mix(in srgb, var(--background) 3%, transparent) 90%,
+    transparent 100%
+  );
+}
+
+/* Resplandor amarillento pequeño detrás del móvil; solo cambia su opacidad. */
+.hp-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 44px;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow:
+    0 0 20px 0 rgba(255, 200, 70, 0.26),
+    0 0 52px 4px rgba(255, 160, 30, 0.1);
+}
+
+/* Bordes laterales suaves: el resplandor se estrecha solo en ancho y la
+   máscara evita que se vea el borde de la capa. */
+.hp-sky .v2-sky {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 22%,
+    #000 78%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 22%,
+    #000 78%,
+    transparent 100%
+  );
+}
+
+/* Titulares del tramo final: el barrido de color lo mueve GSAP con el scroll */
+.scroll-line-text {
+  background-image: linear-gradient(
+    90deg,
+    #fff 0,
+    #fff 33.33%,
+    #c679c4 40%,
+    #fa3d1d 45%,
+    #ffb005 50%,
+    #e1e1fe 55%,
+    #0358f7 60%,
+    transparent 66.67%,
+    transparent
+  );
+  background-size: 300% 100%;
+  background-position: var(--chroma-pos, 100%) 0%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}

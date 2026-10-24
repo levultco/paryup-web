@@ -6,21 +6,35 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   ArrowRight,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  Ellipsis,
   Images,
   Heart,
   MapPin,
   MessageCircle,
+  Pause,
+  Mic,
+  Plus,
   Search,
-  Users,
+  Ticket,
+  Video,
 } from "lucide-react";
-import { motion, useMotionValue } from "framer-motion";
+import { useMotionValue } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import type { EventFlyerItem } from "@/components/common/eventFlyerCard";
 import { AppStoreButton, PlayStoreButton } from "@/components/common/store";
 import { storiesAvatars } from "@/constants/storiesAvatars";
-import BounceInText from "@/components/common/bounceText";
 import { LazyVideo } from "@/components/common/lazyVideo";
-import { LinePathMobile } from "@/components/common/linePathMobile";
+import {
+  AppStoreButton as HeroAppStoreButton,
+  PlayStoreButton as HeroPlayStoreButton,
+} from "@/components/common/store";
+import { Party, Stars } from "@/screens/v2/parts";
+import { Plus_Jakarta_Sans } from "next/font/google";
+import "@/screens/v2/v2.css";
+import "./hero-prelude.css";
+import "./ios-cards.css";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -50,7 +64,22 @@ type PartyParticle = {
   rotateDirection?: 1 | -1;
 };
 
-const STORY_HEIGHT_CLASS = "h-[780vh]";
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+});
+
+// Antes de la historia hay una portada: el móvil nace gigante con el texto del
+// hero y se encoge hasta su sitio. PRELUDE es su duración en unidades de la
+// línea de tiempo (1 unidad = 680vh de scroll); 310vh extra de altura.
+const PRELUDE = 0.456;
+// La historia empieza un poco antes de que acabe la portada, así las tarjetas
+// aparecen sin esperar (antes lo hacían junto al trazo del cometa).
+const STORY_AT = PRELUDE - 0.08;
+const STORY_HEIGHT_CLASS = "h-[1036vh]";
+const PHONE_W = 390;
+const PHONE_H = 790;
+const PHONE_ORIGIN_Y = 0.72;
 
 const STEP = {
   entryStart: 0.0,
@@ -76,7 +105,7 @@ const STEP = {
 
   finalScrollStart: 0.64,
   finalScrollEnd: 0.8,
-  improvedTextStart: 0.82,
+  improvedTextStart: 0.83,
 
   coverShrinkStart: 0.88,
   coverShrinkEnd: 1.0,
@@ -92,7 +121,15 @@ const PARTICLE_MIN_DURATION = 3.8;
 const PARTICLE_MAX_DURATION = 5.2;
 
 const PHONE_INITIAL_Y = 300;
-const PHONE_CENTER_Y = 0;
+// Pose de reposo del móvil: algo más pequeño y centrado en el espacio que deja
+// la cabecera fija. La escala se hace desde el 72% de la altura, así que hay
+// que restar lo que ese origen desplaza el centro del móvil.
+const PHONE_REST_SCALE = 0.85;
+const headerHeight = () =>
+  document.querySelector("header")?.getBoundingClientRect().height ?? 104;
+const phoneRestY = () =>
+  headerHeight() / 2 -
+  (PHONE_ORIGIN_Y - 0.5) * PHONE_H * (1 - PHONE_REST_SCALE);
 const PHONE_ZOOM_Y = -240;
 const PHONE_ZOOM_SCALE = 4.5;
 
@@ -718,11 +755,8 @@ const PARTY_PARTICLES: PartyParticle[] = [
 ];
 
 export default function StickyProductStory() {
-  const [isFinalHeadlineActive, setIsFinalHeadlineActive] = useState(false);
-  const [isImprovedVersionActive, setIsImprovedVersionActive] = useState(false);
   const linePathProgress = useMotionValue(0);
   const sectionRef = useRef<HTMLElement | null>(null);
-  const titleRef = useRef<HTMLParagraphElement | null>(null);
   const phoneRef = useRef<HTMLDivElement | null>(null);
   const cardsLayerRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
@@ -731,6 +765,13 @@ export default function StickyProductStory() {
   const finalSubLabelRef = useRef<HTMLParagraphElement | null>(null);
   const preCoverLayerRef = useRef<HTMLDivElement | null>(null);
   const phoneSceneLayerRef = useRef<HTMLDivElement | null>(null);
+  const heroSkyRef = useRef<HTMLDivElement | null>(null);
+  const heroCopyRef = useRef<HTMLDivElement | null>(null);
+  const heroBgRef = useRef<HTMLDivElement | null>(null);
+  const heroFadeRef = useRef<HTMLDivElement | null>(null);
+  const phoneGlowRef = useRef<HTMLDivElement | null>(null);
+  const heroOnRef = useRef(true);
+  const [heroOn, setHeroOn] = useState(true);
   const coverCardRef = useRef<HTMLDivElement | null>(null);
   const coverCardInnerRef = useRef<HTMLDivElement | null>(null);
   const finalScrollContentRef = useRef<HTMLDivElement | null>(null);
@@ -744,12 +785,9 @@ export default function StickyProductStory() {
   const particleTweensRef = useRef<gsap.core.Animation[]>([]);
   const particlesStartedRef = useRef(false);
   const particlesInitializedRef = useRef(false);
-  const finalHeadlineActiveRef = useRef(false);
-  const improvedVersionActiveRef = useRef(false);
 
   useEffect(() => {
     if (!sectionRef.current) return;
-    if (!titleRef.current) return;
     if (!phoneRef.current) return;
     if (!cardsLayerRef.current) return;
     if (!modalRef.current) return;
@@ -774,6 +812,14 @@ export default function StickyProductStory() {
         gsap.utils.toArray<HTMLElement>(".final-scroll-card");
       const finalCopyBlocks =
         gsap.utils.toArray<HTMLElement>(".final-copy-block");
+      const finalTitleLines = gsap.utils.toArray<HTMLElement>(
+        finalScrollTitleRef.current?.querySelectorAll("[data-scroll-line]") ??
+          [],
+      );
+      const finalBridgeLines = gsap.utils.toArray<HTMLElement>(
+        finalBridgeTextRef.current?.querySelectorAll("[data-scroll-line]") ??
+          [],
+      );
       const particlesLayerEl = particlesLayerRef.current;
       const coverCardInnerEl = coverCardInnerRef.current;
       if (!particlesLayerEl || !coverCardInnerEl) return;
@@ -899,29 +945,15 @@ export default function StickyProductStory() {
         });
       };
 
+      // La opacidad de la capa va en la línea de tiempo (scrub); aquí solo se
+      // arranca o se para el bucle de subida para no gastar fuera del rango.
       const showParticles = () => {
         createParticleLoops();
-        gsap.killTweensOf(particlesLayerEl);
-        gsap.to(particlesLayerEl, {
-          opacity: 1,
-          duration: 0.35,
-          ease: "power2.out",
-          overwrite: true,
-        });
         particleTweensRef.current.forEach((tween) => tween.resume());
       };
 
       const hideParticles = () => {
-        gsap.killTweensOf(particlesLayerEl);
-        gsap.to(particlesLayerEl, {
-          opacity: 0,
-          duration: 0.35,
-          ease: "power2.out",
-          overwrite: true,
-          onComplete: () => {
-            particleTweensRef.current.forEach((tween) => tween.pause());
-          },
-        });
+        particleTweensRef.current.forEach((tween) => tween.pause());
       };
 
       const resetFinalDetails = () => {
@@ -937,8 +969,9 @@ export default function StickyProductStory() {
           opacity: 1,
           y: 0,
         });
+        // autoAlpha: invisibles también para el ratón (llevan botones).
         gsap.set(finalCopyBlocks, {
-          opacity: 0,
+          autoAlpha: 0,
           y: 54,
         });
         gsap.set(finalScrollCards, {
@@ -950,7 +983,6 @@ export default function StickyProductStory() {
         });
       };
 
-      gsap.set(titleRef.current, { y: 260, opacity: 1 });
       gsap.set(phoneRef.current, {
         y: PHONE_INITIAL_Y,
         scale: 1,
@@ -971,20 +1003,21 @@ export default function StickyProductStory() {
       gsap.set(finalTextLabelRef.current, { opacity: 0, y: 30 });
       gsap.set(finalSubLabelRef.current, { opacity: 0, y: 50 });
       gsap.set(finalScrollContentRef.current, {
-        y: 180,
+        y: 40,
         opacity: 0.96,
       });
-      gsap.set(finalScrollTitleRef.current, {
-        opacity: 0,
-        y: 56,
-        scale: 0.97,
-        transformOrigin: "0% 60%",
-      });
+      gsap.set(finalScrollTitleRef.current, { opacity: 1 });
       gsap.set(finalBridgeTextRef.current, {
-        opacity: 0,
-        y: 90,
-        scale: 0.96,
+        autoAlpha: 0,
+        y: 40,
+        scale: 1,
         transformOrigin: "50% 60%",
+      });
+      gsap.set(".final-bridge-extra", { autoAlpha: 0, y: 24 });
+      gsap.set(".cover-card-ui", { autoAlpha: 0 });
+      gsap.set([...finalTitleLines, ...finalBridgeLines], {
+        yPercent: 112,
+        "--chroma-pos": "100%",
       });
       resetFinalDetails();
 
@@ -1018,7 +1051,7 @@ export default function StickyProductStory() {
       setParticlesInitialState();
       clipParticlesToModal();
 
-      const tl = gsap.timeline({
+      const master = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -1028,7 +1061,13 @@ export default function StickyProductStory() {
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             clipParticlesToModal();
-            const timelineTime = self.animation?.time() ?? 0;
+            const masterTime = self.animation?.time() ?? 0;
+            const timelineTime = masterTime - STORY_AT;
+            const inHero = masterTime < PRELUDE;
+            if (inHero !== heroOnRef.current) {
+              heroOnRef.current = inHero;
+              setHeroOn(inHero);
+            }
             const lineProgress = clamp(
               (timelineTime - STEP.entryStart) /
                 (STEP.cardsEnd - STEP.entryStart),
@@ -1038,11 +1077,6 @@ export default function StickyProductStory() {
             const isParticlesRange =
               timelineTime >= PARTICLES_RANGE.start &&
               timelineTime < PARTICLES_RANGE.end;
-            const isFinalHeadlineRange =
-              timelineTime >= STEP.finalScrollStart &&
-              timelineTime < STEP.finalScrollEnd;
-            const isImprovedVersionRange =
-              timelineTime >= STEP.improvedTextStart;
 
             linePathProgress.set(lineProgress);
 
@@ -1053,26 +1087,12 @@ export default function StickyProductStory() {
               particlesStartedRef.current = false;
               hideParticles();
             }
-
-            if (isFinalHeadlineRange !== finalHeadlineActiveRef.current) {
-              finalHeadlineActiveRef.current = isFinalHeadlineRange;
-              setIsFinalHeadlineActive(isFinalHeadlineRange);
-            }
-
-            if (isImprovedVersionRange !== improvedVersionActiveRef.current) {
-              improvedVersionActiveRef.current = isImprovedVersionRange;
-              setIsImprovedVersionActive(isImprovedVersionRange);
-            }
           },
           onLeave: () => {
             particlesStartedRef.current = false;
             hideParticles();
-            finalHeadlineActiveRef.current = false;
-            setIsFinalHeadlineActive(false);
-            improvedVersionActiveRef.current = true;
-            setIsImprovedVersionActive(true);
             gsap.set(finalBridgeTextRef.current, {
-              opacity: 1,
+              autoAlpha: 1,
               y: 0,
               scale: 1,
             });
@@ -1081,15 +1101,11 @@ export default function StickyProductStory() {
           onLeaveBack: () => {
             particlesStartedRef.current = false;
             hideParticles();
-            finalHeadlineActiveRef.current = false;
-            setIsFinalHeadlineActive(false);
-            improvedVersionActiveRef.current = false;
-            setIsImprovedVersionActive(false);
             resetFinalDetails();
             gsap.set(finalBridgeTextRef.current, {
-              opacity: 0,
-              y: 90,
-              scale: 0.96,
+              autoAlpha: 0,
+              y: 40,
+              scale: 1,
             });
             linePathProgress.set(0);
           },
@@ -1099,31 +1115,23 @@ export default function StickyProductStory() {
         },
       });
 
-      tl.to(
-        titleRef.current,
-        { y: 0, duration: STEP.entryEnd - STEP.entryStart },
-        STEP.entryStart,
-      );
-
-      tl.to(
-        titleRef.current,
-        {
-          y: -180,
-          opacity: 0,
-          duration: STEP.titleExitEnd - STEP.titleExitStart,
-        },
-        STEP.titleExitStart,
-      );
+      const tl = gsap.timeline({ defaults: { ease: "none" } });
 
       tl.to(
         phoneRef.current,
         {
-          y: PHONE_CENTER_Y,
+          y: phoneRestY,
           duration: STEP.cardsStart - STEP.entryStart,
           ease: "none",
           force3D: true,
         },
         STEP.entryStart,
+      );
+
+      tl.to(
+        phoneGlowRef.current,
+        { opacity: 0, duration: 0.08 },
+        STEP.zoomStart,
       );
 
       tl.to(
@@ -1208,114 +1216,118 @@ export default function StickyProductStory() {
         STEP.finalScrollStart,
       );
 
+      // Bloque "Impulsando la noche real": todo atado al scroll. Entra entre
+      // finalScrollStart y +0.07, se queda quieto y sale del todo antes de que
+      // aparezca el titular final, así nunca se pisan.
+      const finalExitStart = STEP.finalScrollEnd - 0.01;
+      const finalExitEnd = STEP.improvedTextStart - 0.005;
+
+      tl.to(
+        particlesLayerEl,
+        { opacity: 1, duration: 0.02 },
+        PARTICLES_RANGE.start,
+      );
+      tl.to(
+        particlesLayerEl,
+        { opacity: 0, duration: 0.02 },
+        PARTICLES_RANGE.end - 0.02,
+      );
+
       tl.to(
         finalScrollContentRef.current,
         {
-          y: -220,
+          y: -20,
           opacity: 1,
-          duration: STEP.finalScrollEnd - STEP.finalScrollStart,
-          ease: "none",
+          duration: finalExitStart - STEP.finalScrollStart,
         },
         STEP.finalScrollStart,
       );
       tl.to(
-        finalScrollTitleRef.current,
+        finalTitleLines,
         {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.11,
-          ease: "power3.out",
+          yPercent: 0,
+          duration: 0.04,
+          stagger: 0.012,
+          ease: "power2.out",
         },
         STEP.finalScrollStart,
+      );
+      tl.to(
+        finalTitleLines,
+        { "--chroma-pos": "0%", duration: 0.05, stagger: 0.012 },
+        STEP.finalScrollStart + 0.01,
       );
       tl.to(
         finalScrollSubtitleRef.current,
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.08,
-          ease: "power2.out",
-        },
-        STEP.finalScrollStart + 0.02,
+        { opacity: 1, y: 0, duration: 0.04, ease: "power2.out" },
+        STEP.finalScrollStart + 0.03,
       );
       tl.to(
         finalCopyBlocks,
         {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.05,
+          stagger: 0.015,
+          ease: "power2.out",
+        },
+        STEP.finalScrollStart + 0.045,
+      );
+      tl.to(
+        finalScrollCards,
+        {
           opacity: 1,
           y: 0,
-          duration: 0.1,
-          stagger: 0.03,
-          ease: "power3.out",
+          scale: 1,
+          rotation: (index) => [-9, 0, 8][index] ?? 0,
+          duration: 0.06,
+          stagger: 0.012,
+          ease: "power2.out",
         },
         STEP.finalScrollStart + 0.05,
       );
-      tl.to(
-        finalScrollCards,
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          rotation: (index) => [-8, 3, 9][index] ?? 0,
-          duration: 0.11,
-          stagger: 0.03,
-          ease: "power3.out",
-        },
-        STEP.finalScrollStart + 0.06,
-      );
-      tl.to(
-        finalScrollSubtitleRef.current,
-        {
-          opacity: 0,
-          y: -18,
-          duration: 0.05,
-          ease: "power2.inOut",
-        },
-        STEP.finalScrollEnd - 0.01,
-      );
-      tl.to(
-        finalCopyBlocks,
-        {
-          opacity: 0,
-          y: -26,
-          duration: 0.06,
-          stagger: 0.02,
-          ease: "power2.inOut",
-        },
-        STEP.finalScrollEnd - 0.01,
-      );
-      tl.to(
-        finalScrollCards,
-        {
-          opacity: 0,
-          y: -24,
-          scale: 0.97,
-          duration: 0.06,
-          stagger: 0.018,
-          ease: "power2.inOut",
-        },
-        STEP.finalScrollEnd - 0.008,
-      );
+
       tl.to(
         finalScrollContentRef.current,
         {
-          opacity: 0,
-          y: -320,
-          duration: 0.07,
-          ease: "power2.inOut",
+          autoAlpha: 0,
+          y: -50,
+          duration: finalExitEnd - finalExitStart,
+          ease: "power1.in",
         },
-        STEP.finalScrollEnd + 0.01,
+        finalExitStart,
       );
+
       tl.to(
         finalBridgeTextRef.current,
+        { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" },
+        STEP.improvedTextStart,
+      );
+      tl.to(
+        ".final-bridge-extra",
         {
-          opacity: 1,
+          autoAlpha: 1,
           y: 0,
-          scale: 1,
-          duration: 0.08,
-          ease: "power3.out",
+          duration: 0.04,
+          stagger: 0.012,
+          ease: "power2.out",
+        },
+        STEP.improvedTextStart + 0.03,
+      );
+      tl.to(
+        finalBridgeLines,
+        {
+          yPercent: 0,
+          duration: 0.04,
+          stagger: 0.012,
+          ease: "power2.out",
         },
         STEP.improvedTextStart,
+      );
+      tl.to(
+        finalBridgeLines,
+        { "--chroma-pos": "0%", duration: 0.05, stagger: 0.012 },
+        STEP.improvedTextStart + 0.01,
       );
       tl.to(
         coverCardInnerEl,
@@ -1323,7 +1335,8 @@ export default function StickyProductStory() {
           width: 400,
           height: 650,
           borderRadius: 32,
-          x: 250,
+          // En la columna derecha, sin tapar el titular en pantallas anchas.
+          x: () => Math.min(window.innerWidth * 0.22, 380),
           y: 30,
           filter: "brightness(1)",
           rotation: -5,
@@ -1331,6 +1344,11 @@ export default function StickyProductStory() {
           ease: "power2.inOut",
         },
         STEP.coverShrinkStart,
+      );
+      tl.to(
+        ".cover-card-ui",
+        { autoAlpha: 1, duration: 0.04, ease: "power1.out" },
+        STEP.coverShrinkEnd - 0.045,
       );
 
       cards.forEach((card) => {
@@ -1378,6 +1396,67 @@ export default function StickyProductStory() {
         );
         addFeatureCardMicroTimeline(tl, card, microStart, microEnd);
       });
+
+      // Portada: el móvil gigante se encoge hasta su sitio y la historia sigue.
+      const vh = () => window.innerHeight;
+      const heroScale = () => (window.innerWidth * 0.68) / PHONE_W;
+      const heroY = () => {
+        const layoutTop = (vh() - PHONE_H) / 2;
+        const y0 = PHONE_H * PHONE_ORIGIN_Y;
+        return vh() * 0.215 - layoutTop - y0 + heroScale() * y0;
+      };
+
+      master.fromTo(
+        phoneRef.current,
+        { scale: heroScale, y: heroY },
+        {
+          scale: PHONE_REST_SCALE,
+          y: phoneRestY,
+          duration: 0.36,
+          ease: "power2.inOut",
+          force3D: true,
+        },
+        0,
+      );
+      master.to(heroCopyRef.current, { autoAlpha: 0, duration: 0.1 }, 0);
+      master.to(heroSkyRef.current, { autoAlpha: 0, duration: 0.34 }, 0.02);
+      // El resplandor se cierra por los lados (solo ancho) mientras se apaga.
+      master.to(
+        heroSkyRef.current?.querySelector(".v2-sky") ?? null,
+        { scaleX: 0.3, transformOrigin: "50% 50%", duration: 0.34 },
+        0.02,
+      );
+      master.to(heroBgRef.current, { opacity: 0, duration: 0.2 }, 0.1);
+      master.to(heroFadeRef.current, { opacity: 0, duration: 0.3 }, 0);
+      // Resplandor amarillo que aparece según el móvil se encoge, y se apaga
+      // cuando empieza el zoom grande.
+      master.fromTo(
+        phoneGlowRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.26, ease: "power1.in" },
+        0.12,
+      );
+      master.add(tl, STORY_AT);
+
+      // Entrada de la portada tras la pantalla de carga.
+      const reduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      if (!reduced) {
+        gsap
+          .timeline({ delay: 1.9, defaults: { ease: "expo.out" } })
+          .from(".hp-sky .v2-sky", { opacity: 0, duration: 2 }, 0)
+          .from(
+            ".hp-copy .v2-herocopy > *",
+            { opacity: 0, y: 30, duration: 1, stagger: 0.1 },
+            0.4,
+          )
+          .from(
+            ".hp-copy .v2-party",
+            { opacity: 0, scale: 0.4, duration: 1.2, stagger: 0.15 },
+            0.9,
+          );
+      }
     }, sectionRef);
 
     return () => {
@@ -1392,9 +1471,20 @@ export default function StickyProductStory() {
   return (
     <section
       ref={sectionRef}
+      id="inicio"
       className={`relative w-full ${STORY_HEIGHT_CLASS}`}
     >
       <div className="sticky top-0 h-screen overflow-hidden">
+        <div
+          ref={heroSkyRef}
+          className={`v2 hp-layer hp-sky ${jakarta.variable}`}
+          style={{ "--ty": "21.5vh" } as React.CSSProperties}
+          aria-hidden
+          data-off={heroOn ? undefined : ""}
+        >
+          <div className="v2-sky" />
+          {heroOn && <Stars />}
+        </div>
         <div ref={preCoverLayerRef} className="absolute inset-0 z-30">
           <div
             ref={cardsLayerRef}
@@ -1457,7 +1547,8 @@ export default function StickyProductStory() {
                 fontWeight: 400,
               }}
             >
-              Descubre eventos en el mapa, compra tu entrada y quédate con la gente que conoces
+              Descubre eventos en el mapa, compra tu entrada y quédate con la
+              gente que conoces
             </p>
           </div>
 
@@ -1476,47 +1567,15 @@ export default function StickyProductStory() {
             ))}
           </div>
 
-          <LinePathMobile
-            progress={linePathProgress}
-            className="absolute top-0 left-0 w-full h-screen !-z-20"
-          />
-
           <div
             ref={phoneSceneLayerRef}
             className="absolute inset-0 z-30 flex items-center justify-center"
           >
-            <h1
-              ref={titleRef}
-              className="pointer-events-none absolute -top-[15%] z-20 text-center font-semibold leading-none tracking-normal text-white"
-              style={{
-                fontWeight: 600,
-                letterSpacing: "-0.01em",
-                lineHeight: 1.1,
-                color: "#fff",
-                fontSize: "clamp(2.2rem, 7vw, 6.5rem)",
-              }}
-            >
-              <div className="flex flex-col items-center justify-center">
-                <BounceInText
-                  as="span"
-                  text="La experiencia "
-                  triggerOnView
-                  className="block  leading-[1.1] text-white"
-                />
-                <BounceInText
-                  as="span"
-                  text="se cuenta sola"
-                  triggerOnView
-                  delay={0.2}
-                  className="block  leading-[1.1] text-white"
-                />
-              </div>
-            </h1>
-
             <div
               ref={phoneRef}
               className="relative z-10 h-[790px] w-[390px] will-change-transform"
             >
+              <div ref={phoneGlowRef} className="hp-glow" aria-hidden />
               <PhoneShell>
                 <div className="absolute inset-0">
                   <Image
@@ -1527,6 +1586,13 @@ export default function StickyProductStory() {
                     sizes="390px"
                   />
                 </div>
+                <div
+                  ref={heroBgRef}
+                  className="v2 hp-layer hp-screenbg"
+                  aria-hidden
+                >
+                  <div className="v2-screen-bg" />
+                </div>
 
                 <div
                   ref={modalRef}
@@ -1536,6 +1602,36 @@ export default function StickyProductStory() {
                 </div>
               </PhoneShell>
             </div>
+          </div>
+        </div>
+        <div ref={heroFadeRef} className="hp-fade" aria-hidden />
+        <div
+          ref={heroCopyRef}
+          className={`v2 hp-layer hp-copy ${jakarta.variable}`}
+          style={
+            {
+              "--u": 1,
+              "--copy-top": "calc(21.5vh + 29vh)",
+            } as React.CSSProperties
+          }
+          data-off={heroOn ? undefined : ""}
+        >
+          <div className="v2-herocopy">
+            <p className="v2-kicker">Entradas, chats y matches con tu gente.</p>
+            <h1 className="v2-title">
+              <span>Toda tu noche,</span>
+              <span className="dim">en una sola app.</span>
+            </h1>
+            <div className="v2-badges">
+              <HeroAppStoreButton />
+              <HeroPlayStoreButton />
+            </div>
+          </div>
+          <div className="v2-coins" aria-hidden>
+            <Party emoji="🪩" className="v2-coin-a" delay={0.4} />
+            <Party emoji="🎉" className="v2-coin-b" delay={0} />
+            <Party emoji="🥂" className="v2-coin-c" delay={1.2} />
+            <Party emoji="🎧" className="v2-coin-d" delay={0.8} />
           </div>
         </div>
         <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 h-100 w-100">
@@ -1552,6 +1648,7 @@ export default function StickyProductStory() {
             className="relative h-screen w-screen overflow-hidden rounded-none"
           >
             <div className="absolute inset-0 z-10 bg-black/40" />
+            <CoverCardUI />
             <LazyVideo
               className="absolute inset-0 block h-full w-full object-cover object-center brightness-120 "
               autoPlay
@@ -1567,80 +1664,56 @@ export default function StickyProductStory() {
 
         <div
           ref={finalScrollContentRef}
-          className="pointer-events-none absolute inset-x-0 top-0 z-[100] min-h-[160vh]"
+          className="pointer-events-none absolute inset-x-0 top-0 z-[100] h-screen"
         >
-          <div className="mx-auto flex min-h-[160vh] w-full max-w-7xl flex-col px-6 md:px-10">
-            <div className="pt-[16vh] text-left">
-              <h1
-                ref={finalScrollTitleRef}
-                className="max-w-4xl text-left  leading-[0.96] tracking-normal font-bold "
-                style={{
-                  fontWeight: 600,
-                  letterSpacing: "-0.01em",
-                  lineHeight: 1.1,
-                  color: "#fff",
-                  fontSize: "clamp(2.2rem, 7vw, 6.5rem)",
-                }}
-              >
-                {/* <BlurText
-                  as="span"
-                  text="Impulsando la noche real"
-                  className="block leading-[1.1] text-white"
-                /> */}
-                <BounceInText
-                  as="span"
-                  text="Impulsando "
-                  play={isFinalHeadlineActive}
-                  className="block leading-[1.1] text-white"
-                />
-                <BounceInText
-                  as="span"
-                  text="la noche real"
-                  play={isFinalHeadlineActive}
-                  delay={0.2}
-                  className="block leading-[1.1] text-white"
-                />
-              </h1>
+          <div className="relative mx-auto grid h-full w-full max-w-7xl grid-cols-1 items-center gap-10 px-6 pt-[9vh] md:grid-cols-[1.05fr_0.95fr] md:px-10">
+            <div className="text-left">
               <p
                 ref={finalScrollSubtitleRef}
-                className="mt-6 max-w-xl text-left text-shadow-md text-shadow-black/30"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-1.5 text-[13px] font-medium text-white/75"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-[#30D158] shadow-[0_0_10px_#30D158]" />
+                Eventos vivos, gente real, entradas listas
+              </p>
+              <h1
+                ref={finalScrollTitleRef}
+                className="mt-5 text-left font-bold text-white"
                 style={{
-                  fontSize: "clamp(0.95rem, 2.2vw, 1.2rem)",
-                  color: "rgba(255,255,255,0.78)",
-                  lineHeight: 1.4,
-                  fontWeight: 400,
+                  fontWeight: 700,
+                  letterSpacing: "-0.035em",
+                  lineHeight: 0.98,
+                  fontSize: "clamp(2.4rem, 5.4vw, 5.6rem)",
                 }}
               >
-                {/* <BounceInText
-                  as="span"
-                  text="Eventos vivos, gente real y entradas listas para salir sin perder tiempo."
-                  className="inline"
-                /> */}
-                Eventos vivos, gente real y entradas listas para salir sin
-                perder tiempo.
-              </p>
-            </div>
+                <ScrollLine text="Impulsando" />
+                <ScrollLine text="la noche real" />
+              </h1>
 
-            <div
-              ref={finalScrollBodyRef}
-              className="mt-[5vh] grid grid-cols-1 items-center gap-14 md:grid-cols-[0.78fr_1.22fr]"
-            >
-              <div className="final-copy-block max-w-md">
-                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6 shadow-[0_24px_70px_rgba(0,0,0,0.24)] backdrop-blur-[14px] md:p-7">
-                  <p className="text-xl font-medium leading-8 tracking-normal text-white/82 md:text-2xl md:leading-9">
-                    Compra y vende entradas, chatea con tu gente, haz match con
-                    quienes te cruzas y revive cada evento en tu perfil.
-                  </p>
-                  <div className="mt-8 flex flex-wrap gap-3">
-                    <AppStoreButton className="pointer-events-auto" />
-                    <PlayStoreButton className="pointer-events-auto" />
+              <div
+                ref={finalScrollBodyRef}
+                className="final-copy-block mt-9 grid max-w-[560px] grid-cols-2 gap-x-6 gap-y-5"
+              >
+                {FINAL_FEATURES.map(({ Icon, title, text, tint }) => (
+                  <div key={title} className="flex items-start gap-3">
+                    <span
+                      className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] text-white"
+                      style={{ background: tint }}
+                    >
+                      <Icon size={18} strokeWidth={2} aria-hidden />
+                    </span>
+                    <div className="leading-tight">
+                      <p className="text-[16px] font-semibold text-white">
+                        {title}
+                      </p>
+                      <p className="mt-1 text-[14px] text-white/55">{text}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 h-px w-28 bg-white/12" />
+                ))}
               </div>
 
-              <FinalHighlightStack />
             </div>
+
+            <FinalHighlightStack />
           </div>
         </div>
 
@@ -1652,26 +1725,25 @@ export default function StickyProductStory() {
             ref={finalBridgeTextRef}
             className="mx-auto grid h-screen max-w-7xl grid-cols-1 items-center gap-14 px-6 md:grid-cols-[1.25fr_0.75fr] md:gap-20 md:px-10"
           >
-            <h2
-              className="max-w-[720px] text-left  leading-[0.95] tracking-[-0.04em] whitespace-normal text-white [text-wrap:balance] break-normal text-shadow-lg text-shadow-white/0 font-bold"
-              style={{
-                fontSize: "clamp(3rem, 5.4vw, 6.4rem)",
-              }}
-            >
-              <BounceInText
-                as="span"
-                text="La noche"
-                play={isImprovedVersionActive}
-                className="block whitespace-nowrap leading-[0.95] text-white"
-              />
-              <BounceInText
-                as="span"
-                text="empieza aquí"
-                play={isImprovedVersionActive}
-                delay={0.18}
-                className="block max-w-[680px] leading-[0.95] text-white"
-              />
-            </h2>
+            <div>
+              <p className="final-bridge-extra mb-6 text-[13px] font-semibold uppercase tracking-[0.2em] text-white/50">
+                Disponible en iOS y Android
+              </p>
+              <h2
+                className="max-w-[720px] text-left font-bold leading-[0.95] tracking-[-0.04em] text-white [text-wrap:balance]"
+                style={{ fontSize: "clamp(3rem, 5.4vw, 6.4rem)" }}
+              >
+                <ScrollLine text="La noche" className="whitespace-nowrap" />
+                <ScrollLine text="empieza aquí" className="max-w-[680px]" />
+              </h2>
+              <p className="final-bridge-extra mt-6 max-w-md text-[18px] leading-[1.45] text-white/65">
+                Descarga ParyUp, mira qué pasa cerca de ti y entra con tu gente.
+              </p>
+              <div className="final-bridge-extra mt-8 flex flex-wrap gap-3">
+                <AppStoreButton className="pointer-events-auto" />
+                <PlayStoreButton className="pointer-events-auto" />
+              </div>
+            </div>
             <div aria-hidden className="hidden md:block" />
           </div>
         </div>
@@ -1680,43 +1752,170 @@ export default function StickyProductStory() {
   );
 }
 
+// Interfaz de evento en directo sobre el vídeo; solo aparece cuando el vídeo
+// ya se ha convertido en tarjeta al final de la historia.
+function CoverCardUI() {
+  return (
+    <div className="cover-card-ui absolute inset-0 z-20 flex flex-col justify-between bg-gradient-to-b from-black/30 via-transparent to-black/85 p-5 text-white">
+      <div className="flex items-center justify-between">
+        <span className="ios-glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold tracking-[0.04em]">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-[#FF453A]" />
+          EN DIRECTO
+        </span>
+        <span className="ios-glass rounded-full px-3 py-1.5 text-[12px] font-medium text-white/85">
+          Neon Vault
+        </span>
+      </div>
+
+      <div>
+        <p className="text-[34px] font-bold leading-none tracking-[-0.03em]">
+          Neon Night
+        </p>
+        <p className="mt-2 flex items-center gap-1 text-[14px] text-white/70">
+          <MapPin size={13} strokeWidth={2.2} aria-hidden />
+          Barcelona · Sáb 00:15
+        </p>
+        <div className="mt-5 flex items-center justify-between">
+          <div className="flex items-center">
+            {["#64D2FF", "#FFD60A", "#DA8FFF", "#30D158"].map((color, i) => (
+              <span
+                key={color}
+                className={`h-8 w-8 rounded-full border-2 border-black ${i > 0 ? "-ml-2.5" : ""}`}
+                style={{ background: color }}
+              />
+            ))}
+            <span className="ml-2.5 text-[13px] font-medium text-white/85">
+              1,2k dentro
+            </span>
+          </div>
+          <span className="rounded-full bg-white px-5 py-2.5 text-[14px] font-semibold text-black">
+            Entrar
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Línea de titular que se revela con el scroll: máscara que sube y barrido de
+// color, ambos controlados desde la línea de tiempo principal.
+function ScrollLine({
+  text,
+  className = "",
+}: {
+  text: string;
+  className?: string;
+}) {
+  return (
+    <span className={`block overflow-hidden pb-[0.1em] ${className}`}>
+      <span
+        data-scroll-line
+        className="scroll-line-text inline-block will-change-transform"
+      >
+        {text}
+      </span>
+    </span>
+  );
+}
+
+const FINAL_FEATURES = [
+  {
+    Icon: Ticket,
+    title: "Entradas",
+    text: "Compra y revende sin líos",
+    tint: "linear-gradient(135deg, #FF375F, #FF9F0A)",
+  },
+  {
+    Icon: MessageCircle,
+    title: "Chats",
+    text: "Tu grupo en cada plan",
+    tint: "linear-gradient(135deg, #0A84FF, #5E5CE6)",
+  },
+  {
+    Icon: Heart,
+    title: "Match",
+    text: "Con quien te cruzas",
+    tint: "linear-gradient(135deg, #BF5AF2, #FF375F)",
+  },
+  {
+    Icon: Images,
+    title: "Recap",
+    text: "Tu noche, guardada",
+    tint: "linear-gradient(135deg, #FFD60A, #FF9F0A)",
+  },
+];
+
+// Abanico de flyers de eventos: el central delante, los laterales abiertos.
+// La rotación final la pone la línea de tiempo (ver finalScrollCards).
 function FinalHighlightStack() {
   const cardStyles = [
-    {
-      className:
-        "left-[3%] top-[17%] z-30 h-[230px] w-[300px] md:h-[260px] md:w-[340px]",
-      sizes: "(min-width: 768px) 340px, 300px",
-    },
-    {
-      className:
-        "left-[34%] top-[9%] z-20 h-[218px] w-[286px] md:h-[246px] md:w-[320px]",
-      sizes: "(min-width: 768px) 320px, 286px",
-    },
-    {
-      className:
-        "left-[55%] top-[27%] z-10 h-[205px] w-[268px] md:h-[230px] md:w-[300px]",
-      sizes: "(min-width: 768px) 300px, 268px",
-    },
+    { className: "left-0 top-[14%] z-10", going: "86 van" },
+    { className: "left-[calc(50%-128px)] top-0 z-30", going: "312 van" },
+    { className: "right-0 top-[14%] z-20", going: "140 van" },
   ];
 
   return (
-    <div className="relative mx-auto h-[360px] w-full max-w-[660px]">
+    <div className="relative mx-auto hidden h-[440px] w-full max-w-[720px] md:block">
       {FINAL_HIGHLIGHT_EVENTS.map((item, index) => {
         const style = cardStyles[index] ?? cardStyles[0];
 
         return (
           <div
             key={`${item.title}-${item.date}`}
-            className={`final-scroll-card absolute will-change-transform ${style.className}`}
+            className={`final-scroll-card absolute h-[360px] w-[256px] will-change-transform ${style.className}`}
           >
-            <div className="relative h-full w-full overflow-hidden rounded-[34px] shadow-[0_32px_64px_rgba(0,0,0,0.46)]">
+            <div className="relative h-full w-full overflow-hidden rounded-[30px] border border-white/10 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]">
               <Image
                 src={item.image}
                 alt={item.title}
                 fill
-                sizes={style.sizes}
+                sizes="256px"
                 className="object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/30" />
+
+              <div className="absolute inset-x-3.5 top-3.5 flex items-start justify-between">
+                <span className="ios-glass rounded-[12px] px-2.5 py-1.5 text-center leading-none text-white">
+                  <span className="block text-[10px] font-semibold tracking-[0.12em] text-white/70">
+                    {item.date}
+                  </span>
+                  <span className="mt-1 block text-[15px] font-bold">
+                    23:30
+                  </span>
+                </span>
+                {item.badges?.[0] ? (
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-black">
+                    {item.badges[0]}
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="absolute inset-x-4 bottom-4">
+                <p className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-white">
+                  {item.title}
+                </p>
+                <p className="mt-1 flex items-center gap-1 text-[13px] text-white/70">
+                  <MapPin size={12} strokeWidth={2.2} aria-hidden />
+                  {item.handle}
+                </p>
+                <div className="mt-3 flex items-center justify-between">
+                  <div className="flex items-center">
+                    {["#64D2FF", "#FFD60A", "#DA8FFF"].map((color, i) => (
+                      <span
+                        key={color}
+                        className={`h-6 w-6 rounded-full border-2 border-black ${i > 0 ? "-ml-2" : ""}`}
+                        style={{ background: color }}
+                      />
+                    ))}
+                    <span className="ml-2 text-[12px] font-medium text-white/80">
+                      {style.going}
+                    </span>
+                  </div>
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-black">
+                    <ArrowRight size={15} strokeWidth={2.4} aria-hidden />
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -1755,77 +1954,24 @@ function FeatureFlowCard({ card }: { card: FeatureFlowCard }) {
       data-start={start}
       data-end={end}
       data-variant={card.variant}
-      className={`story-flow-card absolute top-full ${sideClass} hidden w-[450px] will-change-transform 2xl:block`}
+      className={`story-flow-card absolute top-full ${sideClass} hidden w-[400px] antialiased will-change-transform 2xl:block`}
     >
-      <div className="relative overflow-hidden rounded-[34px] border border-white/12 bg-[#08080a]/95 p-5 text-white shadow-[0_28px_80px_rgba(0,0,0,0.52),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
-        <motion.div
-          aria-hidden
-          animate={{ scale: [1, 1.08, 1], opacity: [0.18, 0.28, 0.18] }}
-          transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-          className="pointer-events-none absolute right-6 top-6 h-16 w-16 rounded-full blur-[32px]"
-          style={{
-            background:
-              "linear-gradient(90deg, #c679c4 0%, #fa3d1d 25%, #ffb005 50%, #e1e1fe 75%, #0358f7 100%)",
-          }}
-        />
+      <header className="mb-3 px-3">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.04em] text-[rgba(235,235,245,0.45)]">
+          {card.eyebrow}
+        </p>
+        <h3 className="mt-0.5 text-[22px] font-bold leading-tight tracking-[-0.02em] text-white">
+          {card.title}
+        </h3>
+        <p className="mt-0.5 text-[15px] leading-[1.35] tracking-[-0.01em] text-[rgba(235,235,245,0.6)]">
+          {card.description}
+        </p>
+      </header>
 
-        <div className="relative">
-          <div className="flex items-start justify-between gap-5">
-            <div className="max-w-[28ch]">
-              <motion.p
-                aria-hidden={false}
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{
-                  duration: 3.8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="inline-flex rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/72"
-              >
-                {card.eyebrow}
-              </motion.p>
-              <h3 className="mt-3 text-[1.55rem] font-semibold leading-[1.02] tracking-[-0.03em] text-white">
-                {card.title}
-              </h3>
-            </div>
-            <FeatureFlowIcon variant={card.variant} />
-          </div>
-
-          <p className="mt-2.5 max-w-[30ch] text-sm leading-5 text-white/62">
-            {card.description}
-          </p>
-
-          <div className="mt-5">
-            <FeatureFlowCardBody variant={card.variant} />
-          </div>
-        </div>
+      <div className="ios-surface relative overflow-hidden rounded-[38px] text-white">
+        <FeatureFlowCardBody variant={card.variant} />
       </div>
     </article>
-  );
-}
-
-function FeatureFlowIcon({ variant }: { variant: FeatureFlowCardVariant }) {
-  const Icon =
-    variant === "discover"
-      ? Search
-      : variant === "albums"
-        ? Images
-        : MessageCircle;
-
-  return (
-    <div
-      className="grid h-11 w-11 shrink-0 place-items-center rounded-[16px] border border-white/10 text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)]"
-      style={{
-        background:
-          variant === "chat"
-              ? "linear-gradient(135deg, rgba(198,121,196,0.26), rgba(250,61,29,0.16))"
-              : variant === "albums"
-                ? "linear-gradient(135deg, rgba(255,176,5,0.24), rgba(225,225,254,0.14))"
-                : "linear-gradient(135deg, rgba(250,61,29,0.22), rgba(255,176,5,0.18))",
-      }}
-    >
-      <Icon size={18} strokeWidth={1.8} aria-hidden />
-    </div>
   );
 }
 
@@ -1965,95 +2111,166 @@ function DiscoverFeatureCard() {
 }
 
 function AlbumsFeatureCard() {
-  const photos = [
-    { src: "/album/club-selfie-1.jpg", alt: "Foto del evento 1", featured: true },
-    { src: "/album/club-selfie-2.jpg", alt: "Foto del evento 2" },
-    { src: "/album/club-selfie-3.jpg", alt: "Foto del evento 3" },
-    { src: "/hero/3.jpg", alt: "Foto del evento 4" },
-    { src: "/hero/5.jpg", alt: "Foto del evento 5" },
-  ];
   const stats = [
-    { label: "Asistentes", value: "312" },
-    { label: "Fotos", value: "48" },
-    { label: "Amigos", value: "9" },
+    { value: "312", label: "personas en la pista", color: "#FFD60A" },
+    { value: "48", label: "fotos de la noche", color: "#FF375F" },
+    { value: "9", label: "amigos contigo", color: "#64D2FF" },
+  ];
+  const collage = [
+    {
+      src: "/album/club-selfie-2.jpg",
+      alt: "Foto del evento 2",
+      className: "right-5 top-[86px] rotate-[7deg]",
+    },
+    {
+      src: "/album/club-selfie-3.jpg",
+      alt: "Foto del evento 3",
+      className: "right-[74px] top-[142px] -rotate-[6deg]",
+    },
   ];
 
   return (
-    <div className="rounded-[28px] p-1">
-      <div className="grid h-[190px] grid-cols-3 grid-rows-2 gap-2">
-        {photos.map((photo) => (
-          <div
-            key={photo.src}
-            data-micro="photo"
-            data-featured-photo={photo.featured ? true : undefined}
-            className={`relative overflow-hidden rounded-2xl border border-white/10 will-change-transform ${
-              photo.featured ? "col-span-2 row-span-2" : ""
-            }`}
+    // Recap en formato story, como un vídeo de Wrapped: segmentos arriba,
+    // tipografía enorme y la canción de la noche sonando abajo.
+    <div className="relative h-[560px] overflow-hidden bg-black">
+      <div
+        data-featured-photo
+        className="absolute inset-0 will-change-transform"
+      >
+        <Image
+          src="/album/club-selfie-1.jpg"
+          alt="Foto del evento 1"
+          fill
+          className="ios-kenburns object-cover"
+          sizes="400px"
+        />
+      </div>
+      <div className="absolute inset-0 bg-[linear-gradient(160deg,rgba(94,92,230,0.82)_0%,rgba(191,90,242,0.55)_42%,rgba(0,0,0,0.92)_78%)] mix-blend-multiply" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/85" />
+
+      <div className="absolute inset-x-3.5 top-3.5 flex gap-1">
+        {[0, 1, 2, 3, 4].map((segment) => (
+          <span
+            key={segment}
+            className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30"
           >
-            <Image
-              src={photo.src}
-              alt={photo.alt}
-              fill
-              className="object-cover"
-              sizes={photo.featured ? "260px" : "120px"}
-            />
-            {photo.featured ? (
-              <>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-                <div className="absolute inset-x-3 bottom-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">
-                    Sáb 10 oct
-                  </p>
-                  <p className="text-lg font-semibold leading-tight text-white">
-                    Neon Night
-                  </p>
-                </div>
-              </>
+            {segment < 2 ? (
+              <span className="block h-full w-full bg-white" />
+            ) : segment === 2 ? (
+              <span
+                data-micro="progress"
+                className="block h-full origin-left bg-white will-change-transform"
+              />
             ) : null}
-          </div>
+          </span>
         ))}
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      <div className="absolute inset-x-4 top-7 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[#FF375F] to-[#FF9F0A] text-[11px] font-bold text-white">
+            PU
+          </span>
+          <div className="leading-tight">
+            <p className="text-[14px] font-semibold text-white">
+              Tu recap · Neon Night
+            </p>
+            <p className="text-[12px] text-white/65">Sáb 10 oct</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="ios-glass grid h-8 w-8 place-items-center rounded-full text-white">
+            <Pause size={14} fill="currentColor" strokeWidth={0} aria-hidden />
+          </span>
+          <span className="ios-glass grid h-8 w-8 place-items-center rounded-full text-white">
+            <Ellipsis size={16} strokeWidth={2.4} aria-hidden />
+          </span>
+        </div>
+      </div>
+
+      {collage.map((photo) => (
+        <div
+          key={photo.src}
+          data-micro="photo"
+          className={`absolute h-[118px] w-[92px] overflow-hidden rounded-[16px] border-[3px] border-white shadow-[0_18px_40px_rgba(0,0,0,0.45)] will-change-transform ${photo.className}`}
+        >
+          <Image
+            src={photo.src}
+            alt={photo.alt}
+            fill
+            className="object-cover"
+            sizes="92px"
+          />
+        </div>
+      ))}
+
+      <div className="absolute inset-x-5 top-[104px]">
+        <p className="text-[15px] font-semibold text-white/80">Tu noche en</p>
+        <p className="text-[40px] font-black leading-[0.9] tracking-[-0.045em] text-white">
+          números
+        </p>
+      </div>
+
+      <div className="absolute inset-x-5 bottom-[112px] space-y-1">
         {stats.map((stat) => (
           <div
             key={stat.label}
             data-micro="chip"
-            className="rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-center will-change-transform"
+            className="flex items-baseline gap-3 will-change-transform"
           >
-            <p className="text-lg font-semibold leading-none text-white">
+            <span
+              className="text-[56px] font-black leading-[0.95] tracking-[-0.05em]"
+              style={{ color: stat.color }}
+            >
               {stat.value}
-            </p>
-            <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-white/50">
+            </span>
+            <span className="text-[17px] font-semibold leading-tight tracking-[-0.01em] text-white">
               {stat.label}
-            </p>
+            </span>
           </div>
         ))}
       </div>
 
-      <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="relative h-4 min-w-0 flex-1 overflow-hidden">
-            <span
-              data-micro="status-old"
-              className="absolute left-0 top-0 text-sm font-medium leading-4 text-white/55"
-            >
-              Preparando tu recap…
-            </span>
-            <span
-              data-micro="status-new"
-              className="absolute left-0 top-0 text-sm font-semibold leading-4 text-white opacity-0"
-            >
-              Recap listo
-            </span>
+      <div className="absolute inset-x-3.5 bottom-3.5">
+        <div className="ios-glass flex items-center gap-3 rounded-[20px] p-2 pr-3">
+          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[10px]">
+            <Image
+              src="/hero/5.jpg"
+              alt="Portada de la canción"
+              fill
+              className="object-cover"
+              sizes="44px"
+            />
           </div>
-          <Check size={15} strokeWidth={2.2} className="text-emerald-300" aria-hidden />
-        </div>
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
-          <span
-            data-micro="progress"
-            className="block h-full origin-left rounded-full bg-gradient-to-r from-[#0358f7] via-[#c679c4] to-[#ffb005] will-change-transform"
-          />
+          <div className="relative h-9 min-w-0 flex-1 overflow-hidden">
+            <div
+              data-micro="status-old"
+              className="absolute inset-x-0 top-0 leading-tight"
+            >
+              <p className="text-[14px] font-semibold text-white">
+                Montando tu recap…
+              </p>
+              <p className="text-[12px] text-white/65">
+                Eligiendo los mejores momentos
+              </p>
+            </div>
+            <div
+              data-micro="status-new"
+              className="absolute inset-x-0 top-0 leading-tight opacity-0"
+            >
+              <p className="truncate text-[14px] font-semibold text-white">
+                Classic XX&apos;
+              </p>
+              <p className="truncate text-[12px] text-white/65">
+                Sonó a las 00:15 · Neon Vault
+              </p>
+            </div>
+          </div>
+          <span className="ios-eq flex h-4 items-end gap-[3px]" aria-hidden>
+            {[0, 1, 2, 3].map((bar) => (
+              <span key={bar} className="w-[3px] rounded-full bg-[#30D158]" />
+            ))}
+          </span>
         </div>
       </div>
     </div>
@@ -2062,93 +2279,149 @@ function AlbumsFeatureCard() {
 
 function ChatFeatureCard() {
   const avatars = [
-    { label: "LU", className: "bg-[#8fd3ff] text-zinc-950" },
-    { label: "MA", className: "bg-[#ffe08a] text-[#7a4d00]" },
-    { label: "IN", className: "bg-[#d8b4fe] text-[#522785]" },
+    { label: "LU", className: "from-[#64D2FF] to-[#0A84FF]" },
+    { label: "MA", className: "from-[#FFD60A] to-[#FF9F0A]" },
+    { label: "IN", className: "from-[#DA8FFF] to-[#BF5AF2]" },
   ];
 
   return (
-    <div className="rounded-[28px] p-1">
-      <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-2.5">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center pl-1">
-            {avatars.map((avatar) => (
+    <div className="flex flex-col bg-black">
+      {/* Barra de navegación de Mensajes */}
+      <div className="ios-bar relative flex items-start justify-between px-4 pb-2.5 pt-4">
+        <span className="flex items-center text-[#0A84FF]">
+          <ChevronLeft size={26} strokeWidth={2.4} aria-hidden />
+          <span className="-ml-0.5 grid h-[22px] min-w-[22px] place-items-center rounded-full bg-[#0A84FF] px-1.5 text-[12px] font-semibold text-white">
+            12
+          </span>
+        </span>
+
+        <div className="flex flex-col items-center">
+          <div className="flex items-center">
+            {avatars.map((avatar, index) => (
               <div
                 key={avatar.label}
                 data-micro="avatar"
-                className={`-ml-2.5 grid h-9 w-9 place-items-center rounded-full border-2 border-[#101012] text-[11px] font-bold will-change-transform first:ml-0 ${avatar.className}`}
+                className={`grid h-10 w-10 place-items-center rounded-full border-2 border-[#161618] bg-gradient-to-b text-[13px] font-semibold text-white will-change-transform ${avatar.className} ${
+                  index > 0 ? "-ml-3" : ""
+                }`}
               >
                 {avatar.label}
               </div>
             ))}
           </div>
-          <div className="leading-tight">
-            <p className="text-sm font-semibold text-white">Neon Night</p>
-            <p className="text-[11px] text-white/50">Grupo · 3 dentro</p>
-          </div>
+          <p className="mt-1 flex items-center text-[12px] font-medium text-white">
+            Neon Night
+            <ChevronRight
+              size={12}
+              strokeWidth={2.6}
+              className="text-[rgba(235,235,245,0.3)]"
+              aria-hidden
+            />
+          </p>
+          <p
+            data-friends-pill
+            className="mt-0.5 flex items-center gap-1 text-[11px] text-[#30D158] will-change-transform"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-[#30D158]" />3 dentro
+          </p>
         </div>
-        <span
-          data-micro="chip"
-          data-friends-pill
-          className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold uppercase text-emerald-300 will-change-transform"
-        >
-          <Users size={12} strokeWidth={1.9} aria-hidden />
-          En vivo
+
+        <span className="pt-0.5 text-[#0A84FF]">
+          <Video size={24} strokeWidth={1.9} aria-hidden />
         </span>
       </div>
 
-      <div className="mt-3 space-y-2.5 rounded-2xl border border-white/10 bg-[#0e0e11] p-3.5">
+      <div className="flex flex-col gap-1 px-3 pb-3 pt-3">
+        <p className="mb-2 text-center text-[11px] text-[rgba(235,235,245,0.6)]">
+          <span className="font-semibold">Hoy</span> 23:41
+        </p>
+
         <div
-          data-micro="message"
           data-chat-step="first"
-          className="mr-14 will-change-transform"
+          className="flex items-end gap-2 will-change-transform"
         >
-          <p className="mb-1 pl-2 text-[10px] font-medium text-white/40">Lucía</p>
-          <div className="rounded-[20px] rounded-tl-md bg-[#1c1c21] px-4 py-2.5 text-sm leading-5 text-white/85">
-            Ya estoy en la cola 🙌
+          <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-b from-[#64D2FF] to-[#0A84FF] text-[10px] font-semibold text-white">
+            LU
+          </div>
+          <div>
+            <p className="mb-0.5 pl-3 text-[11px] text-[rgba(235,235,245,0.6)]">
+              Lucía
+            </p>
+            <div className="ios-bubble ios-bubble-in relative">
+              Ya estoy en la cola 🙌
+              <span className="ios-tapback">❤️</span>
+            </div>
           </div>
         </div>
+
         <div
-          data-micro="message"
           data-chat-step="second"
-          className="ml-14 rounded-[20px] rounded-tr-md bg-gradient-to-br from-[#2f6bff] to-[#0358f7] px-4 py-2.5 text-sm font-medium leading-5 text-white will-change-transform"
+          className="mt-1 flex justify-end will-change-transform"
         >
-          Os guardo sitio, entro ya
+          <div className="ios-bubble ios-bubble-out">
+            Os guardo sitio, entro ya
+          </div>
         </div>
+
         <div
-          data-micro="message"
+          data-reaction-chip
+          className="mt-1.5 flex items-end gap-2 will-change-transform"
+        >
+          <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-b from-[#FFD60A] to-[#FF9F0A] text-[10px] font-semibold text-white">
+            MA
+          </div>
+          <div className="w-[210px] overflow-hidden rounded-[18px] bg-[#262629]">
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-[#FF375F] to-[#FF9F0A] text-white">
+                <Ticket size={19} strokeWidth={2} aria-hidden />
+              </span>
+              <div className="min-w-0 leading-tight">
+                <p className="text-[14px] font-semibold text-white">
+                  3 entradas listas
+                </p>
+                <p className="mt-0.5 text-[12px] text-[rgba(235,235,245,0.6)]">
+                  Neon Night · 00:15
+                </p>
+              </div>
+            </div>
+            <div className="border-t border-[rgba(84,84,88,0.55)] py-2 text-center text-[13px] font-medium text-[#0A84FF]">
+              Ver entradas
+            </div>
+          </div>
+        </div>
+
+        <div
           data-chat-step="typing"
-          className="mr-14 flex w-fit items-center gap-1.5 rounded-[20px] rounded-tl-md bg-[#1c1c21] px-4 py-3 will-change-transform"
+          className="ios-typing mt-1.5 ml-9 flex w-fit items-center gap-1 rounded-full bg-[#262629] px-3.5 py-3 will-change-transform"
         >
           {[0, 1, 2].map((dot) => (
             <span
               key={dot}
               data-micro="typing"
-              className="h-1.5 w-1.5 rounded-full bg-white/60 will-change-transform"
+              className="h-2 w-2 rounded-full bg-[rgba(235,235,245,0.45)] will-change-transform"
             />
           ))}
         </div>
+
         <div
-          data-micro="chip"
-          data-reaction-chip
-          className="ml-auto flex w-fit items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-white/80 will-change-transform"
-        >
-          <Heart size={12} strokeWidth={1.9} className="text-pink-400" aria-hidden />
-          3 entradas listas
-        </div>
-        <div
-          data-micro="message"
           data-final-message
-          className="ml-10 flex items-center justify-between gap-2 rounded-[20px] rounded-tr-md bg-gradient-to-br from-[#2f6bff] to-[#0358f7] px-4 py-2.5 text-sm font-medium leading-5 text-white will-change-transform"
+          className="mt-1 flex flex-col items-end will-change-transform"
         >
-          Nos vemos dentro
-          <Check size={15} strokeWidth={2.2} aria-hidden />
+          <div className="ios-bubble ios-bubble-out">Nos vemos dentro</div>
+          <p className="mt-1 pr-1 text-[11px] text-[rgba(235,235,245,0.6)]">
+            <span className="font-semibold">Leído</span> 23:42
+          </p>
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white/40">
-        <span className="flex-1">Escribe un mensaje…</span>
-        <MessageCircle size={15} strokeWidth={1.8} aria-hidden />
+      <div className="flex items-center gap-2 px-3 pb-4 pt-1">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#262629] text-[rgba(235,235,245,0.6)]">
+          <Plus size={20} strokeWidth={2.2} aria-hidden />
+        </span>
+        <div className="flex h-9 flex-1 items-center justify-between rounded-full border border-[rgba(84,84,88,0.65)] pl-4 pr-3 text-[16px] text-[rgba(235,235,245,0.3)]">
+          Mensaje
+          <Mic size={18} strokeWidth={2} aria-hidden />
+        </div>
       </div>
     </div>
   );

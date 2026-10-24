@@ -1179,6 +1179,17 @@ export const PlayStoreIcon = (props: SVGProps<SVGSVGElement>) => {
   );
 };
 
+export const GooglePlayColorIcon = (props: SVGProps<SVGSVGElement>) => {
+  return (
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path fill="#00A0FF" d="M3.9 2.4v19.2l8.5-9.6z" />
+      <path fill="#00E176" d="M3.9 2.4 12.4 12h2.1l2.4-2.1z" />
+      <path fill="#FF3A44" d="m3.9 21.6 8.5-9.6h2.1l2.4 2.1z" />
+      <path fill="#FFD400" d="M14.5 12l2.4-2.1 3.5 2.1-3.5 2.1z" />
+    </svg>
+  );
+};
+
 export const HeartIcon = (props: SVGProps<SVGSVGElement>) => {
   return (
     <svg

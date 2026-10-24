@@ -1,408 +1,207 @@
 "use client";
 
-import * as React from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { cn } from "@/lib/utils";
-import {
-  AppleStoreButton,
-  PlayStoreButton,
-} from "@/components/common/buttonStore";
-import Link from "next/link";
+import "./footer.css";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const STYLES = `
+type FooterLink = { label: string; href: string; external?: boolean };
 
-.cinematic-footer-wrapper {
-  -webkit-font-smoothing: antialiased;
-  
-  /* Dynamic Variables using standard shadcn/tailwind v4 tokens */
-  --pill-bg-1: color-mix(in oklch, var(--foreground) 3%, transparent);
-  --pill-bg-2: color-mix(in oklch, var(--foreground) 1%, transparent);
-  --pill-shadow: color-mix(in oklch, var(--background) 50%, transparent);
-  --pill-highlight: color-mix(in oklch, var(--foreground) 10%, transparent);
-  --pill-inset-shadow: color-mix(in oklch, var(--background) 80%, transparent);
-  --pill-border: color-mix(in oklch, var(--foreground) 8%, transparent);
-  
-  --pill-bg-1-hover: color-mix(in oklch, var(--foreground) 8%, transparent);
-  --pill-bg-2-hover: color-mix(in oklch, var(--foreground) 2%, transparent);
-  --pill-border-hover: color-mix(in oklch, var(--foreground) 20%, transparent);
-  --pill-shadow-hover: color-mix(in oklch, var(--background) 70%, transparent);
-  --pill-highlight-hover: color-mix(in oklch, var(--foreground) 20%, transparent);
+const LINKS: FooterLink[] = [
+  { label: "App Store", href: "#" },
+  { label: "Google Play", href: "#" },
+  { label: "Eventos", href: "#eventos" },
+  { label: "Soporte", href: "#" },
+  { label: "Privacidad", href: "#" },
+  { label: "Términos", href: "#" },
+];
+
+const SOCIALS: FooterLink[] = [
+  { label: "TikTok", href: "https://tiktok.com", external: true },
+  { label: "Instagram", href: "https://instagram.com", external: true },
+  { label: "X", href: "https://twitter.com", external: true },
+  { label: "LinkedIn", href: "https://linkedin.com", external: true },
+];
+
+// La noche "empieza" a las 23:00 y dura hasta las 06:00.
+function nightLine(now: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const clock = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const hour = now.getHours();
+
+  if (hour >= 23 || hour < 6) {
+    return `Son las ${clock} y la noche ya ha empezado.`;
+  }
+
+  const start = new Date(now);
+  start.setHours(23, 0, 0, 0);
+  const minutes = Math.round((start.getTime() - now.getTime()) / 60000);
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const left = h > 0 ? `${h} h ${m} min` : `${m} min`;
+
+  return `Son las ${clock}. La noche empieza en ${left}.`;
 }
 
-@keyframes footer-breathe {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+function useNightLine() {
+  const [line, setLine] = useState<string | null>(null);
+
+  useEffect(() => {
+    const update = () => setLine(nightLine(new Date()));
+    update();
+    const id = window.setInterval(update, 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return line;
 }
 
-@keyframes footer-scroll-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-@keyframes footer-heartbeat {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px color-mix(in oklch, var(--destructive) 50%, transparent)); }
-  15%, 45% { transform: scale(1.2); filter: drop-shadow(0 0 10px color-mix(in oklch, var(--destructive) 80%, transparent)); }
-  30% { transform: scale(1); }
-}
-
-.animate-footer-breathe {
-  animation: footer-breathe 8s ease-in-out infinite alternate;
-}
-
-.animate-footer-scroll-marquee {
-  animation: footer-scroll-marquee 40s linear infinite;
-}
-
-.animate-footer-heartbeat {
-  animation: footer-heartbeat 2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-}
-
-/* Theme-adaptive Grid Background */
-.footer-bg-grid {
-  background-size: 60px 60px;
-  background-image: 
-    linear-gradient(to right, color-mix(in oklch, rgba(255, 255, 255, .5) 3%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklch, rgba(255, 255, 255, .1) 3%, transparent) 1px, transparent 1px);
-  mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
-}
-
-.footer-aurora {
-  background: radial-gradient(
-    circle at 50% 50%, 
-    color-mix(in oklch, var(--primary) 15%, transparent) 0%, 
-    color-mix(in oklch, var(--secondary) 15%, transparent) 40%, 
-    transparent 70%
+function FooterLinkItem({ link }: { link: FooterLink }) {
+  return (
+    <li>
+      <Link
+        href={link.href}
+        className="footer-link"
+        {...(link.external
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
+      >
+        {link.label}
+      </Link>
+    </li>
   );
 }
 
-.footer-glass-pill {
-  background: linear-gradient(145deg, var(--pill-bg-1) 0%, var(--pill-bg-2) 100%);
-  box-shadow: 
-      0 10px 30px -10px var(--pill-shadow), 
-      inset 0 1px 1px var(--pill-highlight), 
-      inset 0 -1px 2px var(--pill-inset-shadow);
-  border: 1px solid var(--pill-border);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.footer-glass-pill:hover {
-  background: linear-gradient(145deg, var(--pill-bg-1-hover) 0%, var(--pill-bg-2-hover) 100%);
-  border-color: var(--pill-border-hover);
-  box-shadow: 
-      0 20px 40px -10px var(--pill-shadow-hover), 
-      inset 0 1px 1px var(--pill-highlight-hover);
-  color: var(--foreground);
-}
-
-/* Giant Background Text Masking */
-.footer-giant-bg-text {
-  font-size: 23vw;
-  line-height: 0.75;
-  font-weight: 900;
-  letter-spacing: -0.05em;
-  color: transparent;
-  -webkit-text-stroke: 1px color-mix(in oklch, var(--foreground) 5%, transparent);
-  background: linear-gradient(180deg, color-mix(in oklch, var(--foreground) 10%, transparent) 0%, transparent 60%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-
-.footer-text-glow {
-  background: linear-gradient(180deg, var(--foreground) 0%, color-mix(in oklch, var(--foreground) 40%, transparent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0px 0px 20px color-mix(in oklch, var(--foreground) 15%, transparent));
-}
-`;
-
-export type MagneticButtonProps =
-  React.ButtonHTMLAttributes<HTMLButtonElement> &
-    React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-      as?: React.ElementType;
-    };
-
-const MagneticButton = React.forwardRef<HTMLElement, MagneticButtonProps>(
-  (
-    { className, children, as: Component = "button", ...props },
-    forwardedRef,
-  ) => {
-    const localRef = useRef<HTMLElement>(null);
-
-    useEffect(() => {
-      if (typeof window === "undefined") return;
-      const element = localRef.current;
-      if (!element) return;
-
-      const ctx = gsap.context(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-          const rect = element.getBoundingClientRect();
-          const h = rect.width / 2;
-          const w = rect.height / 2;
-          const x = e.clientX - rect.left - h;
-          const y = e.clientY - rect.top - w;
-
-          gsap.to(element, {
-            x: x * 0.4,
-            y: y * 0.4,
-            rotationX: -y * 0.15,
-            rotationY: x * 0.15,
-            scale: 1.05,
-            ease: "power2.out",
-            duration: 0.4,
-          });
-        };
-
-        const handleMouseLeave = () => {
-          gsap.to(element, {
-            x: 0,
-            y: 0,
-            rotationX: 0,
-            rotationY: 0,
-            scale: 1,
-            ease: "elastic.out(1, 0.3)",
-            duration: 1.2,
-          });
-        };
-
-        element.addEventListener("mousemove", handleMouseMove as any);
-        element.addEventListener("mouseleave", handleMouseLeave);
-
-        return () => {
-          element.removeEventListener("mousemove", handleMouseMove as any);
-          element.removeEventListener("mouseleave", handleMouseLeave);
-        };
-      }, element);
-
-      return () => ctx.revert();
-    }, []);
-
-    return (
-      <Component
-        ref={(node: HTMLElement) => {
-          (localRef as any).current = node;
-          if (typeof forwardedRef === "function") forwardedRef(node);
-          else if (forwardedRef) (forwardedRef as any).current = node;
-        }}
-        className={cn("cursor-pointer", className)}
-        {...props}
-      >
-        {children}
-      </Component>
-    );
-  },
-);
-MagneticButton.displayName = "MagneticButton";
-
-const MarqueeItem = () => (
-  <div className="flex items-center space-x-12 px-6">
-    <span>Descubre qué pasa hoy</span>
-    <span className="text-primary/60">✦</span>
-    <span>Haz match</span>
-    <span className="text-secondary/60">✦</span>
-    <span>Compra entradas</span>
-    <span className="text-primary/60">✦</span>
-    <span>Sal con tu gente</span>
-    <span className="text-secondary/60">✦</span>
-    <span>Vive la noche sin vueltas</span>
-    <span className="text-primary/60">✦</span>
-  </div>
-);
-
 export const FooterScreen = () => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const giantTextRef = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const linksRef = useRef<HTMLDivElement>(null);
+  const signRef = useRef<HTMLDivElement>(null);
+  const nightLineText = useNightLine();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
     if (!wrapperRef.current) return;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reduced) return;
 
+    // Atado al scroll mientras el telón (CTAScreen) se levanta. Solo se mueve:
+    // nada queda oculto aunque el disparador se calcule pronto.
     const ctx = gsap.context(() => {
+      const scroll = {
+        trigger: wrapperRef.current,
+        start: "top 85%",
+        end: "bottom bottom",
+        scrub: 0.6,
+      };
+
       gsap.fromTo(
-        giantTextRef.current,
-        { y: "10vh", scale: 0.8, opacity: 0 },
+        signRef.current,
+        { yPercent: 18, scale: 0.94 },
         {
-          y: "0vh",
+          yPercent: 0,
           scale: 1,
-          opacity: 1,
-          ease: "power1.out",
-          scrollTrigger: {
-            trigger: wrapperRef.current,
-            start: "top 80%",
-            end: "bottom bottom",
-            scrub: 1,
-          },
+          ease: "none",
+          scrollTrigger: scroll,
         },
       );
-
       gsap.fromTo(
-        [headingRef.current, linksRef.current],
-        { y: 50, opacity: 0 },
+        "[data-footer-rise]",
+        { y: 40 },
         {
           y: 0,
-          opacity: 1,
-          stagger: 0.15,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: wrapperRef.current,
-            start: "top 40%",
-            end: "bottom bottom",
-            scrub: 1,
-          },
+          stagger: 0.08,
+          ease: "power2.out",
+          scrollTrigger: { ...scroll, start: "top 70%" },
         },
       );
     }, wrapperRef);
 
-    return () => ctx.revert();
+    // El footer está al final: si la página crece después de montar (imágenes,
+    // secciones que cambian de alto), hay que recalcular dónde empieza.
+    let timer = 0;
+    const refresh = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => ScrollTrigger.refresh(), 150);
+    };
+    const observer = new ResizeObserver(refresh);
+    observer.observe(document.body);
+
+    return () => {
+      window.clearTimeout(timer);
+      observer.disconnect();
+      ctx.revert();
+    };
   }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
-
-      <div
-        ref={wrapperRef}
-        className="relative h-screen w-full"
-        style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
-      >
-        <footer className="fixed bottom-0 left-0 flex h-screen w-full flex-col justify-between overflow-hidden bg-stone-800 text-foreground cinematic-footer-wrapper">
-          <div className="footer-aurora absolute left-1/2 top-1/2 h-[60vh] w-[80vw] -translate-x-1/2 -translate-y-1/2 animate-footer-breathe rounded-[50%] blur-[20px] pointer-events-none z-0" />
-          <div className="footer-bg-grid absolute inset-0 z-0 pointer-events-none" />
-
+    <div
+      ref={wrapperRef}
+      className="relative h-svh w-full"
+      style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
+    >
+      <footer className="paryup-footer fixed bottom-0 left-0 flex h-svh w-full flex-col justify-end overflow-hidden">
+        <div className="footer-frame">
           <div
-            ref={giantTextRef}
-            className="footer-giant-bg-text absolute -bottom-[5vh] left-1/2 -translate-x-1/2 whitespace-nowrap z-0 pointer-events-none select-none"
+            data-footer-rise
+            className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
           >
-            PARYUP
+            <h2 className="footer-title">¿Salimos hoy?</h2>
+            <p className="footer-lead">
+              {nightLineText ?? "La noche empieza a las 23:00."} Descarga
+              ParyUp y entra con tu gente.
+            </p>
           </div>
+        </div>
 
-          <div className="absolute top-42 left-0 w-full overflow-hidden border-y border-border/50 bg-background/60 backdrop-blur-md py-4 z-10 -rotate-2 scale-110 shadow-2xl">
-            <div className="flex w-max animate-footer-scroll-marquee text-xs md:text-sm font-bold tracking-[0.3em] text-muted-foreground uppercase">
-              <MarqueeItem />
-              <MarqueeItem />
+        {/* El vídeo de la noche solo se ve a través de las letras: la capa
+            negra con el texto en blanco se multiplica sobre el vídeo. */}
+        <div ref={signRef} className="footer-sign" aria-hidden>
+          <video
+            className="footer-sign-video"
+            src="/video/fest.mp4"
+            poster="/album/club-selfie-2.jpg"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+          />
+          <div className="footer-sign-lift" />
+          <div className="footer-sign-mask">
+            <span>PARYUP</span>
+          </div>
+        </div>
+
+        <div className="footer-frame footer-bottom">
+          <div
+            data-footer-rise
+            className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between"
+          >
+            <nav aria-label="Pie de página">
+              <ul className="flex flex-wrap gap-x-6 gap-y-2">
+                {LINKS.map((link) => (
+                  <FooterLinkItem key={link.label} link={link} />
+                ))}
+              </ul>
+            </nav>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <ul className="flex flex-wrap gap-x-6 gap-y-2">
+                {SOCIALS.map((link) => (
+                  <FooterLinkItem key={link.label} link={link} />
+                ))}
+              </ul>
+              <p className="footer-legal">
+                © {new Date().getFullYear()} ParyUp
+              </p>
             </div>
           </div>
-
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 mt-20 w-full max-w-5xl mx-auto">
-            <h2
-              ref={headingRef}
-              className="text-5xl md:text-8xl font-black footer-text-glow tracking-tighter mb-12 text-center"
-            >
-              ¿Salimos hoy?
-            </h2>
-
-            <div
-              ref={linksRef}
-              className="flex flex-col items-center gap-6 w-full"
-            >
-              <div className="flex flex-wrap justify-center gap-4 w-full">
-                <MagneticButton as="a" href="#" className="">
-                  <AppleStoreButton className=" rounded-full text-foreground font-bold text-sm md:text-base flex items-center  group" />
-                </MagneticButton>
-
-                <MagneticButton as="a" href="#" className="">
-                  <PlayStoreButton className=" rounded-full text-foreground font-bold text-sm md:text-base flex items-center  group" />
-                </MagneticButton>
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-3 md:gap-6 w-full mt-2">
-                <MagneticButton
-                  as="a"
-                  href="#"
-                  className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground"
-                >
-                  Privacidad
-                </MagneticButton>
-                <MagneticButton
-                  as="a"
-                  href="#"
-                  className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground"
-                >
-                  Términos de Servicio
-                </MagneticButton>
-                <MagneticButton
-                  as="a"
-                  href="#"
-                  className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground"
-                >
-                  Soporte
-                </MagneticButton>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative z-20 w-full pb-8 px-6 md:px-22 flex flex-col md:flex-row items-end justify-between gap-6">
-            <div className="text-muted-foreground text-md md:text-xs font-semibold tracking-widest uppercase order-1 md:order-1">
-              © {new Date().getFullYear()} ParyUp. Todos los derechos
-              reservados.
-            </div>
-
-            <div className="flex flex-col items-start justify-center md:order-2">
-              <span>
-                <h3 className="text-white/50 ">SOCIALS</h3>
-              </span>
-
-              <div className="flex flex-row gap-4 font-medium">
-                <MagneticButton>
-                  <Link
-                    href="https://tiktok.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <p>TikTok</p>
-                  </Link>
-                </MagneticButton>
-
-                <MagneticButton>
-                  <Link
-                    href="https://twitter.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <p>Twitter</p>
-                  </Link>
-                </MagneticButton>
-
-                <MagneticButton>
-                  <Link
-                    href="https://instagram.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <p>Instagram</p>
-                  </Link>
-                </MagneticButton>
-
-                <MagneticButton>
-                  <Link
-                    href="https://linkedin.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <p>Linkedin</p>
-                  </Link>
-                </MagneticButton>
-              </div>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </>
+        </div>
+      </footer>
+    </div>
   );
 };

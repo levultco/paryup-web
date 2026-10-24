@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { AppleIcon, PlayStoreIcon } from "@/public/icons/icons";
+import { AppleIcon, GooglePlayColorIcon } from "@/public/icons/icons";
 
 type StoreButtonProps = Omit<React.ComponentProps<typeof Button>, "children">;
 
@@ -23,10 +23,11 @@ function StoreBadge({
   type,
   ...props
 }: StoreBadgeProps) {
+  // Pareja principal y secundaria, sin borde: blanco sólido y gris translúcido.
   const toneClasses =
     tone === "light"
-      ? "bg-white text-black border-white/80 shadow-[0_8px_24px_rgba(255,255,255,0.14)] hover:bg-white/95"
-      : "bg-black/70 text-white border-white/12 shadow-[0_8px_24px_rgba(0,0,0,0.45)] hover:bg-black/85";
+      ? "bg-white text-black border-transparent shadow-[0_10px_30px_rgba(255,255,255,0.12)] hover:bg-white/90"
+      : "bg-white/10 text-white border-transparent hover:bg-white/15";
 
   const ariaLabel = props["aria-label"] ?? defaultAriaLabel;
 
@@ -76,7 +77,7 @@ export function AppStoreButton({ className, ...props }: StoreButtonProps) {
 export function PlayStoreButton({ className, ...props }: StoreButtonProps) {
   return (
     <StoreBadge
-      icon={PlayStoreIcon}
+      icon={GooglePlayColorIcon}
       eyebrow="Descargar en"
       label="Google Play"
       defaultAriaLabel="Get it on Google Play"

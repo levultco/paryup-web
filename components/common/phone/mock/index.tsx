@@ -17,7 +17,7 @@ export const PhoneMock = ({
   height = 128,
   rotate = 0,
   className = "",
-  imageSrc = "/features/home.png",
+  imageSrc = "/features/message.png",
   imageAlt = "Vista de la app en móvil",
 }: PhoneMockProps) => {
   return (
