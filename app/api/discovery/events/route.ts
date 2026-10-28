@@ -8,8 +8,15 @@ export async function GET(request: Request) {
   const date = searchParams.get("date") ?? "";
   const price = searchParams.get("price") ?? "any";
 
-  if (!isArea(area) || !parseKey(date) || !["any", "free", "paid"].includes(price)) {
-    return NextResponse.json({ error: "Parámetros inválidos" }, { status: 400 });
+  if (
+    !isArea(area) ||
+    !parseKey(date) ||
+    !["any", "free", "paid"].includes(price)
+  ) {
+    return NextResponse.json(
+      { error: "Parámetros inválidos" },
+      { status: 400 },
+    );
   }
 
   try {

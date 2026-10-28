@@ -1,5 +1,5 @@
 import { ExitIcon, TicketIcon } from "@/public/icons/icons";
-import { UserCircleIcon } from "@/components/icons/solar";
+import { UserCircleIcon, WidgetIcon } from "@/components/icons/solar";
 
 export type ProfileMenuItem = {
   labelKey: string;
@@ -7,6 +7,8 @@ export type ProfileMenuItem = {
   href?: string;
   icon: React.ReactNode;
   action?: "logout";
+  /** Solo se muestra si el usuario puede crear o ya pertenece a una organización. */
+  requires?: "organizations";
 };
 
 export const ProfileMenuItems: ProfileMenuItem[] = [
@@ -21,6 +23,13 @@ export const ProfileMenuItems: ProfileMenuItem[] = [
     descriptionKey: "menu.ticketsDesc",
     href: "/tickets",
     icon: <TicketIcon className="h-5 w-5" />,
+  },
+  {
+    labelKey: "menu.organizations",
+    descriptionKey: "menu.organizationsDesc",
+    href: "/organizations",
+    icon: <WidgetIcon className="h-5 w-5" />,
+    requires: "organizations",
   },
   {
     labelKey: "menu.logout",

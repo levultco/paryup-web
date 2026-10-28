@@ -12,7 +12,11 @@ export type PublicEvent = {
   coverImage: string | null;
   price: number | null;
   tags: string[];
-  organization: { name: string; logo: string | null; isVerified: boolean } | null;
+  organization: {
+    name: string;
+    logo: string | null;
+    isVerified: boolean;
+  } | null;
   soldOut: boolean;
 };
 
@@ -43,7 +47,9 @@ export function toPublicEvent(raw: RawEvent): PublicEvent {
         : actionable.length > 0
           ? Math.min(...actionable.map((t) => Number(t.finalPrice ?? 0)))
           : null,
-    tags: Array.isArray(raw.tags) ? raw.tags.filter((t: unknown) => typeof t === "string") : [],
+    tags: Array.isArray(raw.tags)
+      ? raw.tags.filter((t: unknown) => typeof t === "string")
+      : [],
     organization: raw.organization
       ? {
           name: raw.organization.name,

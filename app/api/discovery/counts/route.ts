@@ -13,7 +13,10 @@ export async function GET(request: Request) {
     !/^\d{4}-(0[1-9]|1[0-2])$/.test(month) ||
     !["any", "free", "paid"].includes(price)
   ) {
-    return NextResponse.json({ error: "Parámetros inválidos" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Parámetros inválidos" },
+      { status: 400 },
+    );
   }
 
   try {

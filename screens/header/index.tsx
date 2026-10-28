@@ -17,6 +17,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { LanguageItemProps, LanguageItems } from "@/constants/language";
 import NumberFlow from "@number-flow/react";
 import { ProfileMenuItems } from "@/constants/profile";
+import { useOrganizations } from "@/components/organizations/useOrganizations";
 import BorderBeam from "@/components/common/borderBeam";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useI18n } from "@/components/i18n/LocaleProvider";
@@ -48,6 +49,12 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
   const router = useRouter();
   const { user, status: authStatus, logout } = useAuth();
   const { t, locale, setLocale } = useI18n();
+  const orgAccess = useOrganizations();
+  const hasOrganizations =
+    orgAccess.status === "ready" &&
+    (orgAccess.canCreateOrganization ||
+      orgAccess.organizations.length > 0 ||
+      orgAccess.pendingInvites.length > 0);
   // El header puede hidratarse después de que AuthProvider ya conozca la sesión
   // (está dentro de un Suspense). Hasta hidratar se pinta como "cargando", igual
   // que el HTML del servidor, para que no haya desajuste de hidratación.
@@ -426,7 +433,10 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                       </span>
                     </div>
                   }
-                  items={ProfileMenuItems.map((item) => ({
+                  items={ProfileMenuItems.filter(
+                    (item) =>
+                      item.requires !== "organizations" || hasOrganizations,
+                  ).map((item) => ({
                     title: t(item.labelKey),
                     description: t(item.descriptionKey),
                     icon: item.icon,

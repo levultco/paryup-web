@@ -8,11 +8,31 @@ const escapeHtml = (value: string) =>
 export const LOGO_CID = "paryup-logo";
 
 const features = [
-  { icon: "🎟️", title: "Entradas", text: "Compra y vende entradas desde la app." },
-  { icon: "💬", title: "Chat social", text: "Grupos y mensajes directos con tu gente." },
-  { icon: "🤝", title: "Matches", text: "Las personas con las que coincides en cada evento." },
-  { icon: "👤", title: "Perfil", text: "Tus fiestas, seguidores y seguidos en un solo sitio." },
-  { icon: "📸", title: "Recap del día", text: "Revive cada evento con fotos y momentos." },
+  {
+    icon: "🎟️",
+    title: "Entradas",
+    text: "Compra y vende entradas desde la app.",
+  },
+  {
+    icon: "💬",
+    title: "Chat social",
+    text: "Grupos y mensajes directos con tu gente.",
+  },
+  {
+    icon: "🤝",
+    title: "Matches",
+    text: "Las personas con las que coincides en cada evento.",
+  },
+  {
+    icon: "👤",
+    title: "Perfil",
+    text: "Tus fiestas, seguidores y seguidos en un solo sitio.",
+  },
+  {
+    icon: "📸",
+    title: "Recap del día",
+    text: "Revive cada evento con fotos y momentos.",
+  },
   { icon: "🗺️", title: "Mapa", text: "Previsualiza los eventos antes de ir." },
 ];
 
@@ -20,7 +40,8 @@ const brandBar = ["#c679c4", "#fa3d1d", "#ffb005", "#e1e1fe", "#0358f7"];
 
 export function buildWaitlistEmail(name: string) {
   const safeName = escapeHtml(name);
-  const font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+  const font =
+    "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 
   const subject = "Estás en la lista de espera de ParyUp";
   const preheader = "Te avisaremos en cuanto abramos. Guárdate este correo.";
@@ -39,7 +60,10 @@ export function buildWaitlistEmail(name: string) {
     .join("");
 
   const bar = brandBar
-    .map((color) => `<td height="4" bgcolor="${color}" style="font-size:0;line-height:0;">&nbsp;</td>`)
+    .map(
+      (color) =>
+        `<td height="4" bgcolor="${color}" style="font-size:0;line-height:0;">&nbsp;</td>`,
+    )
     .join("");
 
   const html = `<!DOCTYPE html>
