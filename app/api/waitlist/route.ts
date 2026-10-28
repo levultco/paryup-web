@@ -10,7 +10,6 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid_body" }, { status: 400 });
   }
 
-  // Campo trampa: los humanos no lo rellenan.
   if (typeof body.company === "string" && body.company.length > 0) {
     return Response.json({ ok: true });
   }
@@ -44,7 +43,6 @@ export async function POST(request: Request) {
     body: JSON.stringify({ name, email }),
   });
 
-  // 409 = email ya apuntado: lo tratamos como éxito, sin reenviar el correo.
   if (response.status === 409) {
     return Response.json({ ok: true });
   }
@@ -53,7 +51,6 @@ export async function POST(request: Request) {
     try {
       await sendWaitlistConfirmation(name, email);
     } catch (error) {
-      // Que falle el correo no debe impedir que quede apuntado.
       console.error("Waitlist: no se pudo enviar el correo", error);
     }
     return Response.json({ ok: true });

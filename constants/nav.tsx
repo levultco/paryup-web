@@ -8,12 +8,12 @@ import {
 
 const Nav = {
   home: {
-    label: "Inicio",
+    labelKey: "nav.home",
     href: "/",
     icon: <HomeIcon className="h-5 w-5 transition" />,
   },
   events: {
-    label: "Eventos",
+    labelKey: "nav.events",
     href: "/events",
     icon: <MobileIcon className="h-5 w-5 transition" />,
   },
@@ -23,7 +23,7 @@ export const NavItems = Object.values(Nav);
 
 const NavRight = {
   reservations: {
-    label: "Mis Entradas",
+    labelKey: "nav.tickets",
     href: "/tickets",
     icon: <TicketIcon className="h-5 w-5 transition" />,
   },

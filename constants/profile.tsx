@@ -1,8 +1,9 @@
-import { AssistIcon, ExitIcon, UserIcon } from "@/public/icons/icons";
-import { LogOut, Ticket, User } from "lucide-react";
+import { ExitIcon, TicketIcon } from "@/public/icons/icons";
+import { UserCircleIcon } from "@/components/icons/solar";
 
 export type ProfileMenuItem = {
-  label: string;
+  labelKey: string;
+  descriptionKey: string;
   href?: string;
   icon: React.ReactNode;
   action?: "logout";
@@ -10,18 +11,21 @@ export type ProfileMenuItem = {
 
 export const ProfileMenuItems: ProfileMenuItem[] = [
   {
-    label: "Perfil",
+    labelKey: "menu.profile",
+    descriptionKey: "menu.profileDesc",
     href: "/profile",
-    icon: <UserIcon className="w-5 h-5"/>,
+    icon: <UserCircleIcon className="h-5 w-5" />,
   },
   {
-    label: "Asistidas",
-    href: "/assisted",
-    icon: <AssistIcon className="w-5 h-5"/>,
+    labelKey: "menu.tickets",
+    descriptionKey: "menu.ticketsDesc",
+    href: "/tickets",
+    icon: <TicketIcon className="h-5 w-5" />,
   },
   {
-    label: "Cerrar sesión",
-    icon: <ExitIcon className="w-5 h-5"/>,
+    labelKey: "menu.logout",
+    descriptionKey: "menu.logoutDesc",
+    icon: <ExitIcon className="h-5 w-5" />,
     action: "logout",
   },
 ];

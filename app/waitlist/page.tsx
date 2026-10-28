@@ -26,9 +26,6 @@ export const metadata: Metadata = {
   },
 };
 
-export const dynamic = "force-dynamic";
-
-export default async function WaitlistPage() {
-  const count = await getWaitlistCount();
-  return <WaitlistScreen initialCount={count} />;
+export default function WaitlistPage() {
+  return <WaitlistScreen countPromise={getWaitlistCount()} />;
 }

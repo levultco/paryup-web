@@ -1,14 +1,10 @@
 "use client";
 
-import {
-  FilterIcon,
-  MarqueeIcon,
-  ParyUpIsoIcon,
-  SearchIcon,
-} from "@/public/icons/icons";
+import { ParyUpIsoIcon } from "@/public/icons/icons";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Check, ChevronDown, ChevronUp, Menu, X } from "lucide-react";
+import { LoginIcon } from "@/components/icons/solar";
 import { NavItems, NavRightItems } from "@/constants/nav";
 import {
   AnimatePresence,
@@ -17,18 +13,19 @@ import {
   useTransform,
   useSpring,
 } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { LanguageItemProps, LanguageItems } from "@/constants/language";
 import NumberFlow from "@number-flow/react";
 import { ProfileMenuItems } from "@/constants/profile";
 import BorderBeam from "@/components/common/borderBeam";
-import { MusicToggleButton } from "@/components/common/musicButton";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useI18n } from "@/components/i18n/LocaleProvider";
+import type { Locale } from "@/lib/i18n";
+import { FloatingDisclosure } from "@/components/watermelon/floating-disclosure";
 
-const user = {
-  name: "Player One",
-  avatar:
-    "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=200&auto=format&fit=crop",
-};
+// Degradado negro con curva suave (ease) para que el texto se funda sin que se note dónde acaba.
+const HEADER_FADE =
+  "linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.92) 30%, rgba(0,0,0,0.74) 48%, rgba(0,0,0,0.5) 62%, rgba(0,0,0,0.28) 76%, rgba(0,0,0,0.1) 89%, transparent 100%)";
 
 interface HeaderProps {
   isLoading?: boolean;
@@ -48,24 +45,39 @@ interface LenisScrollInstance {
 
 export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
   const pathname = usePathname();
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
-
-  const [activeItem, setActiveItem] = useState<LanguageItemProps>(
-    LanguageItems[0],
+  const router = useRouter();
+  const { user, status: authStatus, logout } = useAuth();
+  const { t, locale, setLocale } = useI18n();
+  // El header puede hidratarse después de que AuthProvider ya conozca la sesión
+  // (está dentro de un Suspense). Hasta hidratar se pinta como "cargando", igual
+  // que el HTML del servidor, para que no haya desajuste de hidratación.
+  const hydrated = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
   );
+  const status = hydrated ? authStatus : "loading";
+  const ticketsHref =
+    status === "authenticated" ? "/tickets" : "/login?next=/tickets";
+  const displayName = user?.name || user?.nickname || t("header.account");
+  const handle = user?.nickname ? `@${user.nickname}` : user?.email;
+  const initial = displayName.trim().charAt(0).toUpperCase() || "P";
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const activeItem: LanguageItemProps =
+    LanguageItems.find((item) => item.title.toLowerCase() === locale) ??
+    LanguageItems[0];
+  const setActiveItem = (item: LanguageItemProps) =>
+    setLocale(item.title.toLowerCase() as Locale);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [activeDropdownPath, setActiveDropdownPath] = useState<string | null>(
     null,
   );
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [profileOpenPath, setProfileOpenPath] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileMenuOpenPath, setMobileMenuOpenPath] = useState<string | null>(
     null,
   );
 
-  const isRouteProfileOpen = isProfileOpen && profileOpenPath === pathname;
   const isRouteMobileMenuOpen =
     isMobileMenuOpen && mobileMenuOpenPath === pathname;
   const routeActiveDropdown =
@@ -93,24 +105,14 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
   }, [activeDropdown]);
 
   useEffect(() => {
-    if (!isProfileOpen) return;
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (!profileRef.current) return;
-      if (!profileRef.current.contains(event.target as Node)) {
-        setIsProfileOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [isProfileOpen]);
-
-  useEffect(() => {
     let cleanup: (() => void) | undefined;
 
     const setupLenisListener = async () => {
-      const lenis = (window as unknown as { lenis?: LenisScrollInstance }).lenis;
+      const lenis = (window as unknown as { lenis?: LenisScrollInstance })
+        .lenis;
 
-      if (lenis) {
+      // Lenis guarda también su versión en window.lenis: solo vale si es la instancia
+      if (typeof lenis?.on === "function") {
         const handleScroll = ({ scroll }: { scroll: number }) => {
           scrollY.set(scroll);
         };
@@ -139,50 +141,51 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
   return (
     <header className="fixed inset-x-0 top-0 z-[1000] w-full py-5 text-white">
       <motion.div
-        className="pointer-events-none absolute inset-0 header-top-mask"
-        style={{ opacity: gradientOpacity }}
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[clamp(120px,17vh,170px)]"
+        style={{ opacity: gradientOpacity, background: HEADER_FADE }}
       />
 
       <div className="relative flex items-center justify-center">
         <div
           role="banner"
-          className="relative w-full max-w-[110rem] px-4 sm:px-6 lg:px-10"
+          className="relative w-full max-w-[1800px] px-[clamp(1.25rem,3vw,3.5rem)]"
         >
-            <div className="relative flex h-14 items-center justify-between md:h-16">
-              <div className="flex items-center gap-2 md:gap-6">
-                <motion.button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-secondary/35 text-white/85 transition hover:bg-white/10 lg:hidden"
-                  onClick={() => {
-                    setIsMobileMenuOpen((prev) => {
-                      const next = !prev;
-                      if (next) {
-                        setMobileMenuOpenPath(pathname);
-                      } else {
-                        setMobileMenuOpenPath(null);
-                      }
-                      return next;
-                    });
-                  }}
-                  aria-label="Open navigation menu"
-                  aria-expanded={isRouteMobileMenuOpen}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {isRouteMobileMenuOpen ? (
-                    <X className="h-4 w-4" />
-                  ) : (
-                    <Menu className="h-4 w-4" />
-                  )}
-                </motion.button>
+          <div className="relative flex h-14 items-center justify-between md:h-16">
+            <div className="flex items-center gap-2 md:gap-6">
+              <motion.button
+                type="button"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-secondary/35 text-white/85 transition hover:bg-white/10 lg:hidden"
+                onClick={() => {
+                  setIsMobileMenuOpen((prev) => {
+                    const next = !prev;
+                    if (next) {
+                      setMobileMenuOpenPath(pathname);
+                    } else {
+                      setMobileMenuOpenPath(null);
+                    }
+                    return next;
+                  });
+                }}
+                aria-label={t("header.openNav")}
+                aria-expanded={isRouteMobileMenuOpen}
+                whileTap={{ scale: 0.95 }}
+              >
+                {isRouteMobileMenuOpen ? (
+                  <X className="h-4 w-4" />
+                ) : (
+                  <Menu className="h-4 w-4" />
+                )}
+              </motion.button>
 
-                <nav className="hidden items-center gap-2 text-xs font-medium tracking-wide text-white/70 sm:gap-4 sm:text-sm lg:flex">
-                {NavItems.map(({ label, href, icon }) => {
+              <nav className="hidden items-center gap-1 text-xs font-medium tracking-wide text-white/70 sm:text-sm lg:-ml-3 lg:flex">
+                {NavItems.map(({ labelKey, href, icon }) => {
                   const isActive = pathname === href;
                   return (
                     <Link
-                      key={label}
+                      key={labelKey}
                       href={href}
-                      className={`group inline-flex items-center gap-2 rounded-full px-2 py-1 transition-colors  ${
+                      className={`group inline-flex items-center gap-2 rounded-full px-3 py-2.5 transition-colors  ${
                         isActive
                           ? "text-white"
                           : "text-white/50 hover:text-white"
@@ -198,37 +201,13 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                         ) : null}
                       </span>
                       <span className="hidden sm:inline clamp-span">
-                        {label}
+                        {t(labelKey)}
                       </span>
                     </Link>
                   );
                 })}
               </nav>
-                <div className="hidden xl:block">
-                  <BorderBeam
-                    size="line"
-                    colorVariant="pary"
-                    duration={2.4}
-                    strength={0.7}
-                  >
-                    <div className="flex h-9 items-center gap-2 rounded-full bg-secondary/30 px-3 ring-1 ring-white/5 transition focus-within:ring-2 focus-within:ring-white/10 md:h-10">
-                      <SearchIcon className="h-5 w-5 text-white/50" />
-                      <input
-                        type="text"
-                        placeholder="Buscar eventos..."
-                        className="w-[7.5rem] bg-transparent text-xs text-white/90 placeholder:text-white/35 focus:outline-none sm:w-[8rem] sm:text-sm md:w-[8.5rem] lg:w-[10rem]"
-                      />
-                      <button
-                        type="button"
-                        className="flex h-6 w-6 items-center justify-center rounded-lg text-white/60 transition hover:bg-white/20 hover:text-white/90"
-                        aria-label="Search filters"
-                      >
-                        <FilterIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </BorderBeam>
-                </div>
-              </div>
+            </div>
 
             <Link
               href="/"
@@ -285,7 +264,7 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                       exit={{ opacity: 0, y: 12 }}
                     >
                       <div className="flex items-center justify-between px-2 pb-1 text-[11px] uppercase tracking-[0.2em] text-white/40">
-                        Idioma
+                        {t("header.language")}
                         <button
                           type="button"
                           className="rounded-full p-1 text-white/50 transition hover:text-white"
@@ -347,169 +326,122 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                 </AnimatePresence>
               </div>
 
-              <div className="hidden flex-row items-center justify-center lg:flex">
-                {NavRightItems.map(({ label, href, icon }) => (
+              <div
+                className={`hidden flex-row items-center justify-center ${
+                  status === "authenticated" ? "lg:flex" : ""
+                }`}
+              >
+                {NavRightItems.map(({ labelKey, icon }) => (
                   <BorderBeam
-                    key={label}
+                    key={labelKey}
                     size="md"
                     colorVariant="pary"
                     duration={2.4}
                     strength={0.7}
                   >
                     <Link
-                      href={href}
-                      className={`group inline-flex h-8 items-center gap-2 rounded-full bg-white/80 border border-white px-3 text-xs font-medium tracking-wide ring-1 ring-white/7 transition-colors md:h-10 ${
-                        pathname === href
+                      href={ticketsHref}
+                      className={`group inline-flex h-11 items-center gap-2.5 rounded-full bg-white/80 border border-white px-5 text-xs font-medium tracking-wide ring-1 ring-white/7 transition-colors ${
+                        pathname === "/tickets"
                           ? "text-white"
                           : "text-white/60 hover:text-white"
                       }`}
                     >
                       <span className="relative flex items-center justify-center text-black/70 group-hover:text-black">
                         {icon}
-                        {pathname === href ? (
+                        {pathname === "/tickets" ? (
                           <span
                             className="absolute -bottom-1.5 h-1 w-1 rounded-full bg-black"
                             aria-hidden
                           />
                         ) : null}
                       </span>
-                      <span className="hidden sm:inline clamp-span text-black">
-                        {label}
+                      <span className="hidden text-sm font-semibold text-black sm:inline">
+                        {t(labelKey)}
                       </span>
                     </Link>
                   </BorderBeam>
                 ))}
               </div>
 
-              <div ref={profileRef} className="relative">
-                <motion.button
-                  type="button"
-                  className="relative h-10 w-10 overflow-hidden rounded-xl md:h-11 md:w-11"
-                  aria-label="Open user menu"
-                  onClick={() => {
-                    setIsProfileOpen((prev) => {
-                      const next = !prev;
-                      if (next) {
-                        setProfileOpenPath(pathname);
-                      } else {
-                        setProfileOpenPath(null);
-                      }
-                      return next;
-                    });
-                  }}
-                  whileTap={{ scale: 0.96 }}
+              {status === "unauthenticated" ? (
+                <Link
+                  href={
+                    pathname === "/login"
+                      ? "/login"
+                      : `/login?next=${encodeURIComponent(pathname)}`
+                  }
+                  aria-label={t("header.login")}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-3.5 text-sm font-semibold text-black shadow-[0_0_24px_rgba(255,255,255,0.18)] transition hover:bg-white/90 active:scale-[0.97] sm:pl-4 sm:pr-5"
                 >
-                  <motion.div
-                    className="h-full w-full overflow-hidden rounded-xl"
-                    animate={{
-                      opacity: isRouteProfileOpen ? 0.55 : 1,
-                      scale: isRouteProfileOpen ? 0.94 : 1,
-                    }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
-                  >
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="h-full w-full object-cover"
-                    />
-                    <MarqueeIcon className="w-5 h-5 text-red-500 z-50" />
-                  </motion.div>
-                </motion.button>
-
-                <AnimatePresence initial={false}>
-                  {isRouteProfileOpen ? (
-                    <motion.div
-                      className="absolute right-0 top-full z-30 mt-2 w-48 overflow-hidden rounded-2xl border border-white/5 bg-secondary p-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
-                      initial={{ opacity: 0, y: 6, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                    >
-                      <motion.div className="rounded-2xl pb-3">
-                        <div className="flex items-center justify-between px-2  relative">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[15px] font-medium text-white/90">
-                              {user.name}
-                            </span>
-                            <span className="text-[11px] uppercase tracking-[0.25em] text-white/45">
-                              Cuenta
-                            </span>
-                          </div>
-                          <div className="flex items-center relative">
-                            <motion.div
-                              className="h-9 w-9 overflow-hidden relative rounded-xl relative"
-                              initial={{ opacity: 0, scale: 0.86, y: -4 }}
-                              animate={{ opacity: 1, scale: 1, y: 0 }}
-                              exit={{ opacity: 0, scale: 0.86, y: -4 }}
-                              transition={{
-                                duration: 0.18,
-                                ease: [0.22, 1, 0.36, 1],
-                              }}
-                            >
-                              <img
-                                src={user.avatar}
-                                alt={user.name}
-                                className="h-full w-full object-cover "
-                              />
-                            </motion.div>
-                          </div>
-                        </div>
-                      </motion.div>
-
-                      <div className="flex flex-col gap-0.5">
-                        {ProfileMenuItems.map((item) => {
-                          const Icon = item.icon;
-                          const content = (
-                            <span className="flex items-center gap-2">
-                              {Icon}
-                              <span className="clamp-span text-white/85">
-                                {item.label}
-                              </span>
-                            </span>
-                          );
-
-                          if (item.action === "logout") {
-                            return (
-                              <motion.button
-                                key={item.label}
-                                type="button"
-                                className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-white/80 transition hover:bg-white/5 hover:text-white"
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => {
-                                  setIsProfileOpen(false);
-                                  setProfileOpenPath(null);
-                                }}
-                              >
-                                {content}
-                              </motion.button>
-                            );
-                          }
-
-                          return (
-                            <motion.div
-                              key={item.label}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              <Link
-                                href={item.href ?? "#"}
-                                 className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-white/80 transition hover:bg-white/5 hover:text-white"
-                                 onClick={() => {
-                                   setIsProfileOpen(false);
-                                   setProfileOpenPath(null);
-                                 }}
-                               >
-                                {content}
-                              </Link>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                      </motion.div>
-                    ) : null}
-                </AnimatePresence>
-              </div>
+                  <LoginIcon className="h-5 w-5" />
+                  <span className="hidden sm:inline">{t("header.login")}</span>
+                </Link>
+              ) : status === "loading" || !user ? (
+                <div
+                  aria-hidden
+                  className="h-11 w-11 animate-pulse rounded-full bg-white/10"
+                />
+              ) : (
+                <FloatingDisclosure
+                  label={t("header.userMenu")}
+                  trigger={
+                    user.image ? (
+                      <img
+                        src={user.image}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center bg-white/15 text-base font-semibold text-white">
+                        {initial}
+                      </span>
+                    )
+                  }
+                  header={
+                    <div className="flex items-center gap-3 pr-2">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/15">
+                        {user.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={user.image}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-base font-semibold text-white">
+                            {initial}
+                          </span>
+                        )}
+                      </span>
+                      <span className="flex min-w-0 flex-col leading-tight">
+                        <span className="truncate text-[15px] font-semibold text-neutral-100">
+                          {displayName}
+                        </span>
+                        {handle ? (
+                          <span className="truncate text-[13px] text-neutral-500">
+                            {handle}
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                  }
+                  items={ProfileMenuItems.map((item) => ({
+                    title: t(item.labelKey),
+                    description: t(item.descriptionKey),
+                    icon: item.icon,
+                    danger: item.action === "logout",
+                    onSelect: async () => {
+                      if (item.action === "logout") {
+                        await logout();
+                        if (pathname === "/tickets") router.push("/");
+                        return;
+                      }
+                      if (item.href) router.push(item.href);
+                    },
+                  }))}
+                />
+              )}
             </div>
 
             <AnimatePresence>
@@ -522,49 +454,64 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                 >
                   <div className="flex flex-col gap-2">
                     <nav className="grid grid-cols-2 gap-2">
-                      {NavItems.map(({ label, href, icon }) => {
+                      {NavItems.map(({ labelKey, href, icon }) => {
                         const isActive = pathname === href;
                         return (
                           <Link
-                            key={`mobile-${label}`}
+                            key={`mobile-${labelKey}`}
                             href={href}
                             onClick={() => {
                               setIsMobileMenuOpen(false);
                               setMobileMenuOpenPath(null);
                             }}
-                            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition ${
+                            className={`inline-flex items-center gap-2 rounded-full px-3 py-2.5 text-sm transition ${
                               isActive
                                 ? "bg-white/10 text-white"
                                 : "text-white/75 hover:bg-white/5 hover:text-white"
                             }`}
                           >
                             <span className="text-white/80">{icon}</span>
-                            <span>{label}</span>
+                            <span>{t(labelKey)}</span>
                           </Link>
                         );
                       })}
                     </nav>
 
                     <div className="grid gap-2">
-                      {NavRightItems.map(({ label, href, icon }) => (
+                      {(status === "authenticated" ? NavRightItems : []).map(
+                        ({ labelKey, icon }) => (
+                          <Link
+                            key={`mobile-right-${labelKey}`}
+                            href={ticketsHref}
+                            onClick={() => {
+                              setIsMobileMenuOpen(false);
+                              setMobileMenuOpenPath(null);
+                            }}
+                            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/80 px-3 py-2.5 text-sm text-black transition hover:bg-white"
+                          >
+                            <span>{icon}</span>
+                            <span>{t(labelKey)}</span>
+                          </Link>
+                        ),
+                      )}
+                      {status === "unauthenticated" ? (
                         <Link
-                          key={`mobile-right-${label}`}
-                          href={href}
+                          href="/login"
                           onClick={() => {
                             setIsMobileMenuOpen(false);
                             setMobileMenuOpenPath(null);
                           }}
-                          className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/80 px-3 py-2.5 text-sm text-black transition hover:bg-white"
+                          className="inline-flex items-center justify-center rounded-full bg-white px-3 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
                         >
-                          <span>{icon}</span>
-                          <span>{label}</span>
+                          <LoginIcon className="mr-2 h-5 w-5" />
+                          {t("header.login")}
                         </Link>
-                      ))}
+                      ) : null}
                     </div>
 
                     <div className="mt-1 border-t border-white/10 pt-2">
                       <p className="px-1 pb-2 text-[11px] uppercase tracking-[0.2em] text-white/45">
-                        Idioma
+                        {t("header.language")}
                       </p>
                       <div className="grid grid-cols-2 gap-2">
                         {LanguageItems.map((item) => (
@@ -572,7 +519,7 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                             key={`mobile-lang-${item.title}`}
                             type="button"
                             onClick={() => setActiveItem(item)}
-                            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm transition ${
+                            className={`inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm transition ${
                               activeItem.title === item.title
                                 ? "bg-white/10 text-white"
                                 : "text-white/70 hover:bg-white/5 hover:text-white"

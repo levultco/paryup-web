@@ -1,14 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  images: {
-    qualities: [58, 75],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "pbs.twimg.com",
+  /* config options here */
+  experimental: {
+    agentFeedback: true,
+  },
+  cacheComponents: true,
+  partialPrefetching: true,
+  turbopack: {
+    rules: {
+      "*.css": {
+        loaders: ["@tailwindcss/turbopack"],
+        as: "*.css",
       },
-    ],
+    },
   },
 };
 
