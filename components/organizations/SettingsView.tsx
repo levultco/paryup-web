@@ -1,5 +1,6 @@
 "use client";
 
+import { PaymentsCard } from "@/components/organizations/PaymentsCard";
 import { useState } from "react";
 import { CheckCircleIcon } from "@/components/icons/solar";
 import { useI18n } from "@/components/i18n/LocaleProvider";
@@ -102,6 +103,8 @@ export function SettingsView() {
           {t("orgs.pf.verifiedNote")}
         </p>
       </Card>
+
+      {can(ORG_PERMISSIONS.paymentsManage) ? <PaymentsCard /> : null}
 
       <Card title={t("orgs.st.permissions")}>
         <ul className="flex flex-col gap-3">

@@ -32,6 +32,8 @@ export async function GET() {
       : null;
     const access: OrganizationsAccess = {
       canCreateOrganization: data?.canCreateOrganization === true,
+      maxOrganizations: Number(data?.maxOrganizations) || 0,
+      ownedOrganizations: Number(data?.ownedOrganizations) || 0,
       organizations: Array.isArray(data?.organizations)
         ? data.organizations
         : [],
@@ -69,13 +71,16 @@ export async function POST(request: Request) {
       body: JSON.stringify({ name, slug, ...(city ? { city } : {}) }),
     });
     if (res.ok) return NextResponse.json(await res.json());
+    const failure = await res.json().catch(() => null);
     const code =
       res.status === 401
         ? "unauthorized"
         : res.status === 403
           ? "forbidden"
           : res.status === 409
-            ? "slugTaken"
+            ? failure?.code === "ORGANIZATION_LIMIT_REACHED"
+              ? "limitReached"
+              : "slugTaken"
             : res.status === 400
               ? "invalid"
               : "generic";

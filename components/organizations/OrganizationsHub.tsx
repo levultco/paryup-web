@@ -30,6 +30,10 @@ export function OrganizationsHub() {
 
   const orgs = state.status === "ready" ? state.organizations : [];
   const canCreate = state.status === "ready" && state.canCreateOrganization;
+  const limitReached =
+    state.status === "ready" &&
+    state.canCreateOrganization &&
+    state.ownedOrganizations >= state.maxOrganizations;
   const invites = state.status === "ready" ? state.pendingInvites : [];
   const single =
     state.status === "ready" &&
@@ -117,7 +121,14 @@ export function OrganizationsHub() {
           </li>
         ))}
       </ul>
-      {canCreate ? (
+      {limitReached && state.status === "ready" ? (
+        <p className="mt-6 text-sm text-white/55">
+          {t("orgs.limitReached", {
+            owned: state.ownedOrganizations,
+            max: state.maxOrganizations,
+          })}
+        </p>
+      ) : canCreate ? (
         <Link
           href="/organizations/new"
           className="mt-6 inline-flex h-11 items-center rounded-full border border-white/15 px-5 text-sm text-white/80 transition-colors hover:border-white/50 hover:text-white"

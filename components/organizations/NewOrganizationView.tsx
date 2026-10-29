@@ -37,6 +37,8 @@ export function NewOrganizationView() {
     );
   }
 
+  const limitReached = state.ownedOrganizations >= state.maxOrganizations;
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-8">
       <Link
@@ -46,7 +48,16 @@ export function NewOrganizationView() {
         <ArrowLeftIcon className="h-4 w-4" />
         {t("orgs.form.back")}
       </Link>
-      <CreateOrganizationForm />
+      {limitReached ? (
+        <p className="rounded-3xl border border-white/10 bg-raised p-6 text-white/70">
+          {t("orgs.limitReached", {
+            owned: state.ownedOrganizations,
+            max: state.maxOrganizations,
+          })}
+        </p>
+      ) : (
+        <CreateOrganizationForm />
+      )}
     </div>
   );
 }

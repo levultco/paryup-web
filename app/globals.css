@@ -125,3 +125,41 @@ number-flow-react.hide-number::part(integer) {
 @media (prefers-reduced-motion: reduce) {
   .login-col { animation: none !important; }
 }
+
+/* Fundido de entrada de cada página; en CSS para que no dependa de JS ni se quede en opacity 0. */
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.page-in {
+  animation: page-in 0.2s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-in {
+    animation: none;
+  }
+}
+
+/* Trazo del gráfico de ventas: se dibuja al montar o al cambiar de serie. */
+@keyframes sales-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.sales-draw {
+  stroke-dasharray: 1;
+  animation: sales-draw 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sales-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

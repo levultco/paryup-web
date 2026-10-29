@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
@@ -11,11 +11,6 @@ import { useI18n } from "@/components/i18n/LocaleProvider";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { FloatingInput } from "@/components/watermelon/floating-input";
 import { ShimmerButton } from "@/components/watermelon/shimmer-button";
-
-function safeNext(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
-  return value;
-}
 
 function AppleIcon({ className }: { className?: string }) {
   return (
@@ -32,8 +27,6 @@ function AppleIcon({ className }: { className?: string }) {
 
 export function LoginScreen({ art }: { art?: ReactNode }) {
   const router = useRouter();
-  const params = useSearchParams();
-  const next = safeNext(params.get("next"));
   const { status, login, loginWithGoogle } = useAuth();
   const { t } = useI18n();
 
@@ -44,8 +37,8 @@ export function LoginScreen({ art }: { art?: ReactNode }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (status === "authenticated") router.replace(next);
-  }, [status, next, router]);
+    if (status === "authenticated") router.replace("/");
+  }, [status, router]);
 
   const finish = (code: string | null) => {
     if (code) {
@@ -53,7 +46,7 @@ export function LoginScreen({ art }: { art?: ReactNode }) {
       setSubmitting(false);
       return;
     }
-    router.replace(next);
+    router.replace("/");
   };
 
   // Vuelve a la página de la que se venía; solo si se abrió el login directamente va al inicio.

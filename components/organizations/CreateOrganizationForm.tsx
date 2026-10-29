@@ -107,13 +107,15 @@ export function CreateOrganizationForm() {
       setError(
         data?.code === "forbidden"
           ? t("orgs.form.forbidden")
-          : data?.code === "slugTaken"
-            ? t("orgs.form.taken")
-            : data?.code === "invalid"
-              ? t("orgs.form.invalidSlug")
-              : data?.code === "connect"
-                ? t("orgs.form.connect")
-                : t("orgs.form.generic"),
+          : data?.code === "limitReached"
+            ? t("orgs.form.limitReached")
+            : data?.code === "slugTaken"
+              ? t("orgs.form.taken")
+              : data?.code === "invalid"
+                ? t("orgs.form.invalidSlug")
+                : data?.code === "connect"
+                  ? t("orgs.form.connect")
+                  : t("orgs.form.generic"),
       );
     } catch {
       setError(t("orgs.form.connect"));

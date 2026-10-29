@@ -16,6 +16,8 @@ export type MyOrganization = {
 
 export type OrganizationsAccess = {
   canCreateOrganization: boolean;
+  maxOrganizations: number;
+  ownedOrganizations: number;
   organizations: MyOrganization[];
   pendingInvites: PendingInvite[];
 };
@@ -26,6 +28,17 @@ export const ORG_PERMISSIONS = {
   staffInvite: "staff:invite",
   staffManage: "staff:manage",
   rolesManage: "roles:manage",
+  eventsView: "events:view",
+  eventsCreate: "events:create",
+  eventsEdit: "events:edit",
+  eventsPublish: "events:publish",
+  eventsCancel: "events:cancel",
+  eventsDelete: "events:delete",
+  ticketTemplatesManage: "ticket-templates:manage",
+  paymentsManage: "payments:manage",
+  accessRequestsManage: "access-requests:manage",
+  statsView: "stats:view",
+  accessControlView: "access:control:view",
 } as const;
 
 export type OrganizationProfile = OrgSummary & {

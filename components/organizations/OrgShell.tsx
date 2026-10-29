@@ -12,7 +12,14 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { LayoutDashboard, Pencil, Settings, Users } from "lucide-react";
+import {
+  CalendarDays,
+  Layers,
+  LayoutDashboard,
+  Pencil,
+  Settings,
+  Users,
+} from "lucide-react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { OrgAvatar, OrgName } from "@/components/organizations/OrgAvatar";
 import { useOrganizations } from "@/components/organizations/useOrganizations";
@@ -40,6 +47,8 @@ export function useOrg() {
 
 const NAV = [
   { key: "overview", segment: "", Icon: LayoutDashboard },
+  { key: "events", segment: "/events", Icon: CalendarDays },
+  { key: "catalog", segment: "/catalog", Icon: Layers },
   { key: "profile", segment: "/profile", Icon: Pencil },
   { key: "team", segment: "/team", Icon: Users },
   { key: "settings", segment: "/settings", Icon: Settings },
@@ -77,7 +86,9 @@ export function OrgShell({
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.replace(`/login?next=/organizations/${slug}`);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCtx(null);
+      router.replace("/login");
       return;
     }
     if (status !== "authenticated") return;
@@ -86,9 +97,8 @@ export function OrgShell({
     fetch(`/api/organizations/${encodeURIComponent(slug)}`)
       .then(async (res) => {
         if (!active) return;
-        if (res.status === 401)
-          router.replace(`/login?next=/organizations/${slug}`);
-        else if (res.status === 404) setState("notFound");
+        if (res.status === 401) router.replace("/login");
+        else if (res.status === 404) router.replace("/");
         else if (!res.ok) setState("error");
         else setCtx(await res.json());
       })

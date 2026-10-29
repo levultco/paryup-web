@@ -108,6 +108,10 @@ export function ProfileEditor() {
     setUploading(kind);
     try {
       const { width, height } = await imageSize(file);
+      if (width > 8192 || height > 8192) {
+        setMessage({ tone: "error", text: t("orgs.pf.errDims") });
+        return;
+      }
       const form = new FormData();
       form.set("file", file);
       form.set("kind", kind);

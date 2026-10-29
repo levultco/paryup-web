@@ -16,7 +16,12 @@ export function useOrganizations(): OrganizationsState {
   const [state, setState] = useState<OrganizationsState>({ status: "loading" });
 
   useEffect(() => {
-    if (authStatus !== "authenticated") return;
+    if (authStatus !== "authenticated") {
+      // Al cerrar sesión se descarta lo de la cuenta anterior para no mostrarlo a la siguiente.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setState({ status: "loading" });
+      return;
+    }
 
     let active = true;
     fetch("/api/organizations")

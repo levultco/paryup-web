@@ -6,6 +6,17 @@ import { resolveMembership, sessionToken } from "@/lib/organizations-server";
 // El backend vuelve a validar permisos y jerarquía en cada una.
 const ALLOWED: { method: string; pattern: RegExp }[] = [
   { method: "GET", pattern: /^overview$/ },
+  { method: "GET", pattern: /^locations$/ },
+  { method: "GET", pattern: /^reserved-areas$/ },
+  { method: "POST", pattern: /^reserved-areas$/ },
+  { method: "PATCH", pattern: /^reserved-areas\/[\w-]+$/ },
+  { method: "DELETE", pattern: /^reserved-areas\/[\w-]+$/ },
+  { method: "POST", pattern: /^reserved-areas\/[\w-]+\/table-types$/ },
+  {
+    method: "DELETE",
+    pattern: /^reserved-areas\/[\w-]+\/table-types\/[\w-]+$/,
+  },
+  { method: "POST", pattern: /^locations$/ },
   { method: "PATCH", pattern: /^profile$/ },
   { method: "GET", pattern: /^members$/ },
   { method: "PATCH", pattern: /^members\/[\w-]+$/ },
