@@ -106,9 +106,9 @@ const ROLE_RANK: Record<OrgRole, number> = {
   PROMOTER: 1,
   SECURITY: 1,
 };
+// STAFF no se asigna (rol sin experiencia web ni móvil); el tipo lo conserva por datos antiguos.
 export const ASSIGNABLE_ROLES: OrgRole[] = [
   "MANAGER",
-  "STAFF",
   "PROMOTER",
   "SECURITY",
 ];

@@ -26,10 +26,21 @@ export type SalesSummary = {
     refundedOrders: number;
     pendingOrders: number;
     failedOrders: number;
-    collectedAmount: number;
-    refundedAmount: number;
-    netAmount: number;
-    platformFeeAmount: number;
+    reservedPaidOrders: number;
+    /** Importes en céntimos, SIEMPRE separados por moneda. */
+    amounts: {
+      currency: string;
+      /** Lo que pagó el comprador (entradas + comisión de ParyUp). */
+      billedAmount: number;
+      /** Entradas, antes de reembolsos. Sin comisión de ParyUp. */
+      ticketRevenue: number;
+      /** Pagos online de reservados, aparte de las entradas. */
+      reservedRevenue: number;
+      /** Comisión de ParyUp (la paga el comprador encima del precio). */
+      platformFeeAmount: number;
+      /** Reembolsos acumulados; no se resta como "neto". */
+      refundedAmount: number;
+    }[];
   };
   tickets: SalesTicket[];
 };

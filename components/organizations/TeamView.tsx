@@ -87,7 +87,7 @@ export function TeamView() {
   const [results, setResults] = useState<FoundUser[] | null>(null);
   const [picked, setPicked] = useState<FoundUser | null>(null);
   const [inviteRole, setInviteRole] = useState<OrgRole>(
-    assignable[assignable.length - 1] ?? "STAFF",
+    assignable[assignable.length - 1] ?? "SECURITY",
   );
   const searchSeq = useRef(0);
 

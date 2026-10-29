@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { useOrg } from "@/components/organizations/OrgShell";
 import { Card, pillButton } from "@/components/organizations/ui";
@@ -49,7 +49,9 @@ export function EventSales({ eventId }: { eventId: string }) {
     hour: "2-digit",
     minute: "2-digit",
   });
-  const money = (cents: number) => formatMoney(cents, "EUR", loc);
+  // Por entrada solo se muestra la moneda del evento (los importes nunca se suman entre monedas).
+  const money = (cents: number) =>
+    formatMoney(cents, summary?.totals.amounts[0]?.currency ?? "EUR", loc);
 
   useEffect(() => {
     let active = true;
@@ -102,21 +104,42 @@ export function EventSales({ eventId }: { eventId: string }) {
               label={t("orgs.sl.checkedIn")}
               value={String(summary.totals.checkedIn)}
             />
-            <Tile
-              label={t("orgs.sl.collected")}
-              value={money(summary.totals.collectedAmount)}
-              hint={
-                summary.totals.refundedAmount
-                  ? `${t("orgs.sl.refunded")}: ${money(summary.totals.refundedAmount)}`
-                  : undefined
-              }
-            />
-            <Tile
-              label={t("orgs.sl.net")}
-              value={money(summary.totals.netAmount)}
-              hint={`${t("orgs.sl.fee")}: ${money(summary.totals.platformFeeAmount)}`}
-            />
+            {summary.totals.amounts.map((a) => (
+              <Fragment key={a.currency}>
+                <Tile
+                  label={`${t("orgs.sl.revenue")} (${a.currency})`}
+                  value={formatMoney(a.ticketRevenue, a.currency, loc)}
+                  hint={t("orgs.sl.revenueHint")}
+                />
+                <Tile
+                  label={`${t("orgs.sl.billed")} (${a.currency})`}
+                  value={formatMoney(a.billedAmount, a.currency, loc)}
+                  hint={`${t("orgs.sl.fee")}: ${formatMoney(a.platformFeeAmount, a.currency, loc)}`}
+                />
+              </Fragment>
+            ))}
           </div>
+          {summary.totals.amounts.some(
+            (a) => a.reservedRevenue > 0 || a.refundedAmount > 0,
+          ) ? (
+            <p className="mt-3 text-xs text-white/50">
+              {summary.totals.amounts
+                .filter((a) => a.reservedRevenue > 0 || a.refundedAmount > 0)
+                .map((a) =>
+                  [
+                    a.reservedRevenue > 0
+                      ? `${t("orgs.sl.reservedRevenue")}: ${formatMoney(a.reservedRevenue, a.currency, loc)}`
+                      : null,
+                    a.refundedAmount > 0
+                      ? `${t("orgs.sl.refunded")}: ${formatMoney(a.refundedAmount, a.currency, loc)}`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                )
+                .join(" · ")}
+            </p>
+          ) : null}
           <p className="mt-3 text-xs text-white/40">
             {t("orgs.sl.paidOrders")}: {summary.totals.paidOrders} ·{" "}
             {t("orgs.sl.pendingOrders")}: {summary.totals.pendingOrders}
