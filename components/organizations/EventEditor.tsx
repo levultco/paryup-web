@@ -1,5 +1,6 @@
 "use client";
 
+import { AddressSearch } from "@/components/organizations/AddressSearch";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -858,12 +859,35 @@ export function EventEditor({ eventId }: { eventId?: string }) {
                     />
                   </Field>
                   <Field label={t("orgs.ed.address")}>
-                    <input
+                    <AddressSearch
                       className={input}
-                      value={form.address}
-                      maxLength={300}
                       disabled={readOnly}
-                      onChange={(e) => set("address", e.target.value)}
+                      onPick={async (place) => {
+                        // Guarda la localización con coordenadas y la selecciona: así el evento sale en el descubrimiento.
+                        const res = await api<{ location: Loc }>(
+                          slug,
+                          "locations",
+                          {
+                            method: "POST",
+                            body: {
+                              ...place,
+                              name: form.locationName.trim() || place.name,
+                            },
+                          },
+                        );
+                        const created = res.data?.location;
+                        if (!res.ok || !created) {
+                          set("address", place.address);
+                          return;
+                        }
+                        setLocations((prev) =>
+                          prev.some((l) => l.id === created.id)
+                            ? prev
+                            : [...prev, created],
+                        );
+                        set("locationId", created.id);
+                        set("locMode", "saved");
+                      }}
                     />
                   </Field>
                 </>
