@@ -33,7 +33,7 @@ export function AddressSearch({
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Feature[]>([]);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const skip = useRef(false);
 
   useEffect(() => {
@@ -62,11 +62,11 @@ export function AddressSearch({
         );
         if (!res.ok) throw new Error(String(res.status));
         const data = (await res.json()) as { features?: Feature[] };
-        setFailed(false);
+        setFailed(null);
         setResults((data.features ?? []).filter((f) => f.center));
       } catch (err) {
         if ((err as { name?: string }).name === "AbortError") return;
-        setFailed(true);
+        setFailed(err instanceof Error ? err.message : "error");
         setResults([]);
       }
     }, 300);
@@ -105,7 +105,7 @@ export function AddressSearch({
         <p className="mt-1 text-xs text-white/40">
           {!TOKEN
             ? "Buscador de direcciones no configurado."
-            : "No se pudo buscar la dirección."}
+            : `No se pudo buscar la dirección (${failed}).`}
         </p>
       ) : null}
       {results.length > 0 ? (

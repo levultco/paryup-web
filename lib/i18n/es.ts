@@ -530,7 +530,8 @@ export const es = {
   "orgs.ed.savedLocation": "Localización guardada",
   "orgs.ed.customLocation": "Otra ubicación",
   "orgs.ed.locationName": "Nombre de la sala",
-  "orgs.ed.address": "Dirección (opcional)",
+  "orgs.ed.address": "Dirección",
+  "orgs.ed.errAddress": "Elige una dirección de la lista.",
   "orgs.ed.noSavedLocations":
     "No hay localizaciones guardadas. Escribe la ubicación a mano.",
   "orgs.ed.chooseLocation": "Elige una localización",

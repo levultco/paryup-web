@@ -378,6 +378,8 @@ export function EventEditor({ eventId }: { eventId?: string }) {
     const loc = locations.find((l) => l.id === form.locationId);
     if (form.locMode === "saved" ? !loc : !form.locationName.trim())
       next.location = t("orgs.ed.errLocation");
+    // La dirección es obligatoria y debe elegirse del buscador (guarda las coordenadas).
+    else if (!loc) next.address = t("orgs.ed.errAddress");
     if (form.capacity.trim() && !/^[1-9]\d*$/.test(form.capacity.trim()))
       next.capacity = t("orgs.ed.errCapacity");
     if (forPublish && !isEdit && Object.keys(picked).length === 0)
@@ -858,7 +860,7 @@ export function EventEditor({ eventId }: { eventId?: string }) {
                       onChange={(e) => set("locationName", e.target.value)}
                     />
                   </Field>
-                  <Field label={t("orgs.ed.address")}>
+                  <Field label={t("orgs.ed.address")} error={errors.address}>
                     <AddressSearch
                       className={input}
                       disabled={readOnly}
