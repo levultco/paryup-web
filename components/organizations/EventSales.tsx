@@ -8,6 +8,11 @@ import { DISCOVERY_TZ } from "@/lib/discovery";
 import { intlLocale } from "@/lib/i18n";
 import { orgFetch } from "@/lib/org-api";
 import { formatMoney, type SalesOrder, type SalesSummary } from "@/lib/sales";
+import { Select } from "@/components/organizations/select";
+import {
+  ListSkeleton,
+  StatsSkeleton,
+} from "@/components/organizations/skeletons";
 
 const STATUS_FILTERS = ["", "PAID", "PENDING", "REFUNDED", "FAILED"] as const;
 
@@ -208,37 +213,31 @@ export function EventSales({ eventId }: { eventId: string }) {
           </ul>
         </>
       ) : !failed ? (
-        <div
-          aria-hidden
-          className="h-28 animate-pulse rounded-2xl bg-white/[0.05]"
-        />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <StatsSkeleton count={3} />
+        </div>
       ) : null}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <h3 className="font-display text-base font-semibold text-white">
           {t("orgs.sl.orders")}
         </h3>
-        <select
+        <Select
+          size="sm"
           value={status}
-          onChange={(e) => {
+          onChange={(v) => {
             setOrders(null);
-            setStatus(e.target.value as (typeof STATUS_FILTERS)[number]);
+            setStatus(v);
           }}
-          aria-label={t("orgs.ev.col.status")}
-          className="h-9 rounded-full border border-white/15 bg-black px-3 text-sm text-white"
-        >
-          {STATUS_FILTERS.map((s) => (
-            <option key={s || "all"} value={s}>
-              {s ? t(`orgs.sl.os.${s}`) : t("orgs.sl.all")}
-            </option>
-          ))}
-        </select>
+          label={t("orgs.ev.col.status")}
+          options={STATUS_FILTERS.map((s) => ({
+            value: s,
+            label: s ? t(`orgs.sl.os.${s}`) : t("orgs.sl.all"),
+          }))}
+        />
       </div>
       {orders === null ? (
-        <div
-          aria-hidden
-          className="mt-3 h-16 animate-pulse rounded-2xl bg-white/[0.05]"
-        />
+        <ListSkeleton rows={3} />
       ) : orders.length === 0 ? (
         <p className="mt-3 text-sm text-white/45">{t("orgs.sl.noOrders")}</p>
       ) : (

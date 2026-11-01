@@ -1,30 +1,33 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { CatalogHeader } from "@/components/organizations/CatalogTabs";
 import { useOrg } from "@/components/organizations/OrgShell";
 import {
-  Notice,
+  dangerButton,
   pillButton,
   primaryButton,
 } from "@/components/organizations/ui";
 import { catalogErrorKey, type EventTemplate } from "@/lib/catalog";
 import { orgFetch } from "@/lib/org-api";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
+import { Dialog } from "@/components/organizations/promoters-ui";
+import { EventTemplateEditor } from "@/components/organizations/EventTemplateEditor";
+import { TemplateRowsSkeleton } from "@/components/organizations/skeletons";
+import { Flash } from "@/components/organizations/flash";
 
 export function EventTemplatesList() {
   const { t } = useI18n();
   const { slug, can } = useOrg();
   const canCreate = can(ORG_PERMISSIONS.eventsCreate);
   const canEdit = can(ORG_PERMISSIONS.eventsEdit);
-  const base = `/organizations/${slug}/catalog/events`;
   const [items, setItems] = useState<EventTemplate[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [editor, setEditor] = useState<{ id?: string } | null>(null);
 
   const load = useCallback(async () => {
     const res = await orgFetch<{ eventTemplates: EventTemplate[] }>(
@@ -58,26 +61,23 @@ export function EventTemplatesList() {
         active="events"
         action={
           canCreate ? (
-            <Link href={`${base}/new`} className={primaryButton}>
+            <button
+              type="button"
+              className={primaryButton}
+              onClick={() => setEditor({})}
+            >
               {t("orgs.cat.et.create")}
-            </Link>
+            </button>
           ) : undefined
         }
       />
-      {message ? <Notice tone="error">{message}</Notice> : null}
+      <Flash message={message} />
       {failed ? (
         <p className="rounded-3xl border border-white/10 bg-raised p-6 text-center text-white/55">
           {t("orgs.cat.err.generic")}
         </p>
       ) : !items ? (
-        <div aria-hidden className="flex flex-col gap-2">
-          {[0, 1].map((i) => (
-            <div
-              key={i}
-              className="h-16 animate-pulse rounded-2xl bg-white/[0.06]"
-            />
-          ))}
-        </div>
+        <TemplateRowsSkeleton rows={2} />
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center rounded-3xl border border-dashed border-white/15 px-6 py-16 text-center">
           <p className="font-display text-2xl font-semibold text-white">
@@ -87,16 +87,23 @@ export function EventTemplatesList() {
             {t("orgs.cat.et.emptyText")}
           </p>
           {canCreate ? (
-            <Link href={`${base}/new`} className={`${primaryButton} mt-6`}>
+            <button
+              type="button"
+              className={`${primaryButton} mt-6`}
+              onClick={() => setEditor({})}
+            >
               {t("orgs.cat.et.create")}
-            </Link>
+            </button>
           ) : null}
         </div>
       ) : (
-        <ul className="flex flex-col divide-y divide-white/10 overflow-hidden rounded-3xl border border-white/10 bg-raised">
+        <ul className="flex flex-col gap-3">
           {items.map((item) => (
-            <li key={item.id} className="flex flex-wrap items-center gap-3 p-4">
-              <span className="h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-white/10">
+            <li
+              key={item.id}
+              className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[22px] bg-raised p-3 pr-4 ring-1 ring-white/[0.08] sm:pr-5"
+            >
+              <span className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-white/10">
                 {item.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -107,10 +114,10 @@ export function EventTemplatesList() {
                 ) : null}
               </span>
               <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                <span className="truncate font-medium text-white">
+                <span className="truncate text-[17px] font-semibold tracking-[-0.015em] text-white">
                   {item.templateName}
                 </span>
-                <span className="truncate text-sm text-white/45">
+                <span className="mt-1 truncate text-sm text-white/50">
                   {[
                     item.eventName,
                     item.location?.locationName,
@@ -136,7 +143,7 @@ export function EventTemplatesList() {
                   </span>
                   <button
                     type="button"
-                    className={primaryButton}
+                    className={dangerButton}
                     disabled={busy === item.id}
                     onClick={() => remove(item)}
                   >
@@ -152,12 +159,16 @@ export function EventTemplatesList() {
                 </>
               ) : canEdit ? (
                 <>
-                  <Link href={`${base}/${item.id}`} className={pillButton}>
-                    {t("orgs.cat.tk.edit")}
-                  </Link>
                   <button
                     type="button"
                     className={pillButton}
+                    onClick={() => setEditor({ id: item.id })}
+                  >
+                    {t("orgs.cat.tk.edit")}
+                  </button>
+                  <button
+                    type="button"
+                    className={dangerButton}
                     onClick={() => setConfirm(item.id)}
                   >
                     {t("orgs.cat.tk.delete")}
@@ -168,6 +179,24 @@ export function EventTemplatesList() {
           ))}
         </ul>
       )}
+      <Dialog
+        open={!!editor}
+        variant="side"
+        onClose={() => setEditor(null)}
+        title={
+          editor?.id ? t("orgs.cat.et.editTitle") : t("orgs.cat.et.newTitle")
+        }
+      >
+        {editor ? (
+          <EventTemplateEditor
+            templateId={editor.id}
+            onDone={() => {
+              setEditor(null);
+              void load();
+            }}
+          />
+        ) : null}
+      </Dialog>
     </div>
   );
 }

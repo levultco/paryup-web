@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { ChangeEvent, ReactNode } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { CatalogHeader } from "@/components/organizations/CatalogTabs";
 import { useOrg } from "@/components/organizations/OrgShell";
 import {
   Card,
-  Notice,
+  dangerButton,
   pillButton,
   primaryButton,
 } from "@/components/organizations/ui";
@@ -25,11 +25,16 @@ import {
   type TableErrors,
   type TableForm,
 } from "@/lib/reserved";
+import { Select } from "@/components/organizations/select";
+import { Dialog, SwitchRow } from "@/components/organizations/promoters-ui";
+import { AreasSkeleton } from "@/components/organizations/skeletons";
+import { ImageSlot } from "@/components/organizations/image-slot";
+import { Flash } from "@/components/organizations/flash";
 
 const api = "reserved-areas";
 
 const input =
-  "w-full rounded-2xl border border-white/15 bg-transparent px-4 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-white/60 disabled:opacity-50";
+  "w-full rounded-xl bg-white/[0.07] px-3.5 py-3 text-[15px] text-white outline-none transition-colors placeholder:text-white/30 focus:bg-white/[0.11] focus-visible:ring-2 focus-visible:ring-white/20 disabled:cursor-not-allowed disabled:opacity-50";
 
 function Field({
   label,
@@ -41,7 +46,7 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm text-white/55">
+    <label className="flex flex-col gap-2 text-[13px] font-medium text-white/50">
       {label}
       {children}
       {error ? <span className="text-xs text-red-400">{error}</span> : null}
@@ -82,7 +87,6 @@ export function ReservedCatalog() {
   const [tableErrors, setTableErrors] = useState<TableErrors>({});
   const [confirm, setConfirm] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const fileInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     const res = await orgFetch<{ areas: ReservedArea[] }>(slug, api);
@@ -131,10 +135,8 @@ export function ReservedCatalog() {
     await load();
   };
 
-  const uploadImage = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file || !areaForm) return;
+  const uploadImage = async (file: File) => {
+    if (!areaForm) return;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
       return setMessage({ tone: "error", text: t("orgs.pf.errType") });
     if (file.size > 12 * 1024 * 1024)
@@ -244,10 +246,13 @@ export function ReservedCatalog() {
           ) : undefined
         }
       />
-      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+      <Flash message={message} />
 
       {areaForm ? (
-        <Card
+        <Dialog
+          variant="side"
+          open
+          onClose={() => setAreaForm(null)}
           title={areaForm.id ? t("orgs.rs.editArea") : t("orgs.rs.createArea")}
         >
           <div className="grid gap-4 sm:grid-cols-2">
@@ -298,60 +303,31 @@ export function ReservedCatalog() {
                 />
               </Field>
             </div>
-            <div className="flex items-center gap-3 sm:col-span-2">
-              <span className="h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-white/10">
-                {areaForm.values.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={areaForm.values.imageUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : null}
-              </span>
-              <button
-                type="button"
-                className={pillButton}
-                disabled={uploading}
-                onClick={() => fileInput.current?.click()}
-              >
-                {uploading ? t("orgs.pf.uploading") : t("orgs.rs.areaImage")}
-              </button>
-              {areaForm.values.imageUrl ? (
-                <button
-                  type="button"
-                  className={pillButton}
-                  onClick={() =>
-                    setAreaForm({
-                      ...areaForm,
-                      values: { ...areaForm.values, imageUrl: "" },
-                    })
-                  }
-                >
-                  {t("orgs.ed.removeCover")}
-                </button>
-              ) : null}
-              <input
-                ref={fileInput}
-                type="file"
-                hidden
-                accept="image/jpeg,image/png,image/webp"
-                onChange={uploadImage}
-              />
-            </div>
-            <label className="flex items-center gap-2 text-sm text-white/80 sm:col-span-2">
-              <input
-                type="checkbox"
-                checked={areaForm.values.isActive}
-                onChange={(e) =>
-                  setAreaForm({
-                    ...areaForm,
-                    values: { ...areaForm.values, isActive: e.target.checked },
-                  })
-                }
-              />
-              {t("orgs.rs.t.active")}
-            </label>
+            <ImageSlot
+              className="aspect-[16/9] w-full sm:col-span-2"
+              src={areaForm.values.imageUrl}
+              title={t("orgs.img.area")}
+              hint={t("orgs.img.hintArea")}
+              uploading={uploading}
+              onFile={uploadImage}
+              onRemove={() =>
+                setAreaForm({
+                  ...areaForm,
+                  values: { ...areaForm.values, imageUrl: "" },
+                })
+              }
+            />
+            <SwitchRow
+              className="sm:col-span-2"
+              label={t("orgs.rs.t.active")}
+              checked={areaForm.values.isActive}
+              onChange={(on) =>
+                setAreaForm({
+                  ...areaForm,
+                  values: { ...areaForm.values, isActive: on },
+                })
+              }
+            />
           </div>
           <div className="mt-5 flex gap-2">
             <button
@@ -373,7 +349,7 @@ export function ReservedCatalog() {
               {t("orgs.common.cancel")}
             </button>
           </div>
-        </Card>
+        </Dialog>
       ) : null}
 
       {failed ? (
@@ -381,10 +357,7 @@ export function ReservedCatalog() {
           {t("orgs.cat.err.generic")}
         </p>
       ) : !areas ? (
-        <div
-          aria-hidden
-          className="h-32 animate-pulse rounded-3xl bg-white/[0.06]"
-        />
+        <AreasSkeleton count={2} />
       ) : areas.length === 0 && !areaForm ? (
         <div className="flex flex-col items-center rounded-3xl border border-dashed border-white/15 px-6 py-16 text-center">
           <p className="font-display text-2xl font-semibold text-white">
@@ -440,7 +413,7 @@ export function ReservedCatalog() {
                       </span>
                       <button
                         type="button"
-                        className={primaryButton}
+                        className={dangerButton}
                         disabled={busy === area.id}
                         onClick={() => removeArea(area)}
                       >
@@ -476,7 +449,7 @@ export function ReservedCatalog() {
                       </button>
                       <button
                         type="button"
-                        className={pillButton}
+                        className={dangerButton}
                         onClick={() => setConfirm(area.id)}
                       >
                         {t("orgs.rs.deleteArea")}
@@ -487,18 +460,18 @@ export function ReservedCatalog() {
               </div>
 
               {area.tableTypes.length ? (
-                <ul className="mt-4 flex flex-col divide-y divide-white/10 rounded-2xl border border-white/10">
+                <ul className="mt-5 flex flex-col divide-y divide-white/[0.07] overflow-hidden rounded-2xl bg-white/[0.04]">
                   {area.tableTypes.map((table) => (
                     <li
                       key={table.id}
-                      className="flex flex-wrap items-center gap-3 p-3"
+                      className="flex flex-wrap items-center gap-3 px-4 py-3"
                     >
                       <span
-                        className="h-4 w-4 shrink-0 rounded-full"
+                        className="h-4 w-4 shrink-0 rounded-full ring-2 ring-white/20"
                         style={{ background: table.color }}
                       />
                       <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                        <span className="truncate text-sm font-medium text-white">
+                        <span className="truncate text-[15px] font-semibold text-white">
                           {table.name}
                           {!table.isActive ? (
                             <span className="ml-2 text-xs font-normal text-white/40">
@@ -506,7 +479,7 @@ export function ReservedCatalog() {
                             </span>
                           ) : null}
                         </span>
-                        <span className="truncate text-xs text-white/45">
+                        <span className="truncate text-[13px] text-white/50">
                           {[
                             `${table.tableCount} × ${table.capacity}p`,
                             `${table.minSpendAmount} €`,
@@ -524,7 +497,7 @@ export function ReservedCatalog() {
                             </span>
                             <button
                               type="button"
-                              className={primaryButton}
+                              className={dangerButton}
                               disabled={busy === table.id}
                               onClick={() => removeTable(area, table)}
                             >
@@ -556,7 +529,7 @@ export function ReservedCatalog() {
                             </button>
                             <button
                               type="button"
-                              className={pillButton}
+                              className={dangerButton}
                               onClick={() => setConfirm(table.id)}
                             >
                               {t("orgs.cat.tk.delete")}
@@ -570,8 +543,17 @@ export function ReservedCatalog() {
               ) : null}
 
               {tableForm?.areaId === area.id ? (
-                <div className="mt-4 rounded-2xl border border-white/15 p-4">
-                  <div className="grid gap-4 sm:grid-cols-3">
+                <Dialog
+                  open
+                  onClose={() => setTableForm(null)}
+                  title={
+                    tableForm.id
+                      ? t("orgs.rs.editTable")
+                      : t("orgs.rs.createTable")
+                  }
+                  variant="side"
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <Field
                       label={t("orgs.rs.t.name")}
                       error={errText(tableErrors.name)}
@@ -655,22 +637,16 @@ export function ReservedCatalog() {
                       />
                     </Field>
                     <Field label={t("orgs.rs.t.paymentMode")}>
-                      <select
-                        className={`${input} bg-black`}
+                      <Select
+                        className="w-full"
                         value={tableForm.values.paymentMode}
-                        onChange={(e) =>
-                          setT(
-                            "paymentMode",
-                            e.target.value as TableForm["paymentMode"],
-                          )
-                        }
-                      >
-                        {PAYMENT_MODES.map((m) => (
-                          <option key={m} value={m}>
-                            {t(`orgs.rs.pm.${m}`)}
-                          </option>
-                        ))}
-                      </select>
+                        label={t("orgs.rs.pm." + tableForm.values.paymentMode)}
+                        onChange={(v) => setT("paymentMode", v)}
+                        options={PAYMENT_MODES.map((m) => ({
+                          value: m,
+                          label: t(`orgs.rs.pm.${m}`),
+                        }))}
+                      />
                     </Field>
                     {tableForm.values.paymentMode === "FIXED_DEPOSIT" ? (
                       <Field
@@ -717,25 +693,17 @@ export function ReservedCatalog() {
                       />
                     </Field>
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-5 text-sm text-white/80">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={tableForm.values.requiresApproval}
-                        onChange={(e) =>
-                          setT("requiresApproval", e.target.checked)
-                        }
-                      />
-                      {t("orgs.rs.t.requiresApproval")}
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={tableForm.values.isActive}
-                        onChange={(e) => setT("isActive", e.target.checked)}
-                      />
-                      {t("orgs.rs.t.active")}
-                    </label>
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    <SwitchRow
+                      label={t("orgs.rs.t.requiresApproval")}
+                      checked={tableForm.values.requiresApproval}
+                      onChange={(on) => setT("requiresApproval", on)}
+                    />
+                    <SwitchRow
+                      label={t("orgs.rs.t.active")}
+                      checked={tableForm.values.isActive}
+                      onChange={(on) => setT("isActive", on)}
+                    />
                   </div>
                   <div className="mt-4 flex gap-2">
                     <button
@@ -754,7 +722,7 @@ export function ReservedCatalog() {
                       {t("orgs.common.cancel")}
                     </button>
                   </div>
-                </div>
+                </Dialog>
               ) : canEdit ? (
                 <button
                   type="button"

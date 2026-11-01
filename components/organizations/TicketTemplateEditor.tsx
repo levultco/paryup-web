@@ -6,12 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { useOrg } from "@/components/organizations/OrgShell";
-import {
-  Card,
-  Notice,
-  pillButton,
-  primaryButton,
-} from "@/components/organizations/ui";
+import { Card, pillButton, primaryButton } from "@/components/organizations/ui";
 import {
   EDITABLE_TICKET_TYPES,
   END_WITHOUT_VALUE,
@@ -33,6 +28,11 @@ import {
 import { orgFetch } from "@/lib/org-api";
 import type { ReservedArea } from "@/lib/reserved";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
+import { Select } from "@/components/organizations/select";
+import { Segmented, SwitchRow } from "@/components/organizations/promoters-ui";
+import { FormSkeleton } from "@/components/organizations/skeletons";
+import { Flash } from "@/components/organizations/flash";
+import { ArrowLeftIcon } from "@/components/icons/solar";
 
 type Rule<T extends string> = { type: T | ""; value: string };
 type ReleaseDraft = {
@@ -46,9 +46,7 @@ type ReleaseDraft = {
 };
 
 const input =
-  "w-full rounded-2xl border border-white/15 bg-transparent px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-white/60 disabled:cursor-not-allowed disabled:opacity-50";
-const select = `${input} bg-black`;
-
+  "w-full rounded-xl bg-white/[0.07] px-3.5 py-3 text-[15px] text-white outline-none transition-colors placeholder:text-white/30 focus:bg-white/[0.11] focus-visible:ring-2 focus-visible:ring-white/20 disabled:cursor-not-allowed disabled:opacity-50";
 function Field({
   label,
   error,
@@ -61,7 +59,7 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-2 text-sm text-white/55">
+    <label className="flex flex-col gap-2 text-[13px] font-medium text-white/50">
       {label}
       {children}
       {error ? (
@@ -85,15 +83,12 @@ function Check({
   disabled?: boolean;
 }) {
   return (
-    <label className="flex items-center gap-3 text-sm text-white/80">
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      {label}
-    </label>
+    <SwitchRow
+      label={label}
+      checked={checked}
+      onChange={onChange}
+      disabled={disabled}
+    />
   );
 }
 
@@ -116,24 +111,23 @@ function RuleEditor<T extends string>({
 }) {
   const { t } = useI18n();
   return (
-    <div className="flex flex-col gap-2 text-sm text-white/55">
+    <div className="flex flex-col gap-2 text-[13px] font-medium text-white/50">
       {label}
       <div className="flex gap-2">
-        <select
-          className={select}
+        <Select
+          className="w-full"
           value={rule.type}
           disabled={disabled}
-          onChange={(e) =>
-            onChange({ type: e.target.value as T | "", value: rule.value })
-          }
-        >
-          <option value="">{t("orgs.cat.ed.noRule")}</option>
-          {options.map((o) => (
-            <option key={o} value={o}>
-              {t(`${prefix}.${o}`)}
-            </option>
-          ))}
-        </select>
+          label={t("orgs.cat.ed.noRule")}
+          onChange={(v) => onChange({ type: v, value: rule.value })}
+          options={[
+            { value: "" as T | "", label: t("orgs.cat.ed.noRule") },
+            ...options.map((o) => ({
+              value: o as T | "",
+              label: t(`${prefix}.${o}`),
+            })),
+          ]}
+        />
         {rule.type && !withoutValue.includes(rule.type) ? (
           <input
             inputMode="numeric"
@@ -164,7 +158,14 @@ const toRule = <T extends string>(
 const bool = (v: unknown, fallback = false) =>
   typeof v === "boolean" ? v : fallback;
 
-export function TicketTemplateEditor({ templateId }: { templateId?: string }) {
+export function TicketTemplateEditor({
+  templateId,
+  onDone,
+}: {
+  templateId?: string;
+  /** Si se pasa, el editor va incrustado en un diálogo: al guardar avisa en vez de navegar. */
+  onDone?: () => void;
+}) {
   const router = useRouter();
   const { t } = useI18n();
   const { slug, can } = useOrg();
@@ -426,16 +427,11 @@ export function TicketTemplateEditor({ templateId }: { templateId?: string }) {
         tone: "error",
         text: t(catalogErrorKey(res.status, res.data)),
       });
-    router.replace(base);
+    if (onDone) onDone();
+    else router.replace(base);
   };
 
-  if (loading)
-    return (
-      <div
-        aria-hidden
-        className="h-96 animate-pulse rounded-3xl bg-white/[0.06]"
-      />
-    );
+  if (loading) return <FormSkeleton sections={2} />;
   if (loadError) {
     return (
       <div className="flex flex-col items-start gap-4">
@@ -450,16 +446,21 @@ export function TicketTemplateEditor({ templateId }: { templateId?: string }) {
   const disabled = !allowed;
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
-      <Link
-        href={base}
-        className="text-sm text-white/55 transition-colors hover:text-white"
-      >
-        ← {t("orgs.cat.ed.back")}
-      </Link>
-      <h1 className="font-display text-4xl font-semibold text-white">
-        {isEdit ? t("orgs.cat.ed.editTitle") : t("orgs.cat.ed.newTitle")}
-      </h1>
+    <div className={`flex flex-col gap-6 ${onDone ? "" : "max-w-3xl"}`}>
+      {onDone ? null : (
+        <>
+          <Link
+            href={base}
+            className="inline-flex w-fit items-center gap-1 text-sm text-white/50 transition-colors hover:text-white"
+          >
+            <ArrowLeftIcon aria-hidden className="h-4 w-4" />
+            {t("orgs.cat.ed.back")}
+          </Link>
+          <h1 className="font-display text-4xl font-semibold text-white">
+            {isEdit ? t("orgs.cat.ed.editTitle") : t("orgs.cat.ed.newTitle")}
+          </h1>
+        </>
+      )}
       {isEdit ? (
         <p className="text-sm text-white/40">
           {t("orgs.cat.ed.noPropagation")}
@@ -479,34 +480,30 @@ export function TicketTemplateEditor({ templateId }: { templateId?: string }) {
           </Field>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label={t("orgs.cat.ed.type")}>
-              <select
-                className={select}
+              <Select
+                className="w-full"
                 value={type}
                 disabled={disabled}
-                onChange={(e) => setType(e.target.value as TicketType)}
-              >
-                {EDITABLE_TICKET_TYPES.map((x) => (
-                  <option key={x} value={x}>
-                    {t(`orgs.cat.type.${x}`)}
-                  </option>
-                ))}
-              </select>
+                label={t(`orgs.cat.type.${type}`)}
+                onChange={setType}
+                options={EDITABLE_TICKET_TYPES.map((x) => ({
+                  value: x,
+                  label: t(`orgs.cat.type.${x}`),
+                }))}
+              />
             </Field>
             <Field label={t("orgs.cat.ed.visibility")}>
-              <select
-                className={select}
+              <Select
+                className="w-full"
                 value={visibility}
                 disabled={disabled}
-                onChange={(e) =>
-                  setVisibility(e.target.value as TicketVisibility)
-                }
-              >
-                {VISIBILITIES.map((x) => (
-                  <option key={x} value={x}>
-                    {t(`orgs.cat.vis.${x}`)}
-                  </option>
-                ))}
-              </select>
+                label={t(`orgs.cat.vis.${visibility}`)}
+                onChange={setVisibility}
+                options={VISIBILITIES.map((x) => ({
+                  value: x,
+                  label: t(`orgs.cat.vis.${x}`),
+                }))}
+              />
             </Field>
           </div>
           <Field label={t("orgs.cat.ed.description")}>
@@ -534,39 +531,36 @@ export function TicketTemplateEditor({ templateId }: { templateId?: string }) {
           ) : (
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label={t("orgs.cat.ed.reservedArea")} error={errors.area}>
-                <select
-                  className={select}
+                <Select
+                  className="w-full"
+                  dimEmpty
                   value={areaId}
                   disabled={disabled}
-                  onChange={(e) => {
-                    setAreaId(e.target.value);
+                  label={t("orgs.cat.ed.chooseArea")}
+                  onChange={(v) => {
+                    setAreaId(v);
                     setTableId("");
                   }}
-                >
-                  <option value="">{t("orgs.cat.ed.chooseArea")}</option>
-                  {areas.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: "", label: t("orgs.cat.ed.chooseArea") },
+                    ...areas.map((a) => ({ value: a.id, label: a.name })),
+                  ]}
+                />
               </Field>
               <Field label={t("orgs.cat.ed.reservedTable")}>
-                <select
-                  className={select}
+                <Select
+                  className="w-full"
                   value={tableId}
                   disabled={disabled || !areaId}
-                  onChange={(e) => setTableId(e.target.value)}
-                >
-                  <option value="">{t("orgs.cat.ed.allTables")}</option>
-                  {(areas.find((a) => a.id === areaId)?.tableTypes ?? [])
-                    .filter((x) => x.isActive)
-                    .map((x) => (
-                      <option key={x.id} value={x.id}>
-                        {x.name}
-                      </option>
-                    ))}
-                </select>
+                  label={t("orgs.cat.ed.allTables")}
+                  onChange={setTableId}
+                  options={[
+                    { value: "", label: t("orgs.cat.ed.allTables") },
+                    ...(areas.find((a) => a.id === areaId)?.tableTypes ?? [])
+                      .filter((x) => x.isActive)
+                      .map((x) => ({ value: x.id, label: x.name })),
+                  ]}
+                />
               </Field>
             </div>
           )}
@@ -575,38 +569,30 @@ export function TicketTemplateEditor({ templateId }: { templateId?: string }) {
         <Card title={t("orgs.cat.ed.salesMode")}>
           <div className="flex flex-col gap-5">
             {supportsReleases ? (
-              <div
-                role="radiogroup"
-                className="flex w-fit rounded-full border border-white/15 p-1"
-              >
-                {(["SIMPLE", "RELEASES"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    role="radio"
-                    aria-checked={salesMode === mode}
-                    disabled={disabled}
-                    onClick={() => {
-                      setSalesMode(mode);
-                      if (mode === "RELEASES" && releases.length === 0) {
-                        setReleases([
-                          {
-                            name: "",
-                            price: "",
-                            capacity: "",
-                            isActive: true,
-                            start: blankRule(),
-                            end: blankRule(),
-                          },
-                        ]);
-                      }
-                    }}
-                    className={`rounded-full px-4 py-1.5 text-sm ${salesMode === mode ? "bg-white text-black" : "text-white/60"}`}
-                  >
-                    {t(`orgs.cat.ed.mode.${mode}`)}
-                  </button>
-                ))}
-              </div>
+              <Segmented
+                label={t("orgs.cat.ed.salesMode")}
+                value={salesMode}
+                disabled={disabled}
+                onChange={(mode) => {
+                  setSalesMode(mode);
+                  if (mode === "RELEASES" && releases.length === 0) {
+                    setReleases([
+                      {
+                        name: "",
+                        price: "",
+                        capacity: "",
+                        isActive: true,
+                        start: blankRule(),
+                        end: blankRule(),
+                      },
+                    ]);
+                  }
+                }}
+                options={(["SIMPLE", "RELEASES"] as const).map((mode) => ({
+                  value: mode,
+                  label: t(`orgs.cat.ed.mode.${mode}`),
+                }))}
+              />
             ) : null}
 
             {releasesOn ? (
@@ -855,12 +841,16 @@ export function TicketTemplateEditor({ templateId }: { templateId?: string }) {
         </div>
       </Card>
 
-      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+      <Flash message={message} />
       {!disabled ? (
-        <div>
+        <div
+          className={
+            onDone ? "pointer-events-none sticky bottom-5 z-10" : undefined
+          }
+        >
           <button
             type="button"
-            className={primaryButton}
+            className={`${primaryButton} ${onDone ? "pointer-events-auto w-full shadow-[0_10px_30px_rgba(0,0,0,0.55)]" : ""}`}
             disabled={saving}
             aria-busy={saving}
             onClick={save}

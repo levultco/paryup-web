@@ -40,10 +40,11 @@ export function Card({
   return (
     <section
       id={id}
-      className={`scroll-mt-32 rounded-3xl border border-white/10 bg-raised p-5 ${className}`}
+      data-card
+      className={`scroll-mt-32 rounded-[22px] bg-raised p-5 ring-1 ring-white/[0.08] sm:p-7 ${className}`}
     >
       {title || action ? (
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-5 flex items-center justify-between gap-3">
           {title ? (
             <h2 className="font-display text-lg font-semibold text-white">
               {title}
@@ -60,9 +61,11 @@ export function Card({
 }
 
 export const pillButton =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/15 px-4 text-sm text-white/80 transition-colors hover:border-white/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#2e2e2e] px-4 text-sm font-medium text-white transition-[background-color,color,transform] duration-100 hover:bg-[#3a3a3a] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
 export const primaryButton =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-black transition-[opacity,transform] duration-100 hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
+export const dangerButton =
+  "inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium text-red-400 transition-[background-color,transform] duration-100 hover:bg-red-500/10 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
 
 export function Notice({
   tone,
@@ -87,7 +90,7 @@ export function Notice({
 
 export function RolePill({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-full border border-white/15 px-3 py-1 text-xs text-white/70">
+    <span className="rounded-full bg-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/70">
       {children}
     </span>
   );

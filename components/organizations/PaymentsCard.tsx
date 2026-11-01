@@ -4,12 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { useOrg } from "@/components/organizations/OrgShell";
 import {
-  Card,
-  Notice,
-  RolePill,
-  pillButton,
-  primaryButton,
-} from "@/components/organizations/ui";
+  CardIcon,
+  RefreshIcon,
+  ShieldCheckIcon,
+} from "@/components/icons/solar";
+import { Group } from "@/components/organizations/promoters-ui";
+import { primaryButton } from "@/components/organizations/ui";
+import { Sk } from "@/components/organizations/skeletons";
 
 type Status = {
   canSellPaidTickets?: boolean;
@@ -76,43 +77,81 @@ export function PaymentsCard() {
   const ready = status?.canSellPaidTickets === true;
 
   return (
-    <Card title={t("orgs.st.payments")}>
-      <p className="text-sm text-white/55">{t("orgs.st.paymentsText")}</p>
-      {error ? (
-        <div className="mt-4">
-          <Notice tone="error">{t("orgs.st.paymentsError")}</Notice>
-        </div>
-      ) : null}
-      {status ? (
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <RolePill>
-            {ready ? t("orgs.st.paymentsReady") : t("orgs.st.paymentsPending")}
-          </RolePill>
-          {!ready ? (
-            <button
-              type="button"
-              className={primaryButton}
-              disabled={busy}
-              onClick={configure}
-            >
-              {t("orgs.st.configure")}
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className={pillButton}
-            disabled={busy}
-            onClick={refresh}
+    <div>
+      <Group title={t("orgs.st.payments")}>
+        <li className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4">
+          <span
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+              !status
+                ? "bg-white/[0.08] text-white/60"
+                : ready
+                  ? "bg-[#30d158]/15 text-[#30d158]"
+                  : "bg-[#ffd60a]/15 text-[#ffd60a]"
+            }`}
           >
-            {t("orgs.st.refreshStatus")}
-          </button>
-        </div>
-      ) : null}
+            {ready ? (
+              <ShieldCheckIcon aria-hidden className="h-5 w-5" />
+            ) : (
+              <CardIcon aria-hidden className="h-5 w-5" />
+            )}
+          </span>
+          <span className="flex min-w-0 flex-1 basis-52 flex-col gap-0.5">
+            {status ? (
+              <>
+                <span className="text-[16px] font-semibold tracking-[-0.01em] text-white">
+                  {ready
+                    ? t("orgs.st.paymentsReady")
+                    : t("orgs.st.paymentsPending")}
+                </span>
+                <span className="text-[13px] text-white/50">
+                  {t("orgs.st.paymentsText")}
+                </span>
+              </>
+            ) : error ? (
+              <span className="text-[15px] text-red-400">
+                {t("orgs.st.paymentsError")}
+              </span>
+            ) : (
+              <>
+                <Sk className="h-4 w-36 rounded-full" />
+                <Sk className="mt-1 h-3.5 w-56 max-w-full rounded-full" />
+              </>
+            )}
+          </span>
+          <span className="flex items-center gap-2">
+            {status && !ready ? (
+              <button
+                type="button"
+                className={primaryButton}
+                disabled={busy}
+                onClick={configure}
+              >
+                {t("orgs.st.configure")}
+              </button>
+            ) : null}
+            {status || error ? (
+              <button
+                type="button"
+                aria-label={t("orgs.st.refreshStatus")}
+                title={t("orgs.st.refreshStatus")}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2e2e2e] text-white transition-[background-color,transform] duration-100 hover:bg-[#3a3a3a] active:scale-90 disabled:opacity-40"
+                disabled={busy}
+                onClick={refresh}
+              >
+                <RefreshIcon
+                  aria-hidden
+                  className={`h-4 w-4 ${busy ? "animate-spin" : ""}`}
+                />
+              </button>
+            ) : null}
+          </span>
+        </li>
+      </Group>
       {status && !ready ? (
-        <p className="mt-3 text-xs text-white/40">
+        <p className="mt-3 px-4 text-xs text-white/40">
           {t("orgs.st.paymentsHint")}
         </p>
       ) : null}
-    </Card>
+    </div>
   );
 }

@@ -10,16 +10,7 @@ import { OrgAvatar, OrgName } from "@/components/organizations/OrgAvatar";
 import { PendingInvites } from "@/components/organizations/PendingInvites";
 import { useOrganizations } from "@/components/organizations/useOrganizations";
 import type { OrgRole } from "@/lib/organizations";
-
-function HubSkeleton() {
-  return (
-    <div aria-hidden className="mx-auto flex w-full max-w-xl flex-col gap-3">
-      <div className="h-8 w-64 animate-pulse rounded-full bg-white/10" />
-      <div className="h-20 animate-pulse rounded-3xl bg-white/[0.07]" />
-      <div className="h-20 animate-pulse rounded-3xl bg-white/[0.07]" />
-    </div>
-  );
-}
+import { HubSkeletonView } from "@/components/organizations/skeletons";
 
 /** Punto de entrada: decide entre bienvenida, panel directo o selector. */
 export function OrganizationsHub() {
@@ -62,7 +53,8 @@ export function OrganizationsHub() {
       <p className="px-6 py-40 text-center text-muted">{t("orgs.loadError")}</p>
     );
   }
-  if (state.status !== "ready" || single || noAccess) return <HubSkeleton />;
+  if (state.status !== "ready" || single || noAccess)
+    return <HubSkeletonView />;
 
   if (orgs.length === 0 && !canCreate) {
     return (
@@ -105,7 +97,7 @@ export function OrganizationsHub() {
           <li key={m.organizationId}>
             <Link
               href={`/organizations/${m.organization.slug}`}
-              className="group flex items-center gap-4 rounded-3xl border border-white/10 bg-raised p-4 transition-colors hover:border-white/30 hover:bg-white/[0.06]"
+              className="group flex items-center gap-4 rounded-3xl border border-white/10 bg-raised p-4 transition-colors hover:border-white/30 hover:bg-[color-mix(in_srgb,var(--bg-raised),white_7%)]"
             >
               <OrgAvatar org={m.organization} />
               <span className="flex min-w-0 flex-1 flex-col leading-tight">

@@ -15,6 +15,8 @@ import type { EventStatus } from "@/lib/events-admin";
 import { intlLocale } from "@/lib/i18n";
 import { orgFetch } from "@/lib/org-api";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
+import { EventCardsSkeleton } from "@/components/organizations/skeletons";
+import { ArrowLeftIcon } from "@/components/icons/solar";
 
 type EventSummary = {
   name?: string;
@@ -57,20 +59,19 @@ export function EventDetail({ eventId }: { eventId: string }) {
   if (failed) {
     return (
       <div className="flex flex-col items-start gap-4">
-        <Link href={base} className="text-sm text-white/55 hover:text-white">
-          ← {t("orgs.ed.back")}
+        <Link
+          href={base}
+          className="inline-flex items-center gap-1 text-sm text-white/55 hover:text-white"
+        >
+          <ArrowLeftIcon aria-hidden className="h-4 w-4" />
+          {t("orgs.ed.back")}
         </Link>
         <p className="text-white/55">{t("orgs.ev.err.notFound")}</p>
       </div>
     );
   }
   if (!event) {
-    return (
-      <div
-        aria-hidden
-        className="h-40 animate-pulse rounded-3xl bg-white/[0.06]"
-      />
-    );
+    return <EventCardsSkeleton rows={1} />;
   }
 
   const published = event.status !== "DRAFT";
@@ -82,9 +83,10 @@ export function EventDetail({ eventId }: { eventId: string }) {
     <div className="flex flex-col gap-6">
       <Link
         href={base}
-        className="w-fit text-sm text-white/55 transition-colors hover:text-white"
+        className="inline-flex w-fit items-center gap-1 text-sm text-white/55 transition-colors hover:text-white"
       >
-        ← {t("orgs.ed.back")}
+        <ArrowLeftIcon aria-hidden className="h-4 w-4" />
+        {t("orgs.ed.back")}
       </Link>
 
       <div className="flex flex-wrap items-center gap-4">

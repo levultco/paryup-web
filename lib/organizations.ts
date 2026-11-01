@@ -38,6 +38,8 @@ export const ORG_PERMISSIONS = {
   paymentsManage: "payments:manage",
   accessRequestsManage: "access-requests:manage",
   statsView: "stats:view",
+  promotersManage: "promoters:manage",
+  promotersSettle: "promoters:settle",
   accessControlView: "access:control:view",
 } as const;
 

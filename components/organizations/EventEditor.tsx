@@ -4,7 +4,7 @@ import { AddressSearch } from "@/components/organizations/AddressSearch";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { StatusBadge } from "@/components/organizations/EventsList";
 import { useOrg } from "@/components/organizations/OrgShell";
@@ -16,12 +16,19 @@ import {
 } from "@/components/organizations/ui";
 import { zonedToUtcISO, utcToZonedInput } from "@/lib/datetime";
 import { DISCOVERY_TZ } from "@/lib/discovery";
+import { normalizeFlyer } from "@/lib/flyer-crop";
 import type { EventTemplate } from "@/lib/catalog";
 import { eventErrorKey, MIN_AGES, type EventStatus } from "@/lib/events-admin";
 import { priceLabel } from "@/lib/format";
 import type { SalesSummary } from "@/lib/sales";
 import { intlLocale } from "@/lib/i18n";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
+import { Select } from "@/components/organizations/select";
+import { Segmented, SwitchRow } from "@/components/organizations/promoters-ui";
+import { FormSkeleton } from "@/components/organizations/skeletons";
+import { ImageSlot } from "@/components/organizations/image-slot";
+import { Flash } from "@/components/organizations/flash";
+import { ArrowLeftIcon } from "@/components/icons/solar";
 
 const MAX_BYTES = 12 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -108,7 +115,7 @@ const EMPTY: Form = {
 };
 
 const input =
-  "w-full rounded-2xl border border-white/15 bg-transparent px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-white/60 disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded-xl bg-white/[0.07] px-3.5 py-3 text-[15px] text-white outline-none transition-colors placeholder:text-white/30 focus:bg-white/[0.11] focus-visible:ring-2 focus-visible:ring-white/20 disabled:cursor-not-allowed disabled:opacity-50";
 
 function Field({
   label,
@@ -122,7 +129,7 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-2 text-sm text-white/55">
+    <label className="flex flex-col gap-2 text-[13px] font-medium text-white/50">
       {label}
       {children}
       {error ? (
@@ -220,7 +227,6 @@ export function EventEditor({ eventId }: { eventId?: string }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<"cancel" | "delete" | null>(null);
   const [uploading, setUploading] = useState(false);
-  const coverInput = useRef<HTMLInputElement>(null);
   const inFlight = useRef(false);
 
   const canEdit = isEdit
@@ -493,10 +499,7 @@ export function EventEditor({ eventId }: { eventId?: string }) {
     router.replace(action === "delete" ? base : `${base}/${eventId}`);
   };
 
-  const uploadCover = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
+  const uploadCover = async (file: File) => {
     if (!IMAGE_TYPES.includes(file.type) || file.size > MAX_BYTES) {
       return setMessage({
         tone: "error",
@@ -506,18 +509,19 @@ export function EventEditor({ eventId }: { eventId?: string }) {
     setUploading(true);
     setMessage(null);
     try {
-      const bitmap = await createImageBitmap(file);
-      if (bitmap.width > 8192 || bitmap.height > 8192) {
-        bitmap.close();
+      const probe = await createImageBitmap(file);
+      const tooBig = probe.width > 8192 || probe.height > 8192;
+      probe.close();
+      if (tooBig) {
         setMessage({ tone: "error", text: t("orgs.pf.errDims") });
         return;
       }
+      const flyer = await normalizeFlyer(file);
       const data = new FormData();
-      data.set("file", file);
+      data.set("file", flyer.file);
       data.set("kind", "cover");
-      data.set("width", String(bitmap.width));
-      data.set("height", String(bitmap.height));
-      bitmap.close();
+      data.set("width", String(flyer.width));
+      data.set("height", String(flyer.height));
       const res = await fetch(
         `/api/organizations/${encodeURIComponent(slug)}/media`,
         { method: "POST", body: data },
@@ -618,13 +622,7 @@ export function EventEditor({ eventId }: { eventId?: string }) {
     [locale],
   );
 
-  if (loading)
-    return (
-      <div
-        aria-hidden
-        className="h-96 animate-pulse rounded-3xl bg-white/[0.06]"
-      />
-    );
+  if (loading) return <FormSkeleton sections={2} />;
   if (loadError) {
     return (
       <div className="flex flex-col items-start gap-4">
@@ -662,9 +660,10 @@ export function EventEditor({ eventId }: { eventId?: string }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href={eventId ? `${base}/${eventId}` : base}
-          className="text-sm text-white/55 transition-colors hover:text-white"
+          className="inline-flex w-fit items-center gap-1 text-sm text-white/50 transition-colors hover:text-white"
         >
-          ← {t("orgs.ed.back")}
+          <ArrowLeftIcon aria-hidden className="h-4 w-4" />
+          {t("orgs.ed.back")}
         </Link>
         {isEdit ? <StatusBadge status={status} /> : null}
       </div>
@@ -677,22 +676,22 @@ export function EventEditor({ eventId }: { eventId?: string }) {
         <div className="flex flex-col gap-6">
           {!isEdit && eventTemplates.length > 0 && !readOnly ? (
             <Card title={t("orgs.ed.fromTemplate")}>
-              <select
-                className={`${input} bg-black`}
-                defaultValue=""
-                aria-label={t("orgs.ed.fromTemplate")}
-                onChange={(e) => {
-                  if (e.target.value) applyEventTemplate(e.target.value);
-                  e.target.value = "";
+              <Select
+                className="w-full"
+                dimEmpty
+                value=""
+                label={t("orgs.ed.fromTemplate")}
+                onChange={(v) => {
+                  if (v) applyEventTemplate(v);
                 }}
-              >
-                <option value="">{t("orgs.ed.chooseEventTemplate")}</option>
-                {eventTemplates.map((tpl) => (
-                  <option key={tpl.id} value={tpl.id}>
-                    {tpl.templateName}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: t("orgs.ed.chooseEventTemplate") },
+                  ...eventTemplates.map((tpl) => ({
+                    value: tpl.id,
+                    label: tpl.templateName,
+                  })),
+                ]}
+              />
             </Card>
           ) : null}
 
@@ -723,49 +722,16 @@ export function EventEditor({ eventId }: { eventId?: string }) {
                 <p className="mb-2 text-sm text-white/55">
                   {t("orgs.ed.cover")}
                 </p>
-                <div className="relative h-36 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.12] to-white/[0.02]">
-                  {form.coverImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={form.coverImage}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  ) : null}
-                  {uploading ? (
-                    <span className="absolute inset-0 flex items-center justify-center bg-black/60 text-sm">
-                      {t("orgs.pf.uploading")}
-                    </span>
-                  ) : null}
-                </div>
-                {!readOnly ? (
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      type="button"
-                      className={pillButton}
-                      disabled={uploading}
-                      onClick={() => coverInput.current?.click()}
-                    >
-                      {t("orgs.ed.changeCover")}
-                    </button>
-                    {form.coverImage ? (
-                      <button
-                        type="button"
-                        className={pillButton}
-                        onClick={() => set("coverImage", "")}
-                      >
-                        {t("orgs.ed.removeCover")}
-                      </button>
-                    ) : null}
-                    <input
-                      ref={coverInput}
-                      type="file"
-                      hidden
-                      accept={IMAGE_TYPES.join(",")}
-                      onChange={uploadCover}
-                    />
-                  </div>
-                ) : null}
+                <ImageSlot
+                  className="aspect-[4/5] w-full max-w-[220px]"
+                  src={form.coverImage}
+                  title={t("orgs.img.cover")}
+                  hint={t("orgs.img.hintFlyer")}
+                  uploading={uploading}
+                  disabled={readOnly}
+                  onFile={uploadCover}
+                  onRemove={() => set("coverImage", "")}
+                />
               </div>
             </div>
           </Card>
@@ -800,28 +766,20 @@ export function EventEditor({ eventId }: { eventId?: string }) {
           <Card title={t("orgs.ed.where")}>
             <div className="flex flex-col gap-5">
               {locations.length > 0 ? (
-                <div
-                  role="radiogroup"
-                  className="flex w-fit rounded-full border border-white/15 p-1"
-                >
-                  {(["saved", "custom"] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      role="radio"
-                      aria-checked={form.locMode === mode}
-                      disabled={readOnly}
-                      onClick={() => set("locMode", mode)}
-                      className={`rounded-full px-4 py-1.5 text-sm ${form.locMode === mode ? "bg-white text-black" : "text-white/60"}`}
-                    >
-                      {t(
-                        mode === "saved"
-                          ? "orgs.ed.savedLocation"
-                          : "orgs.ed.customLocation",
-                      )}
-                    </button>
-                  ))}
-                </div>
+                <Segmented
+                  label={t("orgs.ed.savedLocation")}
+                  value={form.locMode}
+                  disabled={readOnly}
+                  onChange={(mode) => set("locMode", mode)}
+                  options={(["saved", "custom"] as const).map((mode) => ({
+                    value: mode,
+                    label: t(
+                      mode === "saved"
+                        ? "orgs.ed.savedLocation"
+                        : "orgs.ed.customLocation",
+                    ),
+                  }))}
+                />
               ) : (
                 <p className="text-xs text-white/40">
                   {t("orgs.ed.noSavedLocations")}
@@ -832,19 +790,21 @@ export function EventEditor({ eventId }: { eventId?: string }) {
                   label={t("orgs.ed.savedLocation")}
                   error={errors.location}
                 >
-                  <select
-                    className={`${input} bg-black`}
+                  <Select
+                    className="w-full"
+                    dimEmpty
                     value={form.locationId}
                     disabled={readOnly}
-                    onChange={(e) => set("locationId", e.target.value)}
-                  >
-                    <option value="">{t("orgs.ed.chooseLocation")}</option>
-                    {locations.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.name} · {l.address}
-                      </option>
-                    ))}
-                  </select>
+                    label={t("orgs.ed.chooseLocation")}
+                    onChange={(v) => set("locationId", v)}
+                    options={[
+                      { value: "", label: t("orgs.ed.chooseLocation") },
+                      ...locations.map((l) => ({
+                        value: l.id,
+                        label: `${l.name} · ${l.address}`,
+                      })),
+                    ]}
+                  />
                 </Field>
               ) : (
                 <>
@@ -903,15 +863,17 @@ export function EventEditor({ eventId }: { eventId?: string }) {
                 label={t("orgs.ed.visibility")}
                 hint={t("orgs.ed.visibilityHint")}
               >
-                <select
-                  className={`${input} bg-black`}
+                <Select
+                  className="w-full"
                   value={form.isPublic ? "1" : "0"}
                   disabled={readOnly}
-                  onChange={(e) => set("isPublic", e.target.value === "1")}
-                >
-                  <option value="1">{t("orgs.ed.public")}</option>
-                  <option value="0">{t("orgs.ed.privateOpt")}</option>
-                </select>
+                  label={t("orgs.ed.public")}
+                  onChange={(v) => set("isPublic", v === "1")}
+                  options={[
+                    { value: "1", label: t("orgs.ed.public") },
+                    { value: "0", label: t("orgs.ed.privateOpt") },
+                  ]}
+                />
               </Field>
               <Field
                 label={t("orgs.ed.capacity")}
@@ -929,19 +891,20 @@ export function EventEditor({ eventId }: { eventId?: string }) {
                 />
               </Field>
               <Field label={t("orgs.ed.minAge")}>
-                <select
-                  className={`${input} bg-black`}
-                  value={form.minAge}
+                <Select
+                  className="w-full"
+                  value={String(form.minAge)}
                   disabled={readOnly}
-                  onChange={(e) => set("minAge", e.target.value)}
-                >
-                  <option value="">{t("orgs.ed.minAgeNone")}</option>
-                  {MIN_AGES.map((age) => (
-                    <option key={age} value={age}>
-                      {t("orgs.ed.minAgeOption", { age })}
-                    </option>
-                  ))}
-                </select>
+                  label={t("orgs.ed.minAgeNone")}
+                  onChange={(v) => set("minAge", v)}
+                  options={[
+                    { value: "", label: t("orgs.ed.minAgeNone") },
+                    ...MIN_AGES.map((age) => ({
+                      value: String(age),
+                      label: t("orgs.ed.minAgeOption", { age }),
+                    })),
+                  ]}
+                />
               </Field>
             </div>
           </Card>
@@ -1020,19 +983,15 @@ export function EventEditor({ eventId }: { eventId?: string }) {
                             }
                           />
                         </Field>
-                        <label className="flex items-end gap-2 pb-3 text-sm text-white/55">
-                          <input
-                            type="checkbox"
-                            checked={ticket.isVisible}
-                            disabled={readOnly || !canTickets}
-                            onChange={(e) =>
-                              patchTicket(ticket.id, {
-                                isVisible: e.target.checked,
-                              })
-                            }
-                          />
-                          {t("orgs.ed.visible")}
-                        </label>
+                        <SwitchRow
+                          className="self-end"
+                          label={t("orgs.ed.visible")}
+                          checked={ticket.isVisible}
+                          disabled={readOnly || !canTickets}
+                          onChange={(on) =>
+                            patchTicket(ticket.id, { isVisible: on })
+                          }
+                        />
                       </div>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <Field label={t("orgs.ed.saleStart")}>
@@ -1089,18 +1048,20 @@ export function EventEditor({ eventId }: { eventId?: string }) {
                 </ul>
                 {!readOnly && canTickets && availableTemplates.length > 0 ? (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <select
-                      className="h-10 rounded-full border border-white/15 bg-black px-4 text-sm text-white"
+                    <Select
+                      size="sm"
+                      dimEmpty
                       value={addTemplate}
-                      onChange={(e) => setAddTemplate(e.target.value)}
-                    >
-                      <option value="">{t("orgs.ed.chooseTemplate")}</option>
-                      {availableTemplates.map((tpl) => (
-                        <option key={tpl.id} value={tpl.id}>
-                          {tpl.name}
-                        </option>
-                      ))}
-                    </select>
+                      label={t("orgs.ed.chooseTemplate")}
+                      onChange={setAddTemplate}
+                      options={[
+                        { value: "", label: t("orgs.ed.chooseTemplate") },
+                        ...availableTemplates.map((tpl) => ({
+                          value: tpl.id,
+                          label: tpl.name,
+                        })),
+                      ]}
+                    />
                     <button
                       type="button"
                       className={pillButton}
@@ -1125,25 +1086,26 @@ export function EventEditor({ eventId }: { eventId?: string }) {
                       key={tpl.id}
                       className="flex flex-wrap items-center gap-3 py-3 first:pt-0"
                     >
-                      <label className="flex min-w-0 flex-1 items-center gap-3 text-white">
-                        <input
-                          type="checkbox"
-                          checked={!!sel}
-                          onChange={(e) =>
-                            setPicked((p) => {
-                              const next = { ...p };
-                              if (e.target.checked)
-                                next[tpl.id] = { price: "", capacity: "" };
-                              else delete next[tpl.id];
-                              return next;
-                            })
-                          }
-                        />
-                        <span className="truncate">{tpl.name}</span>
-                        <span className="shrink-0 text-xs text-white/40">
-                          {tpl.price} €
-                        </span>
-                      </label>
+                      <SwitchRow
+                        className="min-w-0 flex-1"
+                        label={
+                          <>
+                            {tpl.name}
+                            <span className="ml-2 text-xs text-white/40">
+                              {tpl.price} €
+                            </span>
+                          </>
+                        }
+                        checked={!!sel}
+                        onChange={(on) =>
+                          setPicked((p) => {
+                            const next = { ...p };
+                            if (on) next[tpl.id] = { price: "", capacity: "" };
+                            else delete next[tpl.id];
+                            return next;
+                          })
+                        }
+                      />
                       {sel ? (
                         <>
                           <input
@@ -1187,7 +1149,7 @@ export function EventEditor({ eventId }: { eventId?: string }) {
 
           {message ? (
             <div className="flex flex-wrap items-center gap-3">
-              <Notice tone={message.tone}>{message.text}</Notice>
+              <Flash message={message} />
               {message.settings ? (
                 <Link
                   href={`/organizations/${slug}/settings`}

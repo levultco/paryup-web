@@ -7,6 +7,7 @@ import { ArrowLeftIcon } from "@/components/icons/solar";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { CreateOrganizationForm } from "@/components/organizations/CreateOrganizationForm";
 import { useOrganizations } from "@/components/organizations/useOrganizations";
+import { FormSkeleton } from "@/components/organizations/skeletons";
 
 /** Solo accesible con permiso; el backend lo vuelve a comprobar al crear. */
 export function NewOrganizationView() {
@@ -30,10 +31,9 @@ export function NewOrganizationView() {
   }
   if (state.status !== "ready" || denied) {
     return (
-      <div
-        aria-hidden
-        className="mx-auto h-96 max-w-md animate-pulse rounded-3xl bg-white/[0.07]"
-      />
+      <div className="mx-auto max-w-md">
+        <FormSkeleton sections={1} />
+      </div>
     );
   }
 

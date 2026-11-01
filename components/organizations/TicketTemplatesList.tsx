@@ -1,29 +1,33 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { CatalogHeader } from "@/components/organizations/CatalogTabs";
 import { useOrg } from "@/components/organizations/OrgShell";
+import { TicketIcon } from "@/components/icons/solar";
+import { Dialog, Switch } from "@/components/organizations/promoters-ui";
+import { TicketTemplateEditor } from "@/components/organizations/TicketTemplateEditor";
 import {
-  Notice,
+  dangerButton,
   pillButton,
   primaryButton,
 } from "@/components/organizations/ui";
 import { catalogErrorKey, type TicketTemplate } from "@/lib/catalog";
 import { orgFetch } from "@/lib/org-api";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
+import { TemplateRowsSkeleton } from "@/components/organizations/skeletons";
+import { Flash } from "@/components/organizations/flash";
 
 export function TicketTemplatesList() {
   const { t } = useI18n();
   const { slug, can } = useOrg();
   const allowed = can(ORG_PERMISSIONS.ticketTemplatesManage);
-  const base = `/organizations/${slug}/catalog`;
   const [items, setItems] = useState<TicketTemplate[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [editor, setEditor] = useState<{ id?: string } | null>(null);
 
   const load = useCallback(async () => {
     const res = await orgFetch<{ ticketTypes: TicketTemplate[] }>(
@@ -76,13 +80,17 @@ export function TicketTemplatesList() {
         active="tickets"
         action={
           allowed ? (
-            <Link href={`${base}/tickets/new`} className={primaryButton}>
+            <button
+              type="button"
+              className={primaryButton}
+              onClick={() => setEditor({})}
+            >
               {t("orgs.cat.tk.create")}
-            </Link>
+            </button>
           ) : undefined
         }
       />
-      {message ? <Notice tone="error">{message}</Notice> : null}
+      <Flash message={message} />
 
       {!allowed ? (
         <p className="text-white/55">{t("orgs.cat.tk.noAccess")}</p>
@@ -91,14 +99,7 @@ export function TicketTemplatesList() {
           {t("orgs.cat.err.generic")}
         </p>
       ) : !items ? (
-        <div aria-hidden className="flex flex-col gap-2">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-16 animate-pulse rounded-2xl bg-white/[0.06]"
-            />
-          ))}
-        </div>
+        <TemplateRowsSkeleton rows={3} />
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center rounded-3xl border border-dashed border-white/15 px-6 py-16 text-center">
           <p className="font-display text-2xl font-semibold text-white">
@@ -107,67 +108,76 @@ export function TicketTemplatesList() {
           <p className="mt-2 max-w-sm text-white/55">
             {t("orgs.cat.tk.emptyText")}
           </p>
-          <Link
-            href={`${base}/tickets/new`}
+          <button
+            type="button"
             className={`${primaryButton} mt-6`}
+            onClick={() => setEditor({})}
           >
             {t("orgs.cat.tk.create")}
-          </Link>
+          </button>
         </div>
       ) : (
-        <ul className="flex flex-col divide-y divide-white/10 overflow-hidden rounded-3xl border border-white/10 bg-raised">
+        <ul className="flex flex-col gap-3">
           {items.map((item) => {
+            const chips = [
+              item.type ? t(`orgs.cat.type.${item.type}`) : null,
+              item.visibility ? t(`orgs.cat.vis.${item.visibility}`) : null,
+              item.capacity
+                ? `${t("orgs.cat.ed.capacity")} ${item.capacity}`
+                : t("orgs.cat.tk.unlimited"),
+            ].filter(Boolean) as string[];
             return (
               <li
                 key={item.id}
-                className="flex flex-wrap items-center gap-3 p-4"
+                className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[22px] bg-raised p-4 ring-1 ring-white/[0.08] sm:px-5"
               >
-                <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                  <span className="truncate font-medium text-white">
+                <span
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-b from-white/20 to-white/[0.05] text-white transition-opacity ${item.isActive ? "" : "opacity-40"}`}
+                >
+                  <TicketIcon aria-hidden className="h-5 w-5" />
+                </span>
+                <span
+                  className={`flex min-w-0 flex-1 basis-48 flex-col gap-1.5 transition-opacity ${item.isActive ? "" : "opacity-50"}`}
+                >
+                  <span className="truncate text-[17px] font-semibold tracking-[-0.015em] text-white">
                     {item.name}
                   </span>
-                  <span className="truncate text-sm text-white/45">
-                    {[
-                      item.type ? t(`orgs.cat.type.${item.type}`) : null,
-                      item.visibility
-                        ? t(`orgs.cat.vis.${item.visibility}`)
-                        : null,
-                      item.salesMode === "RELEASES"
-                        ? t("orgs.cat.tk.releases")
-                        : `${item.price} €`,
-                      item.capacity
-                        ? `${t("orgs.cat.ed.capacity")} ${item.capacity}`
-                        : t("orgs.cat.tk.unlimited"),
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
+                  <span className="flex flex-wrap gap-1.5">
+                    {chips.map((c) => (
+                      <span
+                        key={c}
+                        className="rounded-full bg-white/[0.08] px-2.5 py-0.5 text-[12px] text-white/60"
+                      >
+                        {c}
+                      </span>
+                    ))}
                   </span>
                 </span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={item.isActive}
-                  aria-label={
+                <span
+                  className={`text-[22px] font-semibold tracking-[-0.03em] tabular-nums text-white transition-opacity ${item.isActive ? "" : "opacity-50"}`}
+                >
+                  {item.salesMode === "RELEASES"
+                    ? t("orgs.cat.tk.releases")
+                    : `${item.price} €`}
+                </span>
+                <Switch
+                  checked={item.isActive}
+                  disabled={busy === item.id}
+                  onChange={() => toggle(item)}
+                  label={
                     item.isActive
                       ? t("orgs.cat.tk.active")
                       : t("orgs.cat.tk.inactive")
                   }
-                  disabled={busy === item.id}
-                  onClick={() => toggle(item)}
-                  className={`flex h-7 w-12 items-center rounded-full p-1 transition-colors ${item.isActive ? "bg-emerald-400/80" : "bg-white/15"}`}
-                >
-                  <span
-                    className={`h-5 w-5 rounded-full bg-white transition-transform ${item.isActive ? "translate-x-5" : ""}`}
-                  />
-                </button>
+                />
                 {confirm === item.id ? (
-                  <>
+                  <span className="flex flex-wrap items-center gap-2">
                     <span className="text-xs text-white/60">
                       {t("orgs.cat.tk.deleteConfirm", { name: item.name })}
                     </span>
                     <button
                       type="button"
-                      className={primaryButton}
+                      className={dangerButton}
                       disabled={busy === item.id}
                       onClick={() => remove(item)}
                     >
@@ -180,29 +190,48 @@ export function TicketTemplatesList() {
                     >
                       {t("orgs.common.cancel")}
                     </button>
-                  </>
+                  </span>
                 ) : (
-                  <>
-                    <Link
-                      href={`${base}/tickets/${item.id}`}
-                      className={pillButton}
-                    >
-                      {t("orgs.cat.tk.edit")}
-                    </Link>
+                  <span className="flex items-center gap-1">
                     <button
                       type="button"
                       className={pillButton}
+                      onClick={() => setEditor({ id: item.id })}
+                    >
+                      {t("orgs.cat.tk.edit")}
+                    </button>
+                    <button
+                      type="button"
+                      className={dangerButton}
                       onClick={() => setConfirm(item.id)}
                     >
                       {t("orgs.cat.tk.delete")}
                     </button>
-                  </>
+                  </span>
                 )}
               </li>
             );
           })}
         </ul>
       )}
+      <Dialog
+        open={!!editor}
+        variant="side"
+        onClose={() => setEditor(null)}
+        title={
+          editor?.id ? t("orgs.cat.ed.editTitle") : t("orgs.cat.ed.newTitle")
+        }
+      >
+        {editor ? (
+          <TicketTemplateEditor
+            templateId={editor.id}
+            onDone={() => {
+              setEditor(null);
+              void load();
+            }}
+          />
+        ) : null}
+      </Dialog>
     </div>
   );
 }

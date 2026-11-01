@@ -3,15 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { useOrg } from "@/components/organizations/OrgShell";
-import {
-  Card,
-  Notice,
-  pillButton,
-  primaryButton,
-} from "@/components/organizations/ui";
+import { Card, pillButton, primaryButton } from "@/components/organizations/ui";
 import {
   catalogErrorKey,
   type EventTemplate,
@@ -19,6 +14,13 @@ import {
 } from "@/lib/catalog";
 import { orgFetch } from "@/lib/org-api";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
+import { Select } from "@/components/organizations/select";
+import { Segmented, SwitchRow } from "@/components/organizations/promoters-ui";
+import { normalizeFlyer } from "@/lib/flyer-crop";
+import { FormSkeleton } from "@/components/organizations/skeletons";
+import { ImageSlot } from "@/components/organizations/image-slot";
+import { Flash } from "@/components/organizations/flash";
+import { ArrowLeftIcon } from "@/components/icons/solar";
 
 type Loc = {
   id: string;
@@ -29,7 +31,7 @@ type Loc = {
 };
 
 const input =
-  "w-full rounded-2xl border border-white/15 bg-transparent px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-white/60 disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded-xl bg-white/[0.07] px-3.5 py-3 text-[15px] text-white outline-none transition-colors placeholder:text-white/30 focus:bg-white/[0.11] focus-visible:ring-2 focus-visible:ring-white/20 disabled:cursor-not-allowed disabled:opacity-50";
 
 function Field({
   label,
@@ -41,7 +43,7 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-2 text-sm text-white/55">
+    <label className="flex flex-col gap-2 text-[13px] font-medium text-white/50">
       {label}
       {children}
       {error ? <span className="text-xs text-red-400">{error}</span> : null}
@@ -49,7 +51,14 @@ function Field({
   );
 }
 
-export function EventTemplateEditor({ templateId }: { templateId?: string }) {
+export function EventTemplateEditor({
+  templateId,
+  onDone,
+}: {
+  templateId?: string;
+  /** Si se pasa, el editor va incrustado en un diálogo: al guardar avisa en vez de navegar. */
+  onDone?: () => void;
+}) {
   const router = useRouter();
   const { t } = useI18n();
   const { slug, can } = useOrg();
@@ -81,7 +90,6 @@ export function EventTemplateEditor({ templateId }: { templateId?: string }) {
   } | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const fileInput = useRef<HTMLInputElement>(null);
   const inFlight = useRef(false);
 
   useEffect(() => {
@@ -132,10 +140,7 @@ export function EventTemplateEditor({ templateId }: { templateId?: string }) {
     };
   }, [slug, templateId, can]);
 
-  const upload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
+  const upload = async (file: File) => {
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
       return setMessage({ tone: "error", text: t("orgs.pf.errType") });
     if (file.size > 12 * 1024 * 1024)
@@ -143,15 +148,16 @@ export function EventTemplateEditor({ templateId }: { templateId?: string }) {
     setUploading(true);
     setMessage(null);
     try {
-      const bitmap = await createImageBitmap(file);
-      const { width, height } = bitmap;
-      bitmap.close();
-      if (width > 8192 || height > 8192) throw new Error("dims");
+      const probe = await createImageBitmap(file);
+      const tooBig = probe.width > 8192 || probe.height > 8192;
+      probe.close();
+      if (tooBig) throw new Error("dims");
+      const flyer = await normalizeFlyer(file);
       const data = new FormData();
-      data.set("file", file);
+      data.set("file", flyer.file);
       data.set("kind", "template");
-      data.set("width", String(width));
-      data.set("height", String(height));
+      data.set("width", String(flyer.width));
+      data.set("height", String(flyer.height));
       const res = await fetch(
         `/api/organizations/${encodeURIComponent(slug)}/media`,
         { method: "POST", body: data },
@@ -237,16 +243,11 @@ export function EventTemplateEditor({ templateId }: { templateId?: string }) {
         tone: "error",
         text: t(catalogErrorKey(res.status, res.data)),
       });
-    router.replace(base);
+    if (onDone) onDone();
+    else router.replace(base);
   };
 
-  if (loading)
-    return (
-      <div
-        aria-hidden
-        className="h-96 animate-pulse rounded-3xl bg-white/[0.06]"
-      />
-    );
+  if (loading) return <FormSkeleton sections={2} />;
   if (loadError) {
     return (
       <div className="flex flex-col items-start gap-4">
@@ -259,16 +260,21 @@ export function EventTemplateEditor({ templateId }: { templateId?: string }) {
   }
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
-      <Link
-        href={base}
-        className="text-sm text-white/55 transition-colors hover:text-white"
-      >
-        ← {t("orgs.cat.ed.back")}
-      </Link>
-      <h1 className="font-display text-4xl font-semibold text-white">
-        {isEdit ? t("orgs.cat.et.editTitle") : t("orgs.cat.et.newTitle")}
-      </h1>
+    <div className={`flex flex-col gap-6 ${onDone ? "" : "max-w-3xl"}`}>
+      {onDone ? null : (
+        <>
+          <Link
+            href={base}
+            className="inline-flex w-fit items-center gap-1 text-sm text-white/50 transition-colors hover:text-white"
+          >
+            <ArrowLeftIcon aria-hidden className="h-4 w-4" />
+            {t("orgs.cat.ed.back")}
+          </Link>
+          <h1 className="font-display text-4xl font-semibold text-white">
+            {isEdit ? t("orgs.cat.et.editTitle") : t("orgs.cat.et.newTitle")}
+          </h1>
+        </>
+      )}
 
       <Card>
         <div className="flex flex-col gap-5">
@@ -303,49 +309,16 @@ export function EventTemplateEditor({ templateId }: { templateId?: string }) {
             <p className="mb-2 text-sm text-white/55">
               {t("orgs.cat.et.image")}
             </p>
-            <div className="relative h-32 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.12] to-white/[0.02]">
-              {imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={imageUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : null}
-              {uploading ? (
-                <span className="absolute inset-0 flex items-center justify-center bg-black/60 text-sm">
-                  {t("orgs.pf.uploading")}
-                </span>
-              ) : null}
-            </div>
-            {allowed ? (
-              <div className="mt-3 flex gap-2">
-                <button
-                  type="button"
-                  className={pillButton}
-                  disabled={uploading}
-                  onClick={() => fileInput.current?.click()}
-                >
-                  {t("orgs.ed.changeCover")}
-                </button>
-                {imageUrl ? (
-                  <button
-                    type="button"
-                    className={pillButton}
-                    onClick={() => setImageUrl("")}
-                  >
-                    {t("orgs.ed.removeCover")}
-                  </button>
-                ) : null}
-                <input
-                  ref={fileInput}
-                  type="file"
-                  hidden
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={upload}
-                />
-              </div>
-            ) : null}
+            <ImageSlot
+              className="aspect-[4/5] w-full max-w-[220px]"
+              src={imageUrl}
+              title={t("orgs.img.template")}
+              hint={t("orgs.img.hintFlyer")}
+              uploading={uploading}
+              disabled={!allowed}
+              onFile={upload}
+              onRemove={() => setImageUrl("")}
+            />
           </div>
         </div>
       </Card>
@@ -353,44 +326,38 @@ export function EventTemplateEditor({ templateId }: { templateId?: string }) {
       <Card title={t("orgs.ed.where")}>
         <div className="flex flex-col gap-5">
           {locations.length > 0 ? (
-            <div
-              role="radiogroup"
-              className="flex w-fit rounded-full border border-white/15 p-1"
-            >
-              {(["saved", "custom"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  role="radio"
-                  aria-checked={locMode === mode}
-                  disabled={!allowed}
-                  onClick={() => setLocMode(mode)}
-                  className={`rounded-full px-4 py-1.5 text-sm ${locMode === mode ? "bg-white text-black" : "text-white/60"}`}
-                >
-                  {t(
-                    mode === "saved"
-                      ? "orgs.ed.savedLocation"
-                      : "orgs.ed.customLocation",
-                  )}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              label={t("orgs.ed.savedLocation")}
+              value={locMode}
+              disabled={!allowed}
+              onChange={setLocMode}
+              options={(["saved", "custom"] as const).map((mode) => ({
+                value: mode,
+                label: t(
+                  mode === "saved"
+                    ? "orgs.ed.savedLocation"
+                    : "orgs.ed.customLocation",
+                ),
+              }))}
+            />
           ) : null}
           {locMode === "saved" && locations.length > 0 ? (
             <Field label={t("orgs.ed.savedLocation")}>
-              <select
-                className={`${input} bg-black`}
+              <Select
+                className="w-full"
+                dimEmpty
                 value={locationId}
                 disabled={!allowed}
-                onChange={(e) => setLocationId(e.target.value)}
-              >
-                <option value="">{t("orgs.ed.chooseLocation")}</option>
-                {locations.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.name} · {l.address}
-                  </option>
-                ))}
-              </select>
+                label={t("orgs.ed.chooseLocation")}
+                onChange={setLocationId}
+                options={[
+                  { value: "", label: t("orgs.ed.chooseLocation") },
+                  ...locations.map((l) => ({
+                    value: l.id,
+                    label: `${l.name} · ${l.address}`,
+                  })),
+                ]}
+              />
             </Field>
           ) : (
             <>
@@ -441,39 +408,42 @@ export function EventTemplateEditor({ templateId }: { templateId?: string }) {
         {tickets.length === 0 ? (
           <p className="text-sm text-white/45">{t("orgs.cat.et.noTickets")}</p>
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-2">
             {tickets.map((tpl) => (
               <li key={tpl.id}>
-                <label className="flex items-center gap-3 text-white">
-                  <input
-                    type="checkbox"
-                    checked={ticketIds.includes(tpl.id)}
-                    disabled={!allowed}
-                    onChange={(e) =>
-                      setTicketIds((ids) =>
-                        e.target.checked
-                          ? [...ids, tpl.id]
-                          : ids.filter((x) => x !== tpl.id),
-                      )
-                    }
-                  />
-                  <span className="truncate">{tpl.name}</span>
-                  <span className="text-xs text-white/40">
-                    {tpl.type ? t(`orgs.cat.type.${tpl.type}`) : ""}
-                  </span>
-                </label>
+                <SwitchRow
+                  label={
+                    <>
+                      {tpl.name}
+                      <span className="ml-2 text-xs text-white/40">
+                        {tpl.type ? t(`orgs.cat.type.${tpl.type}`) : ""}
+                      </span>
+                    </>
+                  }
+                  checked={ticketIds.includes(tpl.id)}
+                  disabled={!allowed}
+                  onChange={(on) =>
+                    setTicketIds((ids) =>
+                      on ? [...ids, tpl.id] : ids.filter((x) => x !== tpl.id),
+                    )
+                  }
+                />
               </li>
             ))}
           </ul>
         )}
       </Card>
 
-      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+      <Flash message={message} />
       {allowed ? (
-        <div>
+        <div
+          className={
+            onDone ? "pointer-events-none sticky bottom-5 z-10" : undefined
+          }
+        >
           <button
             type="button"
-            className={primaryButton}
+            className={`${primaryButton} ${onDone ? "pointer-events-auto w-full shadow-[0_10px_30px_rgba(0,0,0,0.55)]" : ""}`}
             disabled={saving}
             aria-busy={saving}
             onClick={save}

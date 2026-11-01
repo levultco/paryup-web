@@ -5,6 +5,7 @@ import {
   ShopIcon,
   TicketIcon,
 } from "@/public/icons/icons";
+import { WidgetIcon } from "@/components/icons/solar";
 
 const Nav = {
   home: {
@@ -16,6 +17,11 @@ const Nav = {
     labelKey: "nav.events",
     href: "/events",
     icon: <MobileIcon className="h-5 w-5 transition" />,
+  },
+  backstage: {
+    labelKey: "nav.backstage",
+    href: "/backstage",
+    icon: <WidgetIcon className="h-5 w-5 transition" />,
   },
 };
 

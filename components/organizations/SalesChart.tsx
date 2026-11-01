@@ -9,6 +9,7 @@ import { DISCOVERY_TZ } from "@/lib/discovery";
 import { intlLocale } from "@/lib/i18n";
 import { orgFetch } from "@/lib/org-api";
 import { buildSalesSeries, formatMoney, type SalesDay } from "@/lib/sales";
+import { ChartSkeleton } from "@/components/organizations/skeletons";
 
 type Metric = "tickets" | "amount";
 type Range = "7" | "30" | "all";
@@ -119,12 +120,7 @@ export function SalesChart({ eventId }: { eventId: string }) {
   if (failed) {
     body = <p className="text-white/55">{t("orgs.sl.loadError")}</p>;
   } else if (!days) {
-    body = (
-      <div
-        aria-hidden
-        className="h-56 animate-pulse rounded-2xl bg-white/[0.06]"
-      />
-    );
+    body = <ChartSkeleton />;
   } else if (series.length === 0) {
     body = <p className="text-white/55">{t("orgs.sl.chart.empty")}</p>;
   } else {

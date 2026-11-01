@@ -4,7 +4,20 @@ import { useState } from "react";
 import { FAQ_IDS } from "./content";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 
-export default function Faq() {
+const HOME_FAQ_KEYS = {
+  title1: "faq.title1",
+  title2: "faq.title2",
+  sub: "faq.sub",
+  prefix: "faq",
+};
+
+export default function Faq({
+  ids = FAQ_IDS,
+  keys = HOME_FAQ_KEYS,
+}: {
+  ids?: number[];
+  keys?: typeof HOME_FAQ_KEYS;
+}) {
   const { t } = useI18n();
   const [open, setOpen] = useState<number | null>(0);
 
@@ -15,14 +28,14 @@ export default function Faq() {
     >
       <div className="lg:sticky lg:top-32 lg:self-start">
         <h2 className="font-display text-[clamp(3rem,6.5vw,6.5rem)] font-bold leading-[0.9]">
-          {t("faq.title1")}
+          {t(keys.title1)}
           <br />
-          {t("faq.title2")}
+          {t(keys.title2)}
         </h2>
-        <p className="mt-6 max-w-[34ch] text-lg text-muted">{t("faq.sub")}</p>
+        <p className="mt-6 max-w-[34ch] text-lg text-muted">{t(keys.sub)}</p>
       </div>
       <ul className="border-t border-line">
-        {FAQ_IDS.map((id, i) => {
+        {ids.map((id, i) => {
           const isOpen = open === i;
           return (
             <li key={id} className="border-b border-line">
@@ -33,7 +46,7 @@ export default function Faq() {
                 className="group flex w-full items-center justify-between gap-6 py-7 text-left"
               >
                 <span className="font-display text-[clamp(1.4rem,2.2vw,2.1rem)] font-medium leading-tight">
-                  {t(`faq.${id}.q`)}
+                  {t(`${keys.prefix}.${id}.q`)}
                 </span>
                 <span
                   aria-hidden
@@ -53,7 +66,7 @@ export default function Faq() {
               >
                 <div className="overflow-hidden">
                   <p className="max-w-[56ch] pb-8 text-lg leading-relaxed text-muted">
-                    {t(`faq.${id}.a`)}
+                    {t(`${keys.prefix}.${id}.a`)}
                   </p>
                 </div>
               </div>

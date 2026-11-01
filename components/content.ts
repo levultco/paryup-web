@@ -9,6 +9,8 @@ export type Feature = {
   image?: string;
   /** Ancho/alto de la imagen cuando es una pantalla vertical de la app: se muestra recortada por abajo. */
   imageAspect?: number;
+  /** Contenido propio en lugar de una imagen (p. ej. una mini interfaz). */
+  visual?: import("react").ReactNode;
 };
 
 export const FEATURES: Feature[] = [

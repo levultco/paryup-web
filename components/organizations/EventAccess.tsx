@@ -13,6 +13,8 @@ import { DISCOVERY_TZ } from "@/lib/discovery";
 import { intlLocale } from "@/lib/i18n";
 import { orgFetch } from "@/lib/org-api";
 import type { AccessRequest, ListEntry, RequestStatus } from "@/lib/reserved";
+import { Select } from "@/components/organizations/select";
+import { ListSkeleton } from "@/components/organizations/skeletons";
 
 const REQUEST_FILTERS: (RequestStatus | "")[] = [
   "PENDING",
@@ -125,47 +127,40 @@ export function EventAccess({ eventId }: { eventId: string }) {
           ))}
         </div>
         {tab === "requests" ? (
-          <select
+          <Select
+            size="sm"
             value={reqFilter}
-            onChange={(e) => {
+            onChange={(v) => {
               setRequests(null);
-              setReqFilter(e.target.value as RequestStatus | "");
+              setReqFilter(v);
             }}
-            aria-label={t("orgs.ev.col.status")}
-            className="h-10 rounded-full border border-white/15 bg-black px-4 text-sm text-white"
-          >
-            {REQUEST_FILTERS.map((f) => (
-              <option key={f || "all"} value={f}>
-                {f ? t(`orgs.ac.st.${f}`) : t("orgs.ac.all")}
-              </option>
-            ))}
-          </select>
+            label={t("orgs.ev.col.status")}
+            options={REQUEST_FILTERS.map((f) => ({
+              value: f,
+              label: f ? t(`orgs.ac.st.${f}`) : t("orgs.ac.all"),
+            }))}
+          />
         ) : (
-          <select
+          <Select
+            size="sm"
             value={listFilter}
-            onChange={(e) => {
+            onChange={(v) => {
               setEntries(null);
-              setListFilter(e.target.value as (typeof LIST_FILTERS)[number]);
+              setListFilter(v);
             }}
-            aria-label={t("orgs.ev.col.status")}
-            className="h-10 rounded-full border border-white/15 bg-black px-4 text-sm text-white"
-          >
-            {LIST_FILTERS.map((f) => (
-              <option key={f || "all"} value={f}>
-                {f ? t(`orgs.ac.ls.${f}`) : t("orgs.ac.all")}
-              </option>
-            ))}
-          </select>
+            label={t("orgs.ev.col.status")}
+            options={LIST_FILTERS.map((f) => ({
+              value: f,
+              label: f ? t(`orgs.ac.ls.${f}`) : t("orgs.ac.all"),
+            }))}
+          />
         )}
       </div>
       {error ? <Notice tone="error">{error}</Notice> : null}
 
       {tab === "requests" ? (
         requests === null ? (
-          <div
-            aria-hidden
-            className="h-24 animate-pulse rounded-2xl bg-white/[0.05]"
-          />
+          <ListSkeleton rows={3} />
         ) : requests.length === 0 ? (
           <p className="text-sm text-white/45">{t("orgs.ac.empty")}</p>
         ) : (
@@ -251,10 +246,7 @@ export function EventAccess({ eventId }: { eventId: string }) {
           </ul>
         )
       ) : entries === null ? (
-        <div
-          aria-hidden
-          className="h-24 animate-pulse rounded-2xl bg-white/[0.05]"
-        />
+        <ListSkeleton rows={3} />
       ) : entries.length === 0 ? (
         <p className="text-sm text-white/45">{t("orgs.ac.emptyList")}</p>
       ) : (

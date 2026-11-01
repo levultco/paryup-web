@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { useOrg } from "@/components/organizations/OrgShell";
 import { OrgAvatar, OrgName } from "@/components/organizations/OrgAvatar";
@@ -15,6 +14,8 @@ import {
 import { orgFetch } from "@/lib/org-api";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
 import { SOCIAL_PLATFORMS } from "@/lib/social";
+import { ImageSlot } from "@/components/organizations/image-slot";
+import { Flash } from "@/components/organizations/flash";
 
 const MAX_BYTES = 12 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -69,8 +70,6 @@ export function ProfileEditor() {
     tone: "success" | "error";
     text: string;
   } | null>(null);
-  const logoInput = useRef<HTMLInputElement>(null);
-  const bannerInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const id = window.location.hash.slice(1);
@@ -92,13 +91,7 @@ export function ProfileEditor() {
   const nameOk =
     draft.name.trim().length >= 2 && draft.name.trim().length <= 80;
 
-  const upload = async (
-    kind: "logo" | "banner",
-    e: ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
+  const upload = async (kind: "logo" | "banner", file: File) => {
     if (!TYPES.includes(file.type))
       return setMessage({ tone: "error", text: t("orgs.pf.errType") });
     if (file.size > MAX_BYTES)
@@ -218,50 +211,16 @@ export function ProfileEditor() {
               <p className="mb-2 text-sm text-white/55">
                 {t("orgs.field.banner")}
               </p>
-              <div className="relative h-32 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.12] to-white/[0.02] sm:h-40">
-                {draft.banner ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={draft.banner}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : null}
-                {uploading === "banner" ? (
-                  <span className="absolute inset-0 flex items-center justify-center bg-black/60 text-sm text-white">
-                    {t("orgs.pf.uploading")}
-                  </span>
-                ) : null}
-              </div>
-              {canEdit ? (
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    className={pillButton}
-                    disabled={!!uploading}
-                    onClick={() => bannerInput.current?.click()}
-                  >
-                    {t("orgs.pf.changeBanner")}
-                  </button>
-                  {draft.banner ? (
-                    <button
-                      type="button"
-                      className={pillButton}
-                      disabled={!!uploading}
-                      onClick={() => set("banner", "")}
-                    >
-                      {t("orgs.pf.remove")}
-                    </button>
-                  ) : null}
-                  <input
-                    ref={bannerInput}
-                    type="file"
-                    accept={TYPES.join(",")}
-                    hidden
-                    onChange={(e) => upload("banner", e)}
-                  />
-                </div>
-              ) : null}
+              <ImageSlot
+                className="h-32 w-full sm:h-40"
+                src={draft.banner}
+                title={t("orgs.img.banner")}
+                hint={t("orgs.img.hintBanner")}
+                uploading={uploading === "banner"}
+                disabled={!canEdit}
+                onFile={(file) => upload("banner", file)}
+                onRemove={() => set("banner", "")}
+              />
             </div>
 
             <div id="logo" className="mt-6 scroll-mt-32">
@@ -269,48 +228,24 @@ export function ProfileEditor() {
                 {t("orgs.field.logo")}
               </p>
               <div className="flex flex-wrap items-center gap-4">
-                <span className="relative">
-                  <OrgAvatar
-                    org={{
-                      name: draft.name || org.name,
-                      logo: draft.logo || null,
-                    }}
-                    size={80}
-                  />
-                  {uploading === "logo" ? (
-                    <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60 text-[10px] text-white">
-                      …
-                    </span>
-                  ) : null}
-                </span>
-                {canEdit ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      className={pillButton}
-                      disabled={!!uploading}
-                      onClick={() => logoInput.current?.click()}
-                    >
-                      {t("orgs.pf.changeLogo")}
-                    </button>
-                    {draft.logo ? (
-                      <button
-                        type="button"
-                        className={pillButton}
-                        disabled={!!uploading}
-                        onClick={() => set("logo", "")}
-                      >
-                        {t("orgs.pf.remove")}
-                      </button>
-                    ) : null}
-                    <input
-                      ref={logoInput}
-                      type="file"
-                      accept={TYPES.join(",")}
-                      hidden
-                      onChange={(e) => upload("logo", e)}
-                    />
-                  </div>
+                <ImageSlot
+                  circle
+                  className="h-20 w-20 shrink-0"
+                  src={draft.logo}
+                  title={t("orgs.img.logo")}
+                  uploading={uploading === "logo"}
+                  disabled={!canEdit}
+                  onFile={(file) => upload("logo", file)}
+                />
+                {canEdit && draft.logo ? (
+                  <button
+                    type="button"
+                    className={pillButton}
+                    disabled={!!uploading}
+                    onClick={() => set("logo", "")}
+                  >
+                    {t("orgs.pf.remove")}
+                  </button>
                 ) : null}
               </div>
               {canEdit ? (
@@ -399,19 +334,8 @@ export function ProfileEditor() {
           {canEdit ? (
             <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-full border border-white/10 bg-black/80 p-2 pl-4 backdrop-blur">
               <div className="min-w-0 flex-1 text-sm" aria-live="polite">
-                {message ? (
-                  <span
-                    className={
-                      message.tone === "error"
-                        ? "text-red-300"
-                        : "text-emerald-300"
-                    }
-                  >
-                    {message.text}
-                  </span>
-                ) : (
-                  <span className="text-white/40">{dirty ? "●" : ""}</span>
-                )}
+                <Flash message={message} />
+                <span className="text-white/40">{dirty ? "●" : ""}</span>
               </div>
               <button
                 type="button"

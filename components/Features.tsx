@@ -11,9 +11,9 @@ import { useI18n } from "@/components/i18n/LocaleProvider";
 
 gsap.registerPlugin(ScrollTrigger);
 
-function FeatureCard({ f }: { f: Feature }) {
+function FeatureCard({ f, prefix }: { f: Feature; prefix: string }) {
   const { t } = useI18n();
-  const title = t(`feature.${f.id}.title`);
+  const title = t(`${prefix}.${f.id}.title`);
   const ref = useRef<HTMLElement>(null);
 
   // Brillo que sigue al cursor + inclinación muy leve
@@ -43,16 +43,20 @@ function FeatureCard({ f }: { f: Feature }) {
       >
         <ContentBackdrop src={f.image} />
         <span className="relative mb-6 w-fit rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/80 backdrop-blur-xl">
-          {t(`feature.${f.id}.eyebrow`)}
+          {t(`${prefix}.${f.id}.eyebrow`)}
         </span>
         <h3 className="font-display relative max-w-[16ch] text-balance text-[clamp(2rem,3.4vw,3.4rem)] font-bold leading-[0.98]">
           {title}
         </h3>
         <p className="relative mt-4 max-w-[42ch] text-base leading-relaxed text-muted md:text-lg">
-          {t(`feature.${f.id}.body`)}
+          {t(`${prefix}.${f.id}.body`)}
         </p>
         <div className="relative mt-6 flex flex-1 overflow-hidden rounded-[24px]">
-          {f.image && f.imageAspect ? (
+          {f.visual ? (
+            <div data-slot className="relative h-[340px] w-full md:h-[400px]">
+              {f.visual}
+            </div>
+          ) : f.image && f.imageAspect ? (
             <div
               data-slot
               className="flex h-[340px] w-full items-start justify-center md:h-[400px]"
@@ -82,7 +86,7 @@ function FeatureCard({ f }: { f: Feature }) {
             </div>
           ) : (
             <ImageSlot
-              label={t(`feature.${f.id}.slot`)}
+              label={t(`${prefix}.${f.id}.slot`)}
               className="h-[340px] w-full md:h-[400px]"
             />
           )}
@@ -92,7 +96,20 @@ function FeatureCard({ f }: { f: Feature }) {
   );
 }
 
-export default function Features() {
+const HOME_FEATURE_KEYS = {
+  head1: "features.head1",
+  head2: "features.head2",
+  sub: "features.sub",
+  prefix: "feature",
+};
+
+export default function Features({
+  items = FEATURES,
+  keys = HOME_FEATURE_KEYS,
+}: {
+  items?: Feature[];
+  keys?: typeof HOME_FEATURE_KEYS;
+}) {
   const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
 
@@ -168,22 +185,22 @@ export default function Features() {
       >
         <h2 className="font-display text-[clamp(2.75rem,6.5vw,6.5rem)] font-bold leading-[0.9]">
           <span data-feat-line className="line-mask">
-            <span>{t("features.head1")}</span>
+            <span>{t(keys.head1)}</span>
           </span>
           <span data-feat-line className="line-mask">
-            <span>{t("features.head2")}</span>
+            <span>{t(keys.head2)}</span>
           </span>
         </h2>
         <p
           data-feat-desc
           className="mt-6 max-w-[28ch] text-lg text-muted md:mb-3 md:mt-0 md:shrink-0 md:text-xl lg:text-2xl"
         >
-          {t("features.sub")}
+          {t(keys.sub)}
         </p>
       </div>
       <div className="grid grid-cols-1 gap-[clamp(1rem,1.4vw,1.5rem)] md:grid-cols-12">
-        {FEATURES.map((f) => (
-          <FeatureCard key={f.id} f={f} />
+        {items.map((f) => (
+          <FeatureCard key={f.id} f={f} prefix={keys.prefix} />
         ))}
       </div>
     </section>

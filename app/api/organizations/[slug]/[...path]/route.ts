@@ -24,6 +24,20 @@ const ALLOWED: { method: string; pattern: RegExp }[] = [
   { method: "GET", pattern: /^invites$/ },
   { method: "POST", pattern: /^invites$/ },
   { method: "POST", pattern: /^invites\/[\w-]+\/revoke$/ },
+  { method: "GET", pattern: /^promoters\/assignments$/ },
+  { method: "POST", pattern: /^promoters\/assignments$/ },
+  { method: "PATCH", pattern: /^promoters\/assignments\/[\w-]+$/ },
+  { method: "POST", pattern: /^promoters\/assignments\/[\w-]+\/revoke$/ },
+  { method: "GET", pattern: /^promoters\/commissions$/ },
+  { method: "GET", pattern: /^promoters\/balances$/ },
+  { method: "GET", pattern: /^promoters\/settlements$/ },
+  { method: "POST", pattern: /^promoters\/settlements$/ },
+  {
+    method: "POST",
+    pattern: /^promoters\/settlements\/[\w-]+\/(close|pay|void)$/,
+  },
+  { method: "PUT", pattern: /^promoters\/assignments\/[\w-]+\/rules$/ },
+  { method: "DELETE", pattern: /^promoters\/assignments\/[\w-]+\/rules$/ },
 ];
 
 async function handle(
@@ -47,7 +61,7 @@ async function handle(
   }
   const { organizationId } = resolved.membership;
 
-  const hasBody = method === "POST" || method === "PATCH";
+  const hasBody = method === "POST" || method === "PATCH" || method === "PUT";
   const body = hasBody ? await request.text() : undefined;
   const search = new URL(request.url).search;
 
@@ -71,4 +85,10 @@ async function handle(
   }
 }
 
-export { handle as GET, handle as POST, handle as PATCH, handle as DELETE };
+export {
+  handle as GET,
+  handle as POST,
+  handle as PUT,
+  handle as PATCH,
+  handle as DELETE,
+};

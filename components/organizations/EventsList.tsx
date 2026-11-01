@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CalendarIcon } from "@/components/icons/solar";
+import {
+  CalendarIcon,
+  ChevronRightIcon,
+  MapPointIcon,
+  TicketIcon,
+} from "@/components/icons/solar";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { useOrg } from "@/components/organizations/OrgShell";
 import {
@@ -14,24 +19,29 @@ import { DISCOVERY_TZ } from "@/lib/discovery";
 import { intlLocale } from "@/lib/i18n";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
 import type { EventStatus, ManagedEventsPage } from "@/lib/events-admin";
+import { Select } from "@/components/organizations/select";
+import { EventCardsSkeleton } from "@/components/organizations/skeletons";
 
 const LIMIT = 20;
 type Timeframe = "upcoming" | "past" | "all";
 
+const STATUS_TONE: Record<EventStatus, string> = {
+  PUBLISHED: "bg-[#30d158]/15 text-[#30d158]",
+  DRAFT: "bg-[#ffd60a]/15 text-[#ffd60a]",
+  CANCELLED: "bg-[#ff453a]/15 text-[#ff453a]",
+  COMPLETED: "bg-white/10 text-white/55",
+};
+
 export function StatusBadge({ status }: { status: EventStatus }) {
   const { t } = useI18n();
-  const tone =
-    status === "PUBLISHED"
-      ? "bg-emerald-400/10 text-emerald-300"
-      : status === "DRAFT"
-        ? "bg-amber-400/10 text-amber-300"
-        : status === "CANCELLED"
-          ? "bg-red-500/10 text-red-300"
-          : "bg-white/10 text-white/55";
   return (
     <span
-      className={`inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs ${tone}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full py-1 pl-2.5 pr-3 text-xs font-semibold ${STATUS_TONE[status]}`}
     >
+      <span
+        aria-hidden
+        className="h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_8px_currentColor]"
+      />
       {t(`orgs.ev.status.${status}`)}
     </span>
   );
@@ -88,12 +98,17 @@ export function EventsList() {
 
   const dateFormat = new Intl.DateTimeFormat(intlLocale(locale), {
     timeZone: DISCOVERY_TZ,
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+    weekday: "long",
     hour: "2-digit",
     minute: "2-digit",
+  });
+  const dayFormat = new Intl.DateTimeFormat(intlLocale(locale), {
+    timeZone: DISCOVERY_TZ,
+    day: "numeric",
+  });
+  const monthFormat = new Intl.DateTimeFormat(intlLocale(locale), {
+    timeZone: DISCOVERY_TZ,
+    month: "short",
   });
   const filtered = !!(status || query || timeframe !== "all");
   const from = data && data.total > 0 ? (data.page - 1) * data.limit + 1 : 0;
@@ -141,22 +156,22 @@ export function EventsList() {
             </button>
           ))}
         </div>
-        <select
+        <Select
+          size="sm"
           value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
+          onChange={(v) => {
+            setStatus(v);
             setPage(1);
           }}
-          aria-label={t("orgs.ev.col.status")}
-          className="h-10 rounded-full border border-white/15 bg-black px-4 text-sm text-white outline-none focus:border-white/60"
-        >
-          <option value="">{t("orgs.ev.status.all")}</option>
-          {(["DRAFT", "PUBLISHED", "CANCELLED"] as const).map((s) => (
-            <option key={s} value={s}>
-              {t(`orgs.ev.status.${s}`)}
-            </option>
-          ))}
-        </select>
+          label={t("orgs.ev.col.status")}
+          options={[
+            { value: "", label: t("orgs.ev.status.all") },
+            ...(["DRAFT", "PUBLISHED", "CANCELLED"] as const).map((s) => ({
+              value: s as string,
+              label: t(`orgs.ev.status.${s}`),
+            })),
+          ]}
+        />
         <input
           type="search"
           value={search}
@@ -172,14 +187,7 @@ export function EventsList() {
           {t("orgs.ev.loadError")}
         </p>
       ) : !data ? (
-        <div aria-hidden className="flex flex-col gap-2">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-[72px] animate-pulse rounded-2xl bg-white/[0.06]"
-            />
-          ))}
-        </div>
+        <EventCardsSkeleton rows={3} />
       ) : data.items.length === 0 ? (
         <div className="flex flex-col items-center rounded-3xl border border-dashed border-white/15 px-6 py-16 text-center">
           <CalendarIcon className="h-8 w-8 text-white/40" />
@@ -201,59 +209,90 @@ export function EventsList() {
         </div>
       ) : (
         <>
-          <ul className="flex flex-col divide-y divide-white/10 overflow-hidden rounded-3xl border border-white/10 bg-raised">
-            {data.items.map((event) => (
-              <li key={event.id}>
-                <Link
-                  href={`${base}/${event.id}`}
-                  className="flex items-center gap-4 p-4 transition-colors hover:bg-white/[0.04]"
-                >
-                  <span className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-white/10">
-                    {event.coverImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={event.coverImage}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : null}
-                  </span>
-                  <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                    <span className="truncate font-medium text-white">
-                      {event.name}
+          <ul className="flex flex-col gap-3">
+            {data.items.map((event) => {
+              const when = new Date(event.date);
+              const faded =
+                event.status === "CANCELLED" || event.status === "COMPLETED";
+              return (
+                <li key={event.id}>
+                  <Link
+                    href={`${base}/${event.id}`}
+                    className="group flex items-center gap-4 rounded-[22px] bg-raised p-3 pr-5 ring-1 ring-white/[0.08] transition-[background-color,transform] duration-150 hover:bg-[color-mix(in_srgb,var(--bg-raised),white_7%)] active:scale-[0.99] sm:gap-5"
+                  >
+                    <span
+                      className={`relative h-[84px] w-[84px] shrink-0 overflow-hidden rounded-2xl bg-white/10 sm:h-24 sm:w-24 ${faded ? "opacity-60 saturate-50" : ""}`}
+                    >
+                      {event.coverImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={event.coverImage}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : null}
+                      <span className="absolute left-1.5 top-1.5 flex min-w-9 flex-col items-center rounded-lg bg-black/55 px-1.5 py-1 leading-none backdrop-blur-md">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-white/70">
+                          {monthFormat.format(when).replace(".", "")}
+                        </span>
+                        <span className="mt-0.5 text-[15px] font-semibold tabular-nums text-white">
+                          {dayFormat.format(when)}
+                        </span>
+                      </span>
                     </span>
-                    <span className="truncate text-sm text-white/45">
-                      {dateFormat.format(new Date(event.date))}
-                    </span>
-                    <span className="truncate text-xs text-white/35">
-                      {event.location}
-                    </span>
-                  </span>
-                  <span className="hidden shrink-0 flex-col items-end gap-1 text-xs text-white/45 sm:flex">
-                    <span>
-                      {event.ticketsCount === 1
-                        ? t("orgs.ev.ticketsOne")
-                        : t("orgs.ev.ticketsCount", {
-                            count: event.ticketsCount,
-                          })}
-                    </span>
-                    <span className="flex gap-1.5">
-                      {event.minAge ? (
-                        <span className="rounded-full border border-white/15 px-2 py-0.5">
-                          {t("orgs.ev.minAgeChip", { age: event.minAge })}
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="truncate text-[17px] font-semibold tracking-[-0.015em] text-white">
+                        {event.name}
+                      </span>
+                      <span className="truncate text-sm text-white/60">
+                        {dateFormat.format(when)}
+                      </span>
+                      <span className="flex items-center gap-1 truncate text-[13px] text-white/40">
+                        <MapPointIcon
+                          aria-hidden
+                          className="h-3.5 w-3.5 shrink-0"
+                        />
+                        <span className="truncate">{event.location}</span>
+                      </span>
+                      {event.minAge || !event.isPublic ? (
+                        <span className="mt-1 flex gap-1.5">
+                          {event.minAge ? (
+                            <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[11px] text-white/60">
+                              {t("orgs.ev.minAgeChip", { age: event.minAge })}
+                            </span>
+                          ) : null}
+                          {!event.isPublic ? (
+                            <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[11px] text-white/60">
+                              {t("orgs.ev.private")}
+                            </span>
+                          ) : null}
                         </span>
                       ) : null}
-                      {!event.isPublic ? (
-                        <span className="rounded-full border border-white/15 px-2 py-0.5">
-                          {t("orgs.ev.private")}
-                        </span>
-                      ) : null}
                     </span>
-                  </span>
-                  <StatusBadge status={event.status} />
-                </Link>
-              </li>
-            ))}
+                    <span className="flex shrink-0 flex-col items-end gap-2">
+                      <StatusBadge status={event.status} />
+                      <span
+                        title={
+                          event.ticketsCount === 1
+                            ? t("orgs.ev.ticketsOne")
+                            : t("orgs.ev.ticketsCount", {
+                                count: event.ticketsCount,
+                              })
+                        }
+                        className="inline-flex items-center gap-1.5 text-[13px] tabular-nums text-white/50"
+                      >
+                        <TicketIcon aria-hidden className="h-3.5 w-3.5" />
+                        {event.ticketsCount}
+                      </span>
+                    </span>
+                    <ChevronRightIcon
+                      aria-hidden
+                      className="hidden h-4 w-4 shrink-0 text-white/25 transition-transform duration-200 group-hover:translate-x-0.5 sm:block"
+                    />
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/45">
             <span>{t("orgs.ev.range", { from, to, total: data.total })}</span>

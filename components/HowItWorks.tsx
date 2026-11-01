@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { STEPS } from "./content";
@@ -9,7 +9,31 @@ import { useI18n } from "@/components/i18n/LocaleProvider";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function HowItWorks() {
+type HowKeys = {
+  eyebrow: string;
+  title1: string;
+  title2: string;
+  step: string;
+  stepPrefix: string;
+};
+
+const HOME_KEYS: HowKeys = {
+  eyebrow: "how.eyebrow",
+  title1: "how.title1",
+  title2: "how.title2",
+  step: "how.step",
+  stepPrefix: "step",
+};
+
+export default function HowItWorks({
+  id = "como-funciona",
+  steps = STEPS,
+  keys = HOME_KEYS,
+}: {
+  id?: string;
+  steps?: { n: string; visual?: ReactNode }[];
+  keys?: HowKeys;
+}) {
   const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
@@ -61,7 +85,7 @@ export default function HowItWorks() {
   return (
     <section
       ref={root}
-      id="como-funciona"
+      id={id}
       className="relative overflow-hidden py-[clamp(5rem,10vw,10rem)] lg:flex lg:h-[100svh] lg:items-center lg:py-0"
     >
       <div
@@ -70,15 +94,15 @@ export default function HowItWorks() {
       >
         <div className="flex flex-col justify-end pb-8 lg:w-[38vw] lg:pb-4">
           <p className="mb-6 text-sm font-medium uppercase tracking-[0.18em] text-muted">
-            {t("how.eyebrow")}
+            {t(keys.eyebrow)}
           </p>
           <h2 className="font-display text-[clamp(2.75rem,6.5vw,6.5rem)] font-bold leading-[0.9]">
-            {t("how.title1")}
+            {t(keys.title1)}
             <br />
-            <span className="text-white/40">{t("how.title2")}</span>
+            <span className="text-white/40">{t(keys.title2)}</span>
           </h2>
         </div>
-        {STEPS.map((s) => (
+        {steps.map((s) => (
           <article
             key={s.n}
             data-step
@@ -95,15 +119,24 @@ export default function HowItWorks() {
               {s.n}
             </span>
             <h3 className="font-display mt-3 text-[clamp(2.6rem,4.4vw,4.6rem)] font-bold leading-none">
-              {t(`step.${s.n}.title`)}
+              {t(`${keys.stepPrefix}.${s.n}.title`)}
             </h3>
             <p className="mt-4 max-w-[34ch] text-base leading-relaxed text-muted md:text-lg">
-              {t(`step.${s.n}.body`)}
+              {t(`${keys.stepPrefix}.${s.n}.body`)}
             </p>
-            <ImageSlot
-              label={t("how.step", { n: s.n })}
-              className="mt-8 min-h-[200px] flex-1"
-            />
+            {s.visual ? (
+              <div
+                data-slot
+                className="mt-8 flex min-h-[200px] flex-1 items-center justify-center"
+              >
+                {s.visual}
+              </div>
+            ) : (
+              <ImageSlot
+                label={t(keys.step, { n: s.n })}
+                className="mt-8 min-h-[200px] flex-1"
+              />
+            )}
           </article>
         ))}
       </div>

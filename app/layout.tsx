@@ -3,6 +3,7 @@ import { Inter, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
+import { AppToaster } from "@/components/ui/AppToaster";
 
 const display = Bricolage_Grotesque({
   variable: "--font-display-face",
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <LocaleProvider>
           <AuthProvider>{children}</AuthProvider>
+          <AppToaster />
         </LocaleProvider>
       </body>
     </html>

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LEGAL_IDS, legalPath } from "@/lib/legal";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import StoreButtons from "./StoreButtons";
@@ -12,7 +12,20 @@ import { useI18n } from "@/components/i18n/LocaleProvider";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function FinalCta() {
+const HOME_CTA_KEYS = {
+  line1: "cta.line1",
+  line2: "cta.line2",
+  text: "cta.text",
+};
+
+export default function FinalCta({
+  keys = HOME_CTA_KEYS,
+  actions,
+}: {
+  keys?: typeof HOME_CTA_KEYS;
+  /** Acciones bajo el texto. Por defecto, los botones de las tiendas. */
+  actions?: ReactNode;
+}) {
   const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
 
@@ -66,16 +79,18 @@ export default function FinalCta() {
           />
           <h2 className="font-display relative text-[clamp(3.4rem,11vw,11rem)] font-bold leading-[0.88]">
             <span data-cta-line className="line-mask">
-              <span>{t("cta.line1")}</span>
+              <span>{t(keys.line1)}</span>
             </span>
             <span data-cta-line className="line-mask">
-              <span>{t("cta.line2")}</span>
+              <span>{t(keys.line2)}</span>
             </span>
           </h2>
           <p className="relative mt-8 max-w-[40ch] text-lg text-white/70 md:text-xl">
-            {t("cta.text")}
+            {t(keys.text)}
           </p>
-          <StoreButtons className="relative mt-10 justify-center" />
+          {actions ?? (
+            <StoreButtons className="relative mt-10 justify-center" />
+          )}
         </div>
       </section>
       <footer className="mx-auto w-full max-w-[1800px] px-[clamp(1.25rem,3vw,3.5rem)] flex flex-col items-start justify-between gap-4 py-10 text-sm text-muted md:flex-row md:py-12 md:items-center">

@@ -20,9 +20,15 @@ const GRADIENT = `linear-gradient(90deg, ${[
   .map((c) => `color-mix(in srgb, ${c} calc(var(--g) * 100%), white)`)
   .join(", ")})`;
 
-export default function Manifesto() {
+export default function Manifesto({
+  eyebrowKey = "manifesto.eyebrow",
+  textKey = "manifesto.text",
+}: {
+  eyebrowKey?: string;
+  textKey?: string;
+}) {
   const { t, locale } = useI18n();
-  const text = t("manifesto.text");
+  const text = t(textKey);
   const root = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -60,7 +66,7 @@ export default function Manifesto() {
       <div className="sticky top-0 flex h-[100svh] items-center motion-reduce:static motion-reduce:h-auto">
         <div className="mx-auto w-full max-w-[1800px] px-[clamp(1.25rem,3vw,3.5rem)]">
           <p className="mb-10 text-sm font-medium uppercase tracking-[0.18em] text-muted">
-            {t("manifesto.eyebrow")}
+            {t(eyebrowKey)}
           </p>
           <p
             data-manifesto-text

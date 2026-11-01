@@ -21,6 +21,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-use-measure": "^2.1.7",
+    "sileo": "^0.1.6",
     "three": "^0.186.1"
   },
   "devDependencies": {

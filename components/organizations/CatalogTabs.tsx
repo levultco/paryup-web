@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { useOrg } from "@/components/organizations/OrgShell";
+import { APPLE_EASE } from "@/components/organizations/promoters-ui";
 import { PageHeader } from "@/components/organizations/ui";
+
+const KEYS = ["tickets", "events", "reserved"] as const;
 
 /** Cabecera común del catálogo: plantillas de entrada y de evento. */
 export function CatalogHeader({
@@ -25,24 +28,26 @@ export function CatalogHeader({
       />
       <div
         role="tablist"
-        className="flex w-fit rounded-full border border-white/15 p-1"
+        className="relative inline-grid w-fit grid-cols-3 rounded-full bg-white/[0.08] p-[3px]"
       >
-        {(
-          [
-            ["tickets", base],
-            ["events", `${base}/events`],
-            ["reserved", `${base}/reserved`],
-          ] as const
-        ).map(([key, href]) => (
+        <span
+          aria-hidden
+          className="absolute bottom-[3px] left-[3px] top-[3px] w-[calc((100%-6px)/3)] rounded-full bg-white/[0.18] shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-300 motion-reduce:transition-none"
+          style={{
+            transform: `translateX(${KEYS.indexOf(active) * 100}%)`,
+            transitionTimingFunction: APPLE_EASE,
+          }}
+        />
+        {KEYS.map((key) => (
           <Link
             key={key}
-            href={href}
+            href={key === "tickets" ? base : `${base}/${key}`}
             role="tab"
             aria-selected={active === key}
-            className={`rounded-full px-4 py-1.5 text-sm transition-colors ${
+            className={`relative z-10 flex h-8 items-center justify-center px-5 text-[13px] font-medium transition-colors ${
               active === key
-                ? "bg-white text-black"
-                : "text-white/60 hover:text-white"
+                ? "text-white"
+                : "text-white/50 hover:text-white/80"
             }`}
           >
             {t(

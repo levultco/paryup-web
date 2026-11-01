@@ -1,12 +1,21 @@
 "use client";
 
+import {
+  ChevronRightIcon,
+  CloseIcon,
+  LetterOpenedIcon,
+  MagnifierIcon,
+  PlainIcon,
+} from "@/components/icons/solar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { useOrg } from "@/components/organizations/OrgShell";
+import { Group } from "@/components/organizations/promoters-ui";
+import { ListSkeleton } from "@/components/organizations/skeletons";
 import {
   Card,
-  Notice,
+  dangerButton,
   PageHeader,
   pillButton,
   primaryButton,
@@ -21,6 +30,8 @@ import {
   type OrgMember,
   type OrgRole,
 } from "@/lib/organizations";
+import { Select } from "@/components/organizations/select";
+import { Flash } from "@/components/organizations/flash";
 
 type FoundUser = {
   id: string;
@@ -60,9 +71,6 @@ function Person({
     </div>
   );
 }
-
-const selectClass =
-  "h-10 rounded-full border border-white/15 bg-black px-3 text-sm text-white outline-none focus:border-white/60 disabled:opacity-40";
 
 export function TeamView() {
   const { t, locale } = useI18n();
@@ -213,7 +221,7 @@ export function TeamView() {
       {!canInvite && !canRemove && !canChangeRole ? (
         <p className="text-sm text-white/45">{t("orgs.tm.readOnly")}</p>
       ) : null}
-      {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+      <Flash message={message} />
 
       <Card title={t("orgs.tm.members")}>
         {loadError ? (
@@ -231,14 +239,7 @@ export function TeamView() {
             </button>
           </div>
         ) : !members ? (
-          <div aria-hidden className="flex flex-col gap-3">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-12 animate-pulse rounded-2xl bg-white/[0.06]"
-              />
-            ))}
-          </div>
+          <ListSkeleton rows={3} />
         ) : (
           <ul className="flex flex-col divide-y divide-white/10">
             {members.map((m) => {
@@ -259,21 +260,17 @@ export function TeamView() {
                   </Person>
                   <div className="flex flex-wrap items-center gap-2">
                     {manageable && canChangeRole ? (
-                      <select
-                        className={selectClass}
+                      <Select
+                        size="sm"
                         value={m.role}
                         disabled={busy === m.id}
-                        aria-label={t("orgs.tm.role")}
-                        onChange={(e) =>
-                          changeRole(m, e.target.value as OrgRole)
-                        }
-                      >
-                        {options.map((r) => (
-                          <option key={r} value={r}>
-                            {t(`orgs.role.${r}`)}
-                          </option>
-                        ))}
-                      </select>
+                        label={t("orgs.tm.role")}
+                        onChange={(v) => changeRole(m, v)}
+                        options={options.map((r) => ({
+                          value: r,
+                          label: t(`orgs.role.${r}`),
+                        }))}
+                      />
                     ) : (
                       <span className="rounded-full border border-white/15 px-3 py-1 text-xs text-white/70">
                         {t(`orgs.role.${m.role}`)}
@@ -320,90 +317,122 @@ export function TeamView() {
       </Card>
 
       {canInvite ? (
-        <Card title={t("orgs.tm.invite")}>
-          <p className="mb-4 text-sm text-white/45">
-            {t("orgs.tm.inviteHint")}
-          </p>
-          {picked ? (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <Person user={picked} />
-              <div className="flex flex-wrap items-center gap-2">
-                <select
-                  className={selectClass}
-                  value={inviteRole}
-                  aria-label={t("orgs.tm.role")}
-                  onChange={(e) => setInviteRole(e.target.value as OrgRole)}
-                >
-                  {assignable.map((r) => (
-                    <option key={r} value={r}>
-                      {t(`orgs.role.${r}`)}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className={primaryButton}
-                  disabled={busy === "invite" || pendingIds.has(picked.id)}
-                  onClick={sendInvite}
-                >
-                  {busy === "invite" ? t("orgs.tm.sending") : t("orgs.tm.send")}
-                </button>
-                <button
-                  type="button"
-                  className={pillButton}
-                  onClick={() => setPicked(null)}
-                >
-                  {t("orgs.common.cancel")}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("orgs.tm.search")}
-                aria-label={t("orgs.tm.search")}
-                className="w-full rounded-full border border-white/15 bg-transparent px-5 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-white/60"
-              />
-              {results ? (
-                shown.length > 0 ? (
-                  <ul className="mt-3 flex flex-col gap-1">
-                    {shown.map((u) => (
-                      <li key={u.id}>
-                        <button
-                          type="button"
-                          onClick={() => setPicked(u)}
-                          className="flex w-full items-center rounded-2xl p-2 text-left transition-colors hover:bg-white/[0.06]"
-                        >
-                          <Person user={u} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-3 text-sm text-white/45">
-                    {t("orgs.tm.noResults")}
-                  </p>
-                )
-              ) : null}
-            </>
-          )}
-
-          <h3 className="font-display mt-8 text-base font-semibold text-white">
-            {t("orgs.tm.pending")}
-          </h3>
-          {invites.length === 0 ? (
-            <p className="mt-2 text-sm text-white/45">
-              {t("orgs.tm.noPending")}
+        <>
+          <Card title={t("orgs.tm.invite")}>
+            <p className="-mt-2 mb-5 text-sm text-white/50">
+              {t("orgs.tm.inviteHint")}
             </p>
-          ) : (
-            <ul className="mt-3 flex flex-col divide-y divide-white/10">
-              {invites.map((i) => (
+            {picked ? (
+              <div className="flex flex-col gap-4 rounded-2xl bg-white/[0.05] p-4 sm:flex-row sm:items-center sm:justify-between">
+                <Person user={picked} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select
+                    size="sm"
+                    value={inviteRole}
+                    label={t("orgs.tm.role")}
+                    onChange={setInviteRole}
+                    options={assignable.map((r) => ({
+                      value: r,
+                      label: t(`orgs.role.${r}`),
+                    }))}
+                  />
+                  <button
+                    type="button"
+                    className={primaryButton}
+                    disabled={busy === "invite" || pendingIds.has(picked.id)}
+                    onClick={sendInvite}
+                  >
+                    <PlainIcon aria-hidden className="h-4 w-4" />
+                    {busy === "invite"
+                      ? t("orgs.tm.sending")
+                      : t("orgs.tm.send")}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={t("orgs.common.cancel")}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.08] text-white/70 transition-[background-color,transform] duration-100 hover:bg-white/[0.14] hover:text-white active:scale-90"
+                    onClick={() => setPicked(null)}
+                  >
+                    <CloseIcon aria-hidden className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="relative">
+                  <MagnifierIcon
+                    aria-hidden
+                    className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-white/35"
+                  />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={t("orgs.tm.search")}
+                    aria-label={t("orgs.tm.search")}
+                    className="h-12 w-full rounded-2xl bg-white/[0.07] pl-11 pr-11 text-[15px] text-white outline-none transition-colors placeholder:text-white/30 focus:bg-white/[0.11] focus-visible:ring-2 focus-visible:ring-white/20"
+                  />
+                  {query ? (
+                    <button
+                      type="button"
+                      aria-label={t("orgs.common.cancel")}
+                      onClick={() => setQuery("")}
+                      className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white/[0.12] text-white/70 transition-transform hover:text-white active:scale-90"
+                    >
+                      <CloseIcon aria-hidden className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                </div>
+                {query.trim().length >= 2 && !results ? (
+                  <div className="mt-3">
+                    <ListSkeleton rows={2} />
+                  </div>
+                ) : results ? (
+                  shown.length > 0 ? (
+                    <ul className="mt-3 divide-y divide-white/[0.07] overflow-hidden rounded-2xl bg-white/[0.05]">
+                      {shown.map((u) => (
+                        <li key={u.id}>
+                          <button
+                            type="button"
+                            onClick={() => setPicked(u)}
+                            className="group flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.06] active:bg-white/[0.09]"
+                          >
+                            <Person user={u} />
+                            <ChevronRightIcon
+                              aria-hidden
+                              className="h-4 w-4 shrink-0 text-white/25 transition-transform duration-200 group-hover:translate-x-0.5"
+                            />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-4 text-center text-sm text-white/45">
+                      {t("orgs.tm.noResults")}
+                    </p>
+                  )
+                ) : null}
+              </>
+            )}
+          </Card>
+
+          <Group
+            title={`${t("orgs.tm.pending")}${invites.length ? ` · ${invites.length}` : ""}`}
+          >
+            {invites.length === 0 ? (
+              <li className="flex flex-col items-center gap-2 px-6 py-10 text-center">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.08] text-white/70">
+                  <LetterOpenedIcon aria-hidden className="h-5 w-5" />
+                </span>
+                <p className="text-[15px] font-medium text-white/85">
+                  {t("orgs.tm.noPending")}
+                </p>
+              </li>
+            ) : (
+              invites.map((i) => (
                 <li
                   key={i.id}
-                  className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5"
                 >
                   <Person
                     user={
@@ -414,16 +443,18 @@ export function TeamView() {
                       }
                     }
                   />
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-white/45">
-                    <span>{t(`orgs.role.${i.roleKey}`)}</span>
-                    <span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="rounded-full bg-white/[0.08] px-2.5 py-1 text-xs text-white/70">
+                      {t(`orgs.role.${i.roleKey}`)}
+                    </span>
+                    <span className="text-xs text-white/45">
                       {t("orgs.tm.expires", {
                         date: day.format(new Date(i.expiresAt)),
                       })}
                     </span>
                     <button
                       type="button"
-                      className={pillButton}
+                      className={dangerButton}
                       disabled={busy === i.id}
                       onClick={() => revoke(i.id)}
                     >
@@ -431,10 +462,10 @@ export function TeamView() {
                     </button>
                   </div>
                 </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+              ))
+            )}
+          </Group>
+        </>
       ) : null}
     </div>
   );

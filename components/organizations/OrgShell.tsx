@@ -13,13 +13,14 @@ import {
 import type { ReactNode } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
-  CalendarDays,
-  Layers,
-  LayoutDashboard,
-  Pencil,
-  Settings,
-  Users,
-} from "lucide-react";
+  CalendarIcon,
+  LayersIcon,
+  PenIcon,
+  SettingsIcon,
+  SpeakerIcon,
+  UsersGroupIcon,
+  WidgetIcon,
+} from "@/components/icons/solar";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { OrgAvatar, OrgName } from "@/components/organizations/OrgAvatar";
 import { useOrganizations } from "@/components/organizations/useOrganizations";
@@ -27,6 +28,7 @@ import type {
   OrganizationContext,
   OrganizationProfile,
 } from "@/lib/organizations";
+import { ShellSkeletonView } from "@/components/organizations/skeletons";
 
 type OrgValue = {
   slug: string;
@@ -45,27 +47,25 @@ export function useOrg() {
   return ctx;
 }
 
-const NAV = [
-  { key: "overview", segment: "", Icon: LayoutDashboard },
-  { key: "events", segment: "/events", Icon: CalendarDays },
-  { key: "catalog", segment: "/catalog", Icon: Layers },
-  { key: "profile", segment: "/profile", Icon: Pencil },
-  { key: "team", segment: "/team", Icon: Users },
-  { key: "settings", segment: "/settings", Icon: Settings },
-] as const;
-
-function ShellSkeleton() {
-  return (
-    <div aria-hidden className="flex flex-col gap-6 lg:flex-row lg:gap-10">
-      <div className="h-40 animate-pulse rounded-3xl bg-white/[0.07] lg:w-64" />
-      <div className="flex flex-1 flex-col gap-4">
-        <div className="h-10 w-56 animate-pulse rounded-full bg-white/10" />
-        <div className="h-32 animate-pulse rounded-3xl bg-white/[0.07]" />
-        <div className="h-64 animate-pulse rounded-3xl bg-white/[0.07]" />
-      </div>
-    </div>
-  );
-}
+const NAV: readonly {
+  key: string;
+  segment: string;
+  Icon: typeof UsersGroupIcon;
+  permission?: string;
+}[] = [
+  { key: "overview", segment: "", Icon: WidgetIcon },
+  { key: "events", segment: "/events", Icon: CalendarIcon },
+  { key: "catalog", segment: "/catalog", Icon: LayersIcon },
+  { key: "profile", segment: "/profile", Icon: PenIcon },
+  { key: "team", segment: "/team", Icon: UsersGroupIcon },
+  {
+    key: "promoters",
+    segment: "/promoters",
+    Icon: SpeakerIcon,
+    permission: "promoters:manage",
+  },
+  { key: "settings", segment: "/settings", Icon: SettingsIcon },
+];
 
 export function OrgShell({
   slug,
@@ -131,7 +131,7 @@ export function OrgShell({
   );
 
   if (!value) {
-    if (state === "loading") return <ShellSkeleton />;
+    if (state === "loading") return <ShellSkeletonView />;
     return (
       <div className="px-6 py-32 text-center">
         <p className="text-muted">
@@ -156,9 +156,9 @@ export function OrgShell({
 
   return (
     <OrgContext value={value}>
-      <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
+      <div className="org-panel flex flex-col gap-6 lg:flex-row lg:gap-12">
         <aside className="lg:sticky lg:top-32 lg:w-64 lg:shrink-0 lg:self-start">
-          <div className="flex items-center gap-3 rounded-3xl border border-white/10 bg-raised p-3">
+          <div className="flex items-center gap-3 rounded-[22px] bg-raised p-4 ring-1 ring-white/[0.08]">
             <OrgAvatar org={value.org} size={44} />
             <span className="flex min-w-0 flex-col leading-tight">
               <span className="font-display truncate text-[15px] font-semibold text-white">
@@ -173,26 +173,30 @@ export function OrgShell({
             aria-label={t("orgs.title")}
             className="-mx-1 mt-3 flex gap-1 overflow-x-auto px-1 pb-1 lg:flex-col lg:overflow-visible"
           >
-            {NAV.map(({ key, segment, Icon }) => {
-              const href = `${base}${segment}`;
-              const active =
-                segment === "" ? pathname === base : pathname.startsWith(href);
-              return (
-                <Link
-                  key={key}
-                  href={href}
-                  aria-current={active ? "page" : undefined}
-                  className={`flex shrink-0 items-center gap-3 rounded-full px-4 py-2.5 text-sm transition-colors ${
-                    active
-                      ? "bg-white text-black"
-                      : "text-white/60 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Icon className="h-[18px] w-[18px]" />
-                  {t(`orgs.nav.${key}`)}
-                </Link>
-              );
-            })}
+            {NAV.filter((n) => !n.permission || value.can(n.permission)).map(
+              ({ key, segment, Icon }) => {
+                const href = `${base}${segment}`;
+                const active =
+                  segment === ""
+                    ? pathname === base
+                    : pathname.startsWith(href);
+                return (
+                  <Link
+                    key={key}
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex shrink-0 items-center gap-3 rounded-full px-4 py-3 text-sm transition-colors ${
+                      active
+                        ? "bg-white text-black"
+                        : "text-white/60 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="h-[18px] w-[18px]" />
+                    {t(`orgs.nav.${key}`)}
+                  </Link>
+                );
+              },
+            )}
           </nav>
           {canSwitch ? (
             <Link

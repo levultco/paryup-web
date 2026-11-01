@@ -163,3 +163,113 @@ number-flow-react.hide-number::part(integer) {
     stroke-dashoffset: 0;
   }
 }
+
+/* Skeletons: brillo que recorre la forma en lugar de un parpadeo plano. */
+.skeleton {
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 70%
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 130% 0;
+  }
+  to {
+    background-position: -30% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* Las notificaciones quedan por encima de la cabecera y de los diálogos. */
+html [data-sileo-viewport] {
+  z-index: 5000 !important;
+}
+/* Los títulos son frases normales, no se capitalizan. */
+html [data-sileo-title] {
+  text-transform: none !important;
+}
+html [data-sileo-description] {
+  color: rgba(0, 0, 0, 0.72) !important;
+}
+
+/* Panel de organización: las cards (bg-raised) se despegan más del fondo negro. */
+.org-panel {
+  --bg-raised: #1a1a1a;
+  --color-raised: #1a1a1a;
+}
+
+/* Backstage: al cambiar de modo, el contenido del panel entra con un fundido corto. */
+@keyframes bs-swap {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.bs-swap {
+  animation: bs-swap 0.5s var(--ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bs-swap {
+    animation: none;
+  }
+}
+
+/* Confirmación de la solicitud: el icono entra con un pequeño rebote y un aro que se disipa. */
+@keyframes bs-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes bs-ring {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+.bs-pop {
+  animation: bs-pop 0.6s var(--ease-out) both;
+}
+.bs-ring {
+  animation: bs-ring 1.1s var(--ease-out) 0.3s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bs-pop,
+  .bs-ring {
+    animation: none;
+  }
+}
+
+/* Páginas que ocultan la barra de scroll (siguen haciendo scroll con rueda, trackpad y teclado). */
+html[data-no-scrollbar] {
+  scrollbar-width: none;
+}
+html[data-no-scrollbar]::-webkit-scrollbar {
+  display: none;
+}

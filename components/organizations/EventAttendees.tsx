@@ -8,6 +8,8 @@ import { DISCOVERY_TZ } from "@/lib/discovery";
 import { intlLocale } from "@/lib/i18n";
 import { orgFetch } from "@/lib/org-api";
 import type { Attendee } from "@/lib/sales";
+import { Select } from "@/components/organizations/select";
+import { ListSkeleton } from "@/components/organizations/skeletons";
 
 const STATUSES = ["", "ACTIVE", "USED", "CANCELLED", "REFUNDED"] as const;
 
@@ -77,21 +79,19 @@ export function EventAttendees({ eventId }: { eventId: string }) {
           aria-label={t("orgs.sl.searchAttendee")}
           className="h-10 min-w-0 flex-1 rounded-full border border-white/15 bg-transparent px-4 text-sm text-white outline-none placeholder:text-white/30 focus:border-white/60 sm:max-w-xs"
         />
-        <select
+        <Select
+          size="sm"
           value={status}
-          onChange={(e) => {
+          onChange={(v) => {
             setItems(null);
-            setStatus(e.target.value as (typeof STATUSES)[number]);
+            setStatus(v);
           }}
-          aria-label={t("orgs.ev.col.status")}
-          className="h-10 rounded-full border border-white/15 bg-black px-4 text-sm text-white"
-        >
-          {STATUSES.map((s) => (
-            <option key={s || "all"} value={s}>
-              {s ? t(`orgs.sl.as.${s}`) : t("orgs.sl.all")}
-            </option>
-          ))}
-        </select>
+          label={t("orgs.ev.col.status")}
+          options={STATUSES.map((s) => ({
+            value: s,
+            label: s ? t(`orgs.sl.as.${s}`) : t("orgs.sl.all"),
+          }))}
+        />
         {items ? (
           <span className="text-xs text-white/40">
             {t("orgs.sl.attendeesCount", { count: total })}
@@ -101,10 +101,7 @@ export function EventAttendees({ eventId }: { eventId: string }) {
       {failed ? (
         <p className="text-sm text-white/55">{t("orgs.sl.loadError")}</p>
       ) : items === null ? (
-        <div
-          aria-hidden
-          className="h-24 animate-pulse rounded-2xl bg-white/[0.05]"
-        />
+        <ListSkeleton rows={4} />
       ) : items.length === 0 ? (
         <p className="text-sm text-white/45">{t("orgs.sl.noAttendees")}</p>
       ) : (
