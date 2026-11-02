@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { OrgAvatar, OrgName } from "@/components/organizations/OrgAvatar";
 import { useOrg } from "@/components/organizations/OrgShell";
+import { FourvenuesCard } from "@/components/organizations/FourvenuesCard";
 import { PaymentsCard } from "@/components/organizations/PaymentsCard";
 import { Group } from "@/components/organizations/promoters-ui";
 import { PageHeader } from "@/components/organizations/ui";
@@ -148,6 +149,8 @@ export function SettingsView() {
       </div>
 
       {can(ORG_PERMISSIONS.paymentsManage) ? <PaymentsCard /> : null}
+
+      {can(ORG_PERMISSIONS.fourvenuesLinkManage) ? <FourvenuesCard /> : null}
 
       <Group title={t("orgs.st.permissions")}>
         {CAPABILITIES.map((c) => {

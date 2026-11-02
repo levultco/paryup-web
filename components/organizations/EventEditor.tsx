@@ -34,6 +34,7 @@ const MAX_BYTES = 12 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 type RawEvent = {
+  source?: "NATIVE" | "FOURVENUES";
   id?: string;
   name?: string;
   description?: string | null;
@@ -229,13 +230,17 @@ export function EventEditor({ eventId }: { eventId?: string }) {
   const [uploading, setUploading] = useState(false);
   const inFlight = useRef(false);
 
-  const canEdit = isEdit
-    ? can(ORG_PERMISSIONS.eventsEdit)
-    : can(ORG_PERMISSIONS.eventsCreate);
-  const canPublish = can(ORG_PERMISSIONS.eventsPublish);
-  const canCancel = can(ORG_PERMISSIONS.eventsCancel);
-  const canDelete = can(ORG_PERMISSIONS.eventsDelete);
-  const canTickets = can(ORG_PERMISSIONS.ticketTemplatesManage);
+  // Evento importado de Fourvenues: solo lectura, sin herramientas nativas.
+  const [external, setExternal] = useState(false);
+  const canEdit =
+    !external &&
+    (isEdit
+      ? can(ORG_PERMISSIONS.eventsEdit)
+      : can(ORG_PERMISSIONS.eventsCreate));
+  const canPublish = !external && can(ORG_PERMISSIONS.eventsPublish);
+  const canCancel = !external && can(ORG_PERMISSIONS.eventsCancel);
+  const canDelete = !external && can(ORG_PERMISSIONS.eventsDelete);
+  const canTickets = !external && can(ORG_PERMISSIONS.ticketTemplatesManage);
   const [hasSales, setHasSales] = useState(false);
   const [now] = useState(() => Date.now());
   // Fecha guardada (no la que se está editando): un evento ya terminado no se cancela.
@@ -254,6 +259,7 @@ export function EventEditor({ eventId }: { eventId?: string }) {
       return;
     }
     const event = unwrap(res.data);
+    setExternal(event.source === "FOURVENUES");
     const next = toForm(event);
     setForm(next);
     setBaseline(next);

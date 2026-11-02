@@ -11,7 +11,43 @@ export type OrgSummary = {
 export type MyOrganization = {
   organizationId: string;
   role: OrgRole;
+  commercialMode?: CommercialMode;
   organization: OrgSummary;
+};
+
+/** Modalidad comercial: NATIVE (ticketing propio) o FOURVENUES (canal de distribución). */
+export type CommercialMode = "NATIVE" | "FOURVENUES";
+
+/** Capacidades calculadas por el backend (`/authz/bootstrap`). */
+export type OrgCapabilities = Record<
+  | "nativeEventCreate"
+  | "nativeEventManage"
+  | "nativeTicketing"
+  | "stripeConnect"
+  | "nativePromoters"
+  | "nativePromoterSettlement"
+  | "nativeScanner"
+  | "nativeInbox"
+  | "nativeInsights"
+  | "nativeLegacy"
+  | "externalCatalog"
+  | "channelHome",
+  boolean
+>;
+
+export const NATIVE_ORG_CAPABILITIES: OrgCapabilities = {
+  nativeEventCreate: true,
+  nativeEventManage: true,
+  nativeTicketing: true,
+  stripeConnect: true,
+  nativePromoters: true,
+  nativePromoterSettlement: true,
+  nativeScanner: true,
+  nativeInbox: true,
+  nativeInsights: true,
+  nativeLegacy: false,
+  externalCatalog: false,
+  channelHome: false,
 };
 
 export type OrganizationsAccess = {
@@ -41,7 +77,39 @@ export const ORG_PERMISSIONS = {
   promotersManage: "promoters:manage",
   promotersSettle: "promoters:settle",
   accessControlView: "access:control:view",
+  fourvenuesLinkManage: "fourvenues:link:manage",
 } as const;
+
+/**
+ * Capacidad que exige cada permiso nativo (espejo de `@RequireCapabilities` en el backend).
+ * Así toda la web combina rol y modalidad en un único punto: `can()` del panel.
+ */
+const PERMISSION_CAPABILITY: Partial<Record<string, keyof OrgCapabilities>> = {
+  [ORG_PERMISSIONS.eventsCreate]: "nativeEventCreate",
+  [ORG_PERMISSIONS.eventsPublish]: "nativeEventCreate",
+  [ORG_PERMISSIONS.eventsEdit]: "nativeEventManage",
+  [ORG_PERMISSIONS.eventsCancel]: "nativeEventManage",
+  [ORG_PERMISSIONS.eventsDelete]: "nativeEventManage",
+  [ORG_PERMISSIONS.ticketTemplatesManage]: "nativeTicketing",
+  [ORG_PERMISSIONS.paymentsManage]: "stripeConnect",
+  [ORG_PERMISSIONS.accessRequestsManage]: "nativeInbox",
+  [ORG_PERMISSIONS.statsView]: "nativeInsights",
+  [ORG_PERMISSIONS.promotersManage]: "nativePromoters",
+  [ORG_PERMISSIONS.promotersSettle]: "nativePromoterSettlement",
+  [ORG_PERMISSIONS.accessControlView]: "nativeScanner",
+};
+
+/** Permiso del rol ∩ capacidad de la organización. ADMIN_SUPER no salta las capacidades. */
+export function hasOrgAccess(
+  permissions: readonly string[],
+  capabilities: OrgCapabilities,
+  permission: string,
+): boolean {
+  const allowed =
+    permissions.includes(permission) || permissions.includes("admin:super");
+  const capability = PERMISSION_CAPABILITY[permission];
+  return allowed && (!capability || capabilities[capability]);
+}
 
 export type OrganizationProfile = OrgSummary & {
   bio: string | null;
@@ -55,6 +123,9 @@ export type OrganizationContext = {
   organization: OrganizationProfile;
   role: OrgRole;
   permissions: string[];
+  commercialMode: CommercialMode;
+  fourvenuesLinkStatus: string | null;
+  capabilities: OrgCapabilities;
 };
 
 export type OrganizationOverview = {

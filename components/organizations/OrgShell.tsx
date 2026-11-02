@@ -24,9 +24,11 @@ import {
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { OrgAvatar, OrgName } from "@/components/organizations/OrgAvatar";
 import { useOrganizations } from "@/components/organizations/useOrganizations";
-import type {
-  OrganizationContext,
-  OrganizationProfile,
+import {
+  hasOrgAccess,
+  type OrgCapabilities,
+  type OrganizationContext,
+  type OrganizationProfile,
 } from "@/lib/organizations";
 import { ShellSkeletonView } from "@/components/organizations/skeletons";
 
@@ -34,6 +36,9 @@ type OrgValue = {
   slug: string;
   org: OrganizationProfile;
   role: OrganizationContext["role"];
+  commercialMode: OrganizationContext["commercialMode"];
+  capabilities: OrgCapabilities;
+  /** Permiso del rol ∩ capacidad de la modalidad (NATIVE / FOURVENUES). */
   can: (permission: string) => boolean;
   /** Aplica en local los campos guardados para que todas las secciones los vean. */
   patchOrg: (patch: Partial<OrganizationProfile>) => void;
@@ -52,10 +57,17 @@ const NAV: readonly {
   segment: string;
   Icon: typeof UsersGroupIcon;
   permission?: string;
+  /** Sección solo con esta capacidad (catálogo nativo no existe en FOURVENUES). */
+  capability?: keyof OrgCapabilities;
 }[] = [
   { key: "overview", segment: "", Icon: WidgetIcon },
   { key: "events", segment: "/events", Icon: CalendarIcon },
-  { key: "catalog", segment: "/catalog", Icon: LayersIcon },
+  {
+    key: "catalog",
+    segment: "/catalog",
+    Icon: LayersIcon,
+    capability: "nativeTicketing",
+  },
   { key: "profile", segment: "/profile", Icon: PenIcon },
   { key: "team", segment: "/team", Icon: UsersGroupIcon },
   {
@@ -121,9 +133,9 @@ export function OrgShell({
             slug,
             org: ctx.organization,
             role: ctx.role,
-            can: (p) =>
-              ctx.permissions.includes(p) ||
-              ctx.permissions.includes("admin:super"),
+            commercialMode: ctx.commercialMode,
+            capabilities: ctx.capabilities,
+            can: (p) => hasOrgAccess(ctx.permissions, ctx.capabilities, p),
             patchOrg,
           }
         : null,
@@ -173,7 +185,11 @@ export function OrgShell({
             aria-label={t("orgs.title")}
             className="-mx-1 mt-3 flex gap-1 overflow-x-auto px-1 pb-1 lg:flex-col lg:overflow-visible"
           >
-            {NAV.filter((n) => !n.permission || value.can(n.permission)).map(
+            {NAV.filter(
+              (n) =>
+                (!n.permission || value.can(n.permission)) &&
+                (!n.capability || value.capabilities[n.capability]),
+            ).map(
               ({ key, segment, Icon }) => {
                 const href = `${base}${segment}`;
                 const active =

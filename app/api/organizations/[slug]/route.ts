@@ -1,7 +1,20 @@
 import { NextResponse } from "next/server";
 import { backendFetch } from "@/lib/backend";
 import { resolveMembership, sessionToken } from "@/lib/organizations-server";
-import type { OrganizationContext } from "@/lib/organizations";
+import {
+  NATIVE_ORG_CAPABILITIES,
+  type OrgCapabilities,
+  type OrganizationContext,
+} from "@/lib/organizations";
+
+/** Sin capacidades del backend (versión anterior) solo existían organizaciones nativas. */
+function parseCapabilities(raw: unknown): OrgCapabilities {
+  if (!raw || typeof raw !== "object") return NATIVE_ORG_CAPABILITIES;
+  const source = raw as Record<string, unknown>;
+  return Object.fromEntries(
+    Object.keys(NATIVE_ORG_CAPABILITIES).map((k) => [k, source[k] === true]),
+  ) as OrgCapabilities;
+}
 
 /** Contexto del panel: perfil, rol y permisos reales del usuario en la organización. */
 export async function GET(
@@ -47,6 +60,13 @@ export async function GET(
       },
       role,
       permissions: Array.isArray(authz?.permissions) ? authz.permissions : [],
+      commercialMode:
+        authz?.commercialMode === "FOURVENUES" ? "FOURVENUES" : "NATIVE",
+      fourvenuesLinkStatus:
+        typeof authz?.fourvenuesLinkStatus === "string"
+          ? authz.fourvenuesLinkStatus
+          : null,
+      capabilities: parseCapabilities(authz?.capabilities),
     };
     return NextResponse.json(data);
   } catch {

@@ -1074,6 +1074,27 @@ export const es = {
   "orgs.sl.as.REFUNDED": "Reembolsada",
   "orgs.sl.privacy":
     "Solo se muestran nombre y entrada; el contacto de los compradores no se comparte.",
+  // Fourvenues
+  "orgs.fv.intro": "Si tu sala gestiona sus eventos en Fourvenues, ParyUp puede mostrarlos y distribuirlos como canal autorizado. Tu perfil y tus seguidores siguen en ParyUp.",
+  "orgs.fv.loadError": "No se pudo cargar la conexión con Fourvenues.",
+  "orgs.fv.actionError": "No se pudo completar la operación.",
+  "orgs.fv.hostsError": "No se pudo consultar Fourvenues en este momento.",
+  "orgs.fv.noHosts": "Ninguna sala ha autorizado todavía a ParyUp. Desde Fourvenues, añade el canal «{channel}» como partner de tu sala y vuelve aquí.",
+  "orgs.fv.pickHost": "Elige tu sala",
+  "orgs.fv.contactName": "Nombre de contacto",
+  "orgs.fv.contactEmail": "Email de contacto",
+  "orgs.fv.request": "Solicitar vinculación",
+  "orgs.fv.cancel": "Retirar solicitud",
+  "orgs.fv.disconnect": "Desconectar Fourvenues",
+  "orgs.fv.disconnectConfirm": "ParyUp dejará de mostrar y comercializar los eventos de tu sala. Tu perfil, seguidores e historial se conservan. ¿Desconectar?",
+  "orgs.fv.disconnectedNote": "Nuestro equipo revisará contigo la vuelta al sistema de venta de ParyUp. Mientras tanto no se crean eventos nativos.",
+  "orgs.fv.status.PENDING_REVIEW": "En revisión por ParyUp",
+  "orgs.fv.status.REJECTED": "Solicitud rechazada",
+  "orgs.fv.status.CANCELLED": "Solicitud retirada",
+  "orgs.fv.status.ACTIVE": "Conectada",
+  "orgs.fv.status.SUSPENDED": "Sincronización suspendida",
+  "orgs.fv.status.REVOKED": "Autorización retirada por la sala",
+  "orgs.fv.status.DISCONNECTED": "Desconectada",
 } as const;
 
 export type MessageKey = keyof typeof es;
