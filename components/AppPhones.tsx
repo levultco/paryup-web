@@ -48,20 +48,20 @@ const LAYOUTS = {
   },
   // Tres móviles
   fan: {
-    wrap: "justify-center",
+    wrap: "justify-center gap-0",
     phones: [
-      "w-[min(290px,31%)] -rotate-[8deg] translate-y-12 -mr-[3%] [--pr:54px]",
+      "w-[min(290px,31%)] -rotate-[8deg] translate-y-12 -mr-[11%] [--pr:54px]",
       "w-[min(290px,31%)] z-10 translate-y-2 [--pr:54px]",
-      "w-[min(290px,31%)] rotate-[8deg] translate-y-12 -ml-[3%] [--pr:54px]",
+      "w-[min(290px,31%)] rotate-[8deg] translate-y-12 -ml-[11%] [--pr:54px]",
     ],
   },
   // Sin solapar: el central al frente y arriba, los laterales más abajo a cada lado.
   steps: {
-    wrap: "justify-center gap-5 md:gap-8",
+    wrap: "justify-center gap-0",
     phones: [
-      "w-[min(280px,31%)] translate-y-24 [--pr:54px]",
+      "w-[min(280px,31%)] translate-y-24 -mr-[11%] [--pr:54px]",
       "w-[min(280px,31%)] z-10 [--pr:54px]",
-      "w-[min(280px,31%)] translate-y-12 [--pr:54px]",
+      "w-[min(280px,31%)] translate-y-12 -ml-[11%] [--pr:54px]",
     ],
   },
 } satisfies Record<string, Layout>;

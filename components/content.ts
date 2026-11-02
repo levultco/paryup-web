@@ -58,7 +58,7 @@ export const FEATURES: Feature[] = [
       "/app/screens/4.png",
       "/app/screens/5.png",
     ],
-    span: "md:col-span-12",
+    span: "md:col-span-6",
   },
   {
     id: "recap",
@@ -70,14 +70,7 @@ export const FEATURES: Feature[] = [
       "/app/screens/8.png",
       "/app/screens/10.png",
     ],
-    span: "md:col-span-8",
-  },
-  {
-    id: "historia",
-    slot: "historia",
-    variant: "bleedRight",
-    screens: ["/app/screens/14.png"],
-    span: "md:col-span-4",
+    span: "md:col-span-6",
   },
 ];
 
