@@ -100,7 +100,7 @@ export async function sendAccessRequest(
     from: t.from,
     to: teamEmail,
     replyTo: req.email,
-    subject: `Solicitud de acceso a Backstage: ${req.venue}`,
+    subject: `Solicitud de demo de Backstage: ${req.venue}`,
     text: rows.map(([k, v]) => `${k}: ${v}`).join("\n"),
     html: `<table cellpadding="6" style="font-family:system-ui,sans-serif;font-size:14px">${rows
       .map(
@@ -113,9 +113,9 @@ export async function sendAccessRequest(
     await t.mailer.sendMail({
       from: t.from,
       to: req.email,
-      subject: "Hemos recibido tu solicitud de acceso a Backstage",
-      text: `Hola ${req.name},\n\nHemos recibido tu solicitud para ${req.venue}. La revisaremos y te escribiremos pronto a este correo.\n\nEl equipo de ParyUp`,
-      html: `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.5"><p>Hola ${esc(req.name)},</p><p>Hemos recibido tu solicitud para <strong>${esc(req.venue)}</strong>. La revisaremos y te escribiremos pronto a este correo.</p><p>El equipo de ParyUp</p></div>`,
+      subject: "Hemos recibido tu solicitud de demo de Backstage",
+      text: `Hola ${req.name},\n\nHemos recibido tu solicitud de demo para ${req.venue}. Te escribiremos pronto a este correo para enseñarte Backstage.\n\nEl equipo de ParyUp`,
+      html: `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.5"><p>Hola ${esc(req.name)},</p><p>Hemos recibido tu solicitud de demo para <strong>${esc(req.venue)}</strong>. Te escribiremos pronto a este correo para enseñarte Backstage.</p><p>El equipo de ParyUp</p></div>`,
     });
   } catch (error) {
     console.error("Backstage: no se pudo enviar el acuse", error);

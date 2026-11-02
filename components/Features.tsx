@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FEATURES, type Feature } from "./content";
 import ImageSlot from "./ImageSlot";
+import AppPhones from "./AppPhones";
 import ContentBackdrop from "./ContentBackdrop";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 
@@ -41,7 +42,7 @@ function FeatureCard({ f, prefix }: { f: Feature; prefix: string }) {
         onPointerLeave={onLeave}
         className="glow-card flex h-full min-h-[480px] flex-col overflow-hidden rounded-[36px] border border-line bg-raised p-6 transition-transform duration-500 ease-[var(--ease-out)] [transform:rotateX(var(--rx,0))_rotateY(var(--ry,0))] md:min-h-[520px] md:p-8"
       >
-        <ContentBackdrop src={f.image} />
+        <ContentBackdrop src={f.screens?.[0] ?? f.image} />
         <span className="relative mb-6 w-fit rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/80 backdrop-blur-xl">
           {t(`${prefix}.${f.id}.eyebrow`)}
         </span>
@@ -51,9 +52,24 @@ function FeatureCard({ f, prefix }: { f: Feature; prefix: string }) {
         <p className="relative mt-4 max-w-[42ch] text-base leading-relaxed text-muted md:text-lg">
           {t(`${prefix}.${f.id}.body`)}
         </p>
-        <div className="relative mt-6 flex flex-1 overflow-hidden rounded-[24px]">
-          {f.visual ? (
-            <div data-slot className="relative h-[340px] w-full md:h-[400px]">
+        <div
+          className={`relative mt-6 flex flex-1 overflow-hidden ${
+            f.screens || (f.visual && f.bleed)
+              ? "-mx-6 -mb-6 md:-mx-8 md:-mb-8"
+              : "rounded-[24px]"
+          }`}
+        >
+          {f.screens ? (
+            <div data-slot className="relative h-[400px] w-full md:h-[500px]">
+              <AppPhones screens={f.screens} alt={title} variant={f.variant} />
+            </div>
+          ) : f.visual ? (
+            <div
+              data-slot
+              className={`relative w-full ${
+                f.bleed ? "h-[400px] md:h-[500px]" : "h-[340px] md:h-[400px]"
+              }`}
+            >
               {f.visual}
             </div>
           ) : f.image && f.imageAspect ? (

@@ -9,7 +9,7 @@ export const es = {
   "backstage.line1": "Tú pones la noche,",
   "backstage.line2": "nosotros el control.",
   "backstage.sub":
-    "Gestiona tus eventos con ParyUp o conecta tu sistema actual y vende también en la app.",
+    "Tus eventos, entradas y equipo, en la web y en la app. Con ParyUp o conectado a tu sistema.",
   "backstage.ctaSecondary": "Ver cómo funciona",
   "backstage.preview.alt":
     "Vista previa del panel de Backstage con eventos, ventas y equipo",
@@ -27,10 +27,10 @@ export const es = {
   "backstage.p.manageFv": "Gestionar en Fourvenues",
   "backstage.p.fvNote":
     "Los eventos se gestionan en Fourvenues. ParyUp los muestra y vende las entradas.",
-  "backstage.cta": "Solicitar acceso",
-  "backstage.form.title": "Solicitar acceso a Backstage",
+  "backstage.cta": "Solicitar demo",
+  "backstage.form.title": "Solicitar una demo de Backstage",
   "backstage.form.intro":
-    "Cuéntanos sobre tu sala u organización y te daremos acceso en cuanto la revisemos.",
+    "Cuéntanos sobre tu sala u organización y te escribimos para enseñarte Backstage.",
   "backstage.form.name": "Tu nombre",
   "backstage.form.email": "Correo electrónico",
   "backstage.form.venue": "Sala u organización",
@@ -54,24 +54,24 @@ export const es = {
   "backstage.form.doneText": "Te escribiremos pronto a {email}.",
   "backstage.form.step1": "Solicitud recibida",
   "backstage.form.step2": "Revisamos tu sala u organización",
-  "backstage.form.step3": "Te escribimos con tu acceso",
+  "backstage.form.step3": "Te escribimos para la demo",
   "backstage.form.close": "Cerrar",
   "backstage.manifesto.eyebrow": "Backstage",
   "backstage.manifesto.text":
-    "Backstage es el panel de ParyUp para quienes *hacen* posible la *noche*. Eventos, entradas, equipo y promotores, en un solo sitio.",
+    "Backstage es el panel de ParyUp para quienes hacen posible la noche. Eventos, entradas, equipo y promotores, desde la web y desde la app.",
   "backstage.how.eyebrow": "Cómo funciona",
   "backstage.how.title1": "Tres pasos,",
   "backstage.how.title2": "una sala lista.",
   "backstage.how.step": "Paso {n}",
-  "backstage.step.01.title": "Solicita",
+  "backstage.step.01.title": "Pide una demo",
   "backstage.step.01.body":
-    "Cuéntanos sobre tu sala u organización. Revisamos cada solicitud y te damos acceso.",
-  "backstage.step.02.title": "Elige",
+    "Cuéntanos sobre tu sala u organización y te enseñamos Backstage.",
+  "backstage.step.02.title": "Lo dejamos listo",
   "backstage.step.02.body":
-    "Gestiona con ParyUp o conecta el sistema que ya usas. Tú decides cómo trabajar.",
-  "backstage.step.03.title": "Vende",
+    "Creamos tu organización y elegimos contigo cómo trabajar: con ParyUp o conectando tu sistema.",
+  "backstage.step.03.title": "Empieza a vender",
   "backstage.step.03.body":
-    "Publica tus eventos y vende entradas a través de ParyUp.",
+    "Publica tus eventos y vende entradas desde la web o desde la app.",
   "backstage.features.head1": "Todo lo que",
   "backstage.features.head2": "gestionas.",
   "backstage.features.sub":
@@ -80,7 +80,8 @@ export const es = {
   "backstage.feature.eventos.title": "Crea y publica tus eventos.",
   "backstage.feature.eventos.body":
     "Edita cada detalle y reutiliza plantillas para no empezar de cero.",
-  "backstage.feature.eventos.slot": "eventos",
+  "backstage.feature.eventos.slot":
+    "App de Backstage · Crear y publicar un evento",
   "backstage.feature.entradas.eyebrow": "Entradas",
   "backstage.feature.entradas.title": "Entradas, listas y reservados.",
   "backstage.feature.entradas.body":
@@ -125,9 +126,9 @@ export const es = {
   "backstage.faq.title1": "Resolvemos",
   "backstage.faq.title2": "tus dudas.",
   "backstage.faq.sub": "Lo esencial sobre Backstage.",
-  "backstage.faq.1.q": "¿Cómo consigo acceso?",
+  "backstage.faq.1.q": "¿Cómo empiezo?",
   "backstage.faq.1.a":
-    "Solicítalo con el formulario. Revisamos cada solicitud y te escribimos con tu acceso.",
+    "Solicita una demo. Te escribimos, te enseñamos Backstage y dejamos tu organización lista.",
   "backstage.faq.2.q": "¿Tengo que dejar el sistema que uso ahora?",
   "backstage.faq.2.a":
     "No. Si trabajas con Fourvenues puedes conectarlo y seguir gestionando allí tus eventos, mientras ParyUp se suma como canal de venta.",
@@ -139,15 +140,36 @@ export const es = {
     "Para discotecas, salas, promotoras y organizadores de eventos.",
   "backstage.faq.5.q": "¿Cuánto cuesta?",
   "backstage.faq.5.a":
-    "Cuéntanos tu caso en la solicitud y te explicamos las condiciones.",
+    "Backstage es un servicio de suscripción. El precio depende de tu sala y te lo explicamos en la demo.",
   "backstage.cta.line1": "Tu sala,",
   "backstage.cta.line2": "tu control.",
   "backstage.cta.text":
-    "Solicita acceso y te escribimos para dejarlo todo listo.",
+    "Solicita una demo y te escribimos para enseñarte Backstage.",
   "backstage.v.sent": "Solicitud enviada",
   "backstage.v.forModeParyup": "Gestiona con ParyUp",
   "backstage.v.forModeFv": "Conecta Fourvenues",
   "backstage.v.tickets": "entradas",
+  "backstage.platforms": "Disponible en la web y en la app",
+  "backstage.how.sub": "De la demo a tu primer evento publicado.",
+  "backstage.devices.head1": "Web y app,",
+  "backstage.devices.head2": "el mismo Backstage.",
+  "backstage.devices.sub":
+    "Lo que haces en la web, lo haces desde la app. Cada una con su interfaz.",
+  "backstage.devices.web": "Web",
+  "backstage.devices.app": "App",
+  "backstage.pricing.eyebrow": "Para salas, clubs y promotores",
+  "backstage.pricing.title": "Backstage",
+  "backstage.pricing.price": "Según tu sala",
+  "backstage.pricing.priceNote":
+    "Suscripción mensual. Te explicamos el precio en la demo.",
+  "backstage.pricing.text":
+    "Gestiona tus eventos, entradas, equipo y promotores desde la web y desde la app, o conecta el sistema que ya usas.",
+  "backstage.pricing.i1": "Web y app incluidas",
+  "backstage.pricing.i2": "Eventos, entradas, listas y reservados",
+  "backstage.pricing.i3": "Equipo con roles y permisos",
+  "backstage.pricing.i4": "Promotores, comisiones y liquidaciones",
+  "backstage.pricing.i5": "Estadísticas de eventos y ventas",
+  "backstage.pricing.i6": "Conexión con Fourvenues, si la sala la autoriza",
   "nav.events": "Eventos",
   "nav.tickets": "Mis Entradas",
   "header.language": "Idioma",
@@ -184,12 +206,22 @@ export const es = {
     "ParyUp reúne todo lo que pasa en una noche de fiesta: encontrar el *plan,* conseguir la *entrada,* hablar con tu *gente,* conocer a quien te *cruzas* y volver a *vivirla* al día siguiente.",
   "features.head1": "Todo lo de",
   "features.head2": "tu noche.",
-  "features.sub": "Seis funciones, una sola app. Del antes al día después.",
+  "features.sub": "Una sola app. Del antes al día después.",
+  "feature.inicio.eyebrow": "Inicio",
+  "feature.inicio.title": "Mira qué pasa esta noche",
+  "feature.inicio.body":
+    "Al abrir la app ves el evento del día, si ya está en curso, dónde es y a qué hora empieza, y los clubs de tu ciudad.",
+  "feature.inicio.slot": "Captura del inicio",
   "feature.mapa.eyebrow": "Mapa",
   "feature.mapa.title": "Previsualiza los eventos en el mapa",
   "feature.mapa.body":
     "Mira en el mapa qué eventos hay cerca de ti, échales un vistazo antes de ir y decide en segundos.",
   "feature.mapa.slot": "Captura del mapa de eventos",
+  "feature.historia.eyebrow": "Historias",
+  "feature.historia.title": "Comparte tu noche",
+  "feature.historia.body":
+    "Convierte tu recap en una historia lista para subir a tus redes con un toque.",
+  "feature.historia.slot": "Captura de la historia",
   "feature.entradas.eyebrow": "Entradas",
   "feature.entradas.title": "Compra y entra con tu QR",
   "feature.entradas.body":

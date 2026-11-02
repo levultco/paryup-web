@@ -47,13 +47,13 @@ function ModeCard({
       data-mode-card
       className="relative flex min-h-[480px] flex-col overflow-hidden rounded-[36px] border border-line bg-raised p-6 md:p-8"
     >
-      <span className="mb-6 w-fit rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/80 backdrop-blur-xl">
+      <span className="relative mb-6 w-fit rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/80 backdrop-blur-xl">
         {eyebrow}
       </span>
-      <h3 className="font-display max-w-[14ch] text-balance text-[clamp(2rem,3.4vw,3.4rem)] font-bold leading-[0.98]">
+      <h3 className="font-display relative max-w-[14ch] text-balance text-[clamp(2rem,3.4vw,3.4rem)] font-bold leading-[0.98]">
         {title}
       </h3>
-      <ul className="mt-8 divide-y divide-line">
+      <ul className="relative mt-8 divide-y divide-white/10">
         {items.map((i) => (
           <Item key={i} text={i} />
         ))}

@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { STEPS } from "./content";
 import ImageSlot from "./ImageSlot";
+import AppPhones, { type PhoneVariant } from "./AppPhones";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -31,7 +32,12 @@ export default function HowItWorks({
   keys = HOME_KEYS,
 }: {
   id?: string;
-  steps?: { n: string; visual?: ReactNode }[];
+  steps?: {
+    n: string;
+    visual?: ReactNode;
+    screen?: string;
+    variant?: PhoneVariant;
+  }[];
   keys?: HowKeys;
 }) {
   const { t } = useI18n();
@@ -124,7 +130,18 @@ export default function HowItWorks({
             <p className="mt-4 max-w-[34ch] text-base leading-relaxed text-muted md:text-lg">
               {t(`${keys.stepPrefix}.${s.n}.body`)}
             </p>
-            {s.visual ? (
+            {s.screen ? (
+              <div
+                data-slot
+                className="relative -mx-6 -mb-6 mt-8 min-h-[300px] flex-1 overflow-hidden md:-mx-8 md:-mb-8"
+              >
+                <AppPhones
+                  screens={[s.screen]}
+                  variant={s.variant}
+                  alt={t(`${keys.stepPrefix}.${s.n}.title`)}
+                />
+              </div>
+            ) : s.visual ? (
               <div
                 data-slot
                 className="mt-8 flex min-h-[200px] flex-1 items-center justify-center"

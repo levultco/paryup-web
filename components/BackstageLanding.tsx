@@ -3,12 +3,15 @@
 import { useState } from "react";
 import BackstageAccessForm from "@/components/BackstageAccessForm";
 import BackstageHero from "@/components/BackstageHero";
+import PhoneEvents from "@/components/BackstagePhone";
 import BackstageModes from "@/components/BackstageModes";
 import {
-  StepChoose,
-  StepRequest,
-  StepSell,
-  VisEvents,
+  BackstageDevices,
+  BackstageIntro,
+  BackstagePricing,
+  BackstageSteps,
+} from "@/components/BackstageSections";
+import {
   VisProfile,
   VisPromoters,
   VisStats,
@@ -18,30 +21,54 @@ import {
 import Faq from "@/components/Faq";
 import Features from "@/components/Features";
 import FinalCta from "@/components/FinalCta";
-import HowItWorks from "@/components/HowItWorks";
-import Manifesto from "@/components/Manifesto";
 import type { Feature } from "@/components/content";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { ArrowRightIcon } from "@/components/icons/solar";
 
-const STEPS = [
-  { n: "01", visual: <StepRequest /> },
-  { n: "02", visual: <StepChoose /> },
-  { n: "03", visual: <StepSell /> },
-];
-
 const FEATURES: Feature[] = [
-  { id: "eventos", slot: "", span: "md:col-span-7", visual: <VisEvents /> },
-  { id: "entradas", slot: "", span: "md:col-span-5", visual: <VisTickets /> },
-  { id: "equipo", slot: "", span: "md:col-span-5", visual: <VisTeam /> },
+  {
+    id: "eventos",
+    slot: "",
+
+    span: "md:col-span-7",
+    bleed: true,
+    visual: <PhoneEvents />,
+  },
+  {
+    id: "entradas",
+    slot: "",
+
+    span: "md:col-span-5",
+    visual: <VisTickets />,
+  },
+  {
+    id: "equipo",
+    slot: "",
+
+    span: "md:col-span-5",
+    visual: <VisTeam />,
+  },
   {
     id: "promotores",
     slot: "",
+
     span: "md:col-span-7",
     visual: <VisPromoters />,
   },
-  { id: "stats", slot: "", span: "md:col-span-6", visual: <VisStats /> },
-  { id: "perfil", slot: "", span: "md:col-span-6", visual: <VisProfile /> },
+  {
+    id: "stats",
+    slot: "",
+
+    span: "md:col-span-6",
+    visual: <VisStats />,
+  },
+  {
+    id: "perfil",
+    slot: "",
+
+    span: "md:col-span-6",
+    visual: <VisProfile />,
+  },
 ];
 
 /** Landing de Backstage: hero + secciones con el mismo diseño que la portada de ParyUp. */
@@ -53,21 +80,7 @@ export default function BackstageLanding() {
   return (
     <main>
       <BackstageHero onRequest={request} />
-      <Manifesto
-        eyebrowKey="backstage.manifesto.eyebrow"
-        textKey="backstage.manifesto.text"
-      />
-      <HowItWorks
-        id="como"
-        steps={STEPS}
-        keys={{
-          eyebrow: "backstage.how.eyebrow",
-          title1: "backstage.how.title1",
-          title2: "backstage.how.title2",
-          step: "backstage.how.step",
-          stepPrefix: "backstage.step",
-        }}
-      />
+      <BackstageIntro />
       <Features
         items={FEATURES}
         keys={{
@@ -77,7 +90,10 @@ export default function BackstageLanding() {
           prefix: "backstage.feature",
         }}
       />
+      <BackstageDevices />
       <BackstageModes />
+      <BackstageSteps />
+      <BackstagePricing onRequest={request} />
       <Faq
         ids={[1, 2, 3, 4, 5]}
         keys={{

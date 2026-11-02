@@ -21,10 +21,12 @@ const HOME_CTA_KEYS = {
 export default function FinalCta({
   keys = HOME_CTA_KEYS,
   actions,
+  backdrop = "/app/home.webp",
 }: {
   keys?: typeof HOME_CTA_KEYS;
   /** Acciones bajo el texto. Por defecto, los botones de las tiendas. */
   actions?: ReactNode;
+  backdrop?: string;
 }) {
   const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
@@ -69,7 +71,7 @@ export default function FinalCta({
           className="relative flex min-h-[76svh] flex-col items-center justify-center overflow-hidden rounded-[40px] border border-line bg-raised px-6 py-16 text-center"
         >
           {/* Fondo tomado de la captura real de la app */}
-          <ContentBackdrop src="/app/home.webp" />
+          <ContentBackdrop src={backdrop} />
           <Image
             src="/brand/icon.png"
             alt=""

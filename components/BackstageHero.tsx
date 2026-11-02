@@ -13,8 +13,10 @@ import {
   ArrowRightIcon,
   ArrowRightUpIcon,
   CalendarIcon,
+  GlobalIcon,
   LayersIcon,
   SettingsIcon,
+  SmartphoneIcon,
   SpeakerIcon,
   TicketIcon,
   UsersGroupIcon,
@@ -228,17 +230,16 @@ function PanelPreview({
               </Swap>
             </p>
             <motion.span
-              layout
               animate={{
                 backgroundColor: fv ? "rgba(255,255,255,0.1)" : "#ffffff",
                 color: fv ? "rgba(255,255,255,0.85)" : "#000000",
               }}
               transition={{ duration: dur, ease: EASE }}
-              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium md:text-[13px]"
+              className="inline-flex w-[196px] items-center justify-center gap-1.5 rounded-full py-2 text-xs font-medium md:w-[226px] md:text-[13px]"
             >
               <Swap
                 k={fv ? "fv" : "pu"}
-                className="inline-flex items-center gap-1.5"
+                className="inline-flex items-center justify-center gap-1.5"
               >
                 {fv ? (
                   <>
@@ -462,7 +463,7 @@ export default function BackstageHero({
         </h1>
         <p
           data-bs-fade
-          className="mt-6 max-w-[34ch] text-lg leading-snug text-white/60 md:text-2xl"
+          className="mt-6 max-w-[40ch] text-lg leading-snug text-white/60 md:text-2xl"
         >
           {t("backstage.sub")}
         </p>
@@ -482,6 +483,14 @@ export default function BackstageHero({
             {t("backstage.ctaSecondary")}
           </a>
         </div>
+        <p
+          data-bs-fade
+          className="mt-5 flex items-center gap-2 text-sm text-white/55"
+        >
+          <GlobalIcon aria-hidden className="h-4 w-4" />
+          <SmartphoneIcon aria-hidden className="h-4 w-4" />
+          {t("backstage.platforms")}
+        </p>
       </div>
 
       {/* El panel sale desde abajo, a tamaño real, y se funde antes del borde (igual que el móvil de la home). */}

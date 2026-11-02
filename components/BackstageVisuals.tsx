@@ -56,7 +56,7 @@ function Row({
 }) {
   return (
     <div className={`flex items-center gap-3 p-3 ${card}`}>
-      <span className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-white/25 to-white/5" />
+      <span className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-white/25 to-white/5" />
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-sm font-semibold text-white">
           {title}

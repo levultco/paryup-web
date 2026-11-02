@@ -8,7 +8,7 @@ export const en: Record<MessageKey, string> = {
   "backstage.line1": "You bring the night,",
   "backstage.line2": "we bring the control.",
   "backstage.sub":
-    "Manage your events with ParyUp, or connect your current system and sell in the app too.",
+    "Your events, tickets and team, on the web and in the app. With ParyUp or connected to your system.",
   "backstage.ctaSecondary": "See how it works",
   "backstage.preview.alt":
     "Preview of the Backstage panel with events, sales and team",
@@ -26,10 +26,10 @@ export const en: Record<MessageKey, string> = {
   "backstage.p.manageFv": "Manage in Fourvenues",
   "backstage.p.fvNote":
     "Events are managed in Fourvenues. ParyUp lists them and sells the tickets.",
-  "backstage.cta": "Request access",
-  "backstage.form.title": "Request Backstage access",
+  "backstage.cta": "Request a demo",
+  "backstage.form.title": "Request a Backstage demo",
   "backstage.form.intro":
-    "Tell us about your venue or organization and we will give you access once we have reviewed it.",
+    "Tell us about your venue or organization and we will write to you to show you Backstage.",
   "backstage.form.name": "Your name",
   "backstage.form.email": "Email",
   "backstage.form.venue": "Venue or organization",
@@ -54,24 +54,24 @@ export const en: Record<MessageKey, string> = {
   "backstage.form.doneText": "We will write to you soon at {email}.",
   "backstage.form.step1": "Request received",
   "backstage.form.step2": "We review your venue or organization",
-  "backstage.form.step3": "We write to you with your access",
+  "backstage.form.step3": "We write to you for the demo",
   "backstage.form.close": "Close",
   "backstage.manifesto.eyebrow": "Backstage",
   "backstage.manifesto.text":
-    "Backstage is the ParyUp panel for the people who *make* the *night* possible. Events, tickets, team and promoters, in one place.",
+    "Backstage is the ParyUp panel for the people who make the night possible. Events, tickets, team and promoters, from the web and from the app.",
   "backstage.how.eyebrow": "How it works",
   "backstage.how.title1": "Three steps,",
   "backstage.how.title2": "a venue ready.",
   "backstage.how.step": "Step {n}",
-  "backstage.step.01.title": "Request",
+  "backstage.step.01.title": "Request a demo",
   "backstage.step.01.body":
-    "Tell us about your venue or organization. We review every request and give you access.",
-  "backstage.step.02.title": "Choose",
+    "Tell us about your venue or organization and we show you Backstage.",
+  "backstage.step.02.title": "We set it up",
   "backstage.step.02.body":
-    "Run it with ParyUp or connect the system you already use. You decide how to work.",
-  "backstage.step.03.title": "Sell",
+    "We create your organization and choose with you how to work: with ParyUp or connecting your system.",
+  "backstage.step.03.title": "Start selling",
   "backstage.step.03.body":
-    "Publish your events and sell tickets through ParyUp.",
+    "Publish your events and sell tickets from the web or the app.",
   "backstage.features.head1": "Everything",
   "backstage.features.head2": "you run.",
   "backstage.features.sub": "One tool for the venue, the team and the sales.",
@@ -79,7 +79,8 @@ export const en: Record<MessageKey, string> = {
   "backstage.feature.eventos.title": "Create and publish your events.",
   "backstage.feature.eventos.body":
     "Edit every detail and reuse templates so you never start from scratch.",
-  "backstage.feature.eventos.slot": "eventos",
+  "backstage.feature.eventos.slot":
+    "Backstage app · Create and publish an event",
   "backstage.feature.entradas.eyebrow": "Tickets",
   "backstage.feature.entradas.title": "Tickets, lists and reserved tables.",
   "backstage.feature.entradas.body":
@@ -124,9 +125,9 @@ export const en: Record<MessageKey, string> = {
   "backstage.faq.title1": "We answer",
   "backstage.faq.title2": "your questions.",
   "backstage.faq.sub": "The essentials about Backstage.",
-  "backstage.faq.1.q": "How do I get access?",
+  "backstage.faq.1.q": "How do I start?",
   "backstage.faq.1.a":
-    "Request it with the form. We review every request and write to you with your access.",
+    "Request a demo. We write to you, show you Backstage and get your organization ready.",
   "backstage.faq.2.q": "Do I have to leave the system I use now?",
   "backstage.faq.2.a":
     "No. If you work with Fourvenues you can connect it and keep managing your events there, while ParyUp joins as a sales channel.",
@@ -137,15 +138,36 @@ export const en: Record<MessageKey, string> = {
   "backstage.faq.4.a": "For clubs, venues, promoters and event organizers.",
   "backstage.faq.5.q": "How much does it cost?",
   "backstage.faq.5.a":
-    "Tell us about your case in the request and we will explain the terms.",
+    "Backstage is a subscription service. The price depends on your venue and we explain it in the demo.",
   "backstage.cta.line1": "Your venue,",
   "backstage.cta.line2": "your control.",
   "backstage.cta.text":
-    "Request access and we will write to you to get everything ready.",
+    "Request a demo and we will write to you to show you Backstage.",
   "backstage.v.sent": "Request sent",
   "backstage.v.forModeParyup": "Run it with ParyUp",
   "backstage.v.forModeFv": "Connect Fourvenues",
   "backstage.v.tickets": "tickets",
+  "backstage.platforms": "Available on the web and in the app",
+  "backstage.how.sub": "From the demo to your first published event.",
+  "backstage.devices.head1": "Web and app,",
+  "backstage.devices.head2": "the same Backstage.",
+  "backstage.devices.sub":
+    "What you do on the web, you do from the app. Each with its own interface.",
+  "backstage.devices.web": "Web",
+  "backstage.devices.app": "App",
+  "backstage.pricing.eyebrow": "For venues, clubs and promoters",
+  "backstage.pricing.title": "Backstage",
+  "backstage.pricing.price": "Tailored to your venue",
+  "backstage.pricing.priceNote":
+    "Monthly subscription. We explain the price in the demo.",
+  "backstage.pricing.text":
+    "Run your events, tickets, team and promoters from the web and the app, or connect the system you already use.",
+  "backstage.pricing.i1": "Web and app included",
+  "backstage.pricing.i2": "Events, tickets, lists and reserved tables",
+  "backstage.pricing.i3": "Team with roles and permissions",
+  "backstage.pricing.i4": "Promoters, commissions and settlements",
+  "backstage.pricing.i5": "Event and sales statistics",
+  "backstage.pricing.i6": "Fourvenues connection, if the venue authorizes it",
   "nav.events": "Events",
   "nav.tickets": "My Tickets",
   "header.language": "Language",
@@ -181,12 +203,22 @@ export const en: Record<MessageKey, string> = {
     "ParyUp brings together everything that happens on a night out: finding the *plan,* getting your *ticket,* talking with your *crew,* meeting whoever you *cross* *paths* *with* and *reliving* *it* the next day.",
   "features.head1": "Everything about",
   "features.head2": "your night.",
-  "features.sub": "Six features, one app. From before to the day after.",
+  "features.sub": "One app. From before to the day after.",
+  "feature.inicio.eyebrow": "Home",
+  "feature.inicio.title": "See what's on tonight",
+  "feature.inicio.body":
+    "Open the app and see tonight's event, whether it's already live, where it is and when it starts, plus the clubs in your city.",
+  "feature.inicio.slot": "Screenshot of the home screen",
   "feature.mapa.eyebrow": "Map",
   "feature.mapa.title": "Preview events on the map",
   "feature.mapa.body":
     "See on the map which events are near you, take a look before you go and decide in seconds.",
   "feature.mapa.slot": "Screenshot of the events map",
+  "feature.historia.eyebrow": "Stories",
+  "feature.historia.title": "Share your night",
+  "feature.historia.body":
+    "Turn your recap into a story ready to post on your socials in one tap.",
+  "feature.historia.slot": "Screenshot of the story",
   "feature.entradas.eyebrow": "Tickets",
   "feature.entradas.title": "Buy and get in with your QR",
   "feature.entradas.body":
