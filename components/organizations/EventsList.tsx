@@ -16,6 +16,7 @@ import {
   primaryButton,
 } from "@/components/organizations/ui";
 import { DISCOVERY_TZ } from "@/lib/discovery";
+import { syncStateLabel } from "@/lib/external-events";
 import { intlLocale } from "@/lib/i18n";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
 import type { EventStatus, ManagedEventsPage } from "@/lib/events-admin";
@@ -271,6 +272,19 @@ export function EventsList() {
                     </span>
                     <span className="flex shrink-0 flex-col items-end gap-2">
                       <StatusBadge status={event.status} />
+                      {event.source === "FOURVENUES" && event.externalRef ? (
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[11px] ${
+                            event.externalRef.syncState === "ACTIVE"
+                              ? "bg-white/[0.08] text-white/60"
+                              : event.externalRef.syncState === "MISSING"
+                                ? "bg-amber-400/15 text-amber-200"
+                                : "bg-red-500/15 text-red-300"
+                          }`}
+                        >
+                          {syncStateLabel(event.externalRef.syncState, locale)}
+                        </span>
+                      ) : null}
                       <span
                         title={
                           event.ticketsCount === 1

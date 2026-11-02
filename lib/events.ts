@@ -1,5 +1,6 @@
 import { cacheLife } from "next/cache";
 import { API_URL } from "@/lib/backend";
+import type { ExternalEventInfo } from "@/lib/external-events";
 
 export type PublicEvent = {
   id: string;
@@ -18,6 +19,9 @@ export type PublicEvent = {
     isVerified: boolean;
   } | null;
   soldOut: boolean;
+  /** FOURVENUES = gestionado en Fourvenues: solo lectura y sin compra nativa. */
+  source: "NATIVE" | "FOURVENUES";
+  external: ExternalEventInfo | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -58,6 +62,23 @@ export function toPublicEvent(raw: RawEvent): PublicEvent {
         }
       : null,
     soldOut,
+    source: raw.source === "FOURVENUES" ? "FOURVENUES" : "NATIVE",
+    external:
+      raw.source === "FOURVENUES" && raw.externalRef
+        ? {
+            timezone: raw.externalRef.timezone ?? null,
+            displayDateRaw: raw.externalRef.displayDateRaw ?? null,
+            currency: raw.externalRef.currency ?? null,
+            fromPrice:
+              typeof raw.externalRef.fromPrice === "number"
+                ? raw.externalRef.fromPrice
+                : null,
+            hasAvailableRates:
+              typeof raw.externalRef.hasAvailableRates === "boolean"
+                ? raw.externalRef.hasAvailableRates
+                : null,
+          }
+        : null,
   };
 }
 

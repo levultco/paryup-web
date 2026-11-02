@@ -14,6 +14,12 @@ export type ManagedEvent = {
   capacity: number | null;
   minAge: number | null;
   ticketsCount: number;
+  source?: "NATIVE" | "FOURVENUES";
+  /** Solo eventos Fourvenues: estado de la última sincronización. */
+  externalRef?: {
+    syncState: "ACTIVE" | "MISSING" | "UNAVAILABLE" | "SUSPENDED";
+    lastSyncedAt: string | null;
+  } | null;
 };
 
 export type ManagedEventsPage = {

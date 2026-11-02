@@ -1,5 +1,6 @@
 import { cacheLife } from "next/cache";
 import { API_URL } from "@/lib/backend";
+import type { ExternalRates } from "@/lib/external-events";
 import {
   getUpcomingEvents,
   toPublicEvent,
@@ -94,6 +95,21 @@ export async function getPublicEvent(id: string): Promise<PublicEvent | null> {
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`events/public/:id ${res.status}`);
   return toPublicEvent(await res.json());
+}
+
+/**
+ * Tarifas de un evento Fourvenues. El backend las consulta en vivo con caché de segundos; aquí
+ * solo se añade una caché igual de corta para no multiplicar peticiones por visita.
+ */
+export async function getExternalRates(id: string): Promise<ExternalRates | null> {
+  "use cache";
+  cacheLife({ stale: 10, revalidate: 20, expire: 60 });
+
+  const res = await fetch(
+    `${API_URL}/events/public/${encodeURIComponent(id)}/external-rates`,
+  );
+  if (!res.ok) return null;
+  return (await res.json()) as ExternalRates;
 }
 
 /** Búsqueda de texto entre los próximos eventos públicos. `null` si el backend falla. */

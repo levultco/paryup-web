@@ -6,6 +6,14 @@ import { EventActions } from "@/components/events/EventActions";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import type { PublicEvent } from "@/lib/events";
 import { longDateLabel } from "@/lib/discovery";
+import {
+  externalCopy,
+  externalPrice,
+  externalWhen,
+  formatMoney,
+  rateStatus,
+  type ExternalRates,
+} from "@/lib/external-events";
 import { localDayKey, priceLabel, timeLabel } from "@/lib/format";
 
 /** Contenido visible del detalle de un evento; la página del servidor aporta el JSON-LD y los datos. */
@@ -13,17 +21,27 @@ export function EventDetail({
   event,
   backHref,
   year,
+  externalRates,
 }: {
   event: PublicEvent;
   backHref: string;
   year: number;
+  /** Solo eventos Fourvenues; null si Fourvenues no respondió. */
+  externalRates?: ExternalRates | null;
 }) {
   const { t, locale } = useI18n();
   const startKey = localDayKey(event.date);
   const endKey = event.endDate ? localDayKey(event.endDate) : null;
   const start = timeLabel(event.date);
   const end = timeLabel(event.endDate);
-  const price = priceLabel(event.price, event.soldOut, t, locale);
+  const isExternal = event.source === "FOURVENUES" && event.external !== null;
+  const copy = externalCopy(locale);
+  const when = isExternal
+    ? externalWhen(event.date, event.endDate, event.external!, locale, year)
+    : null;
+  const price = isExternal
+    ? externalPrice(event.external, locale)
+    : priceLabel(event.price, event.soldOut, t, locale);
 
   return (
     <>
@@ -68,13 +86,13 @@ export function EventDetail({
                 {t("detail.when")}
               </dt>
               <dd className="mt-1 text-lg first-letter:uppercase">
-                {longDateLabel(startKey, year, locale)}
+                {when ? when.dateLabel : longDateLabel(startKey, year, locale)}
               </dd>
-              {start ? (
+              {(when ? when.start : start) ? (
                 <dd className="text-white/70">
-                  {start}
-                  {end
-                    ? ` – ${end}${endKey && endKey !== startKey ? ` ${t("detail.nextDay")}` : ""}`
+                  {when ? when.start : start}
+                  {(when ? when.end : end)
+                    ? ` – ${when ? when.end : end}${(when ? when.endsNextDay : endKey && endKey !== startKey) ? ` ${t("detail.nextDay")}` : ""}`
                     : ""}
                 </dd>
               ) : null}
@@ -107,12 +125,56 @@ export function EventDetail({
             ) : null}
           </dl>
 
-          <div className="mt-9">
-            {event.soldOut ? (
-              <p className="mb-4 text-sm text-muted">{t("detail.soldOut")}</p>
-            ) : null}
-            <EventActions id={event.id} title={event.name} />
-          </div>
+          {isExternal ? (
+            <section className="mt-9 space-y-4">
+              <h2 className="text-xs uppercase tracking-[0.2em] text-white/40">
+                {copy.heading}
+              </h2>
+              {externalRates === null || externalRates === undefined ? (
+                <p className="text-sm text-muted">{copy.unavailable}</p>
+              ) : externalRates.ticketRates.length === 0 &&
+                externalRates.listRates.length === 0 ? (
+                <p className="text-sm text-muted">{copy.none}</p>
+              ) : (
+                <ul className="space-y-3">
+                  {externalRates.ticketRates.map((rate) => (
+                    <li key={rate.id} className="flex items-center justify-between gap-4">
+                      <span>
+                        <span className="block font-medium">{rate.name}</span>
+                        <span className="block text-sm text-white/60">
+                          {rateStatus(rate, locale)}
+                        </span>
+                      </span>
+                      {rate.price !== null ? (
+                        <span className="font-medium">
+                          {formatMoney(rate.price, externalRates.currency, locale)}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                  {externalRates.listRates.map((rate) => (
+                    <li key={rate.id}>
+                      <span className="block font-medium">{rate.name}</span>
+                      <span className="block text-sm text-white/60">
+                        {rate.available ? copy.listOpen : copy.listClosed}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {externalRates && !externalRates.live ? (
+                <p className="text-xs text-white/50">{copy.stale}</p>
+              ) : null}
+              <p className="text-sm text-muted">{copy.notEnabled}</p>
+            </section>
+          ) : (
+            <div className="mt-9">
+              {event.soldOut ? (
+                <p className="mb-4 text-sm text-muted">{t("detail.soldOut")}</p>
+              ) : null}
+              <EventActions id={event.id} title={event.name} />
+            </div>
+          )}
 
           {event.description ? (
             <p className="mt-10 max-w-xl whitespace-pre-line leading-7 text-white/75">

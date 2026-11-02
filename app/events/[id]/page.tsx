@@ -8,7 +8,7 @@ import {
   EventLoadError,
   LoadingText,
 } from "@/components/events/EventDetail";
-import { getPublicEvent } from "@/lib/discovery-server";
+import { getExternalRates, getPublicEvent } from "@/lib/discovery-server";
 import { discoveryQuery, nightKey } from "@/lib/discovery";
 
 type Params = Promise<{ id: string }>;
@@ -58,6 +58,10 @@ async function Detail({
   if (event === undefined) return <EventLoadError />;
   if (event === null) notFound();
 
+  const externalRates =
+    event.source === "FOURVENUES"
+      ? await getExternalRates(id).catch(() => null)
+      : undefined;
   const year = Number(nightKey().slice(0, 4));
   // La "noche" del evento (antes de las 10:00 cuenta como la anterior) para volver a su día.
   const backDate = nightKey(new Date(event.date));
@@ -95,7 +99,7 @@ async function Detail({
           __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      {promoterCode ? (
+      {promoterCode && event.source !== "FOURVENUES" ? (
         <aside className="mb-8 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold">Te han invitado a este evento</p>
@@ -118,6 +122,7 @@ async function Detail({
         event={event}
         backHref={`/events${discoveryQuery({ area: "barcelona", date: backDate, price: "any" }, nightKey())}`}
         year={year}
+        externalRates={externalRates}
       />
     </article>
   );
