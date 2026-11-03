@@ -3,6 +3,8 @@
 import { useState } from "react";
 import BackstageAccessForm from "@/components/BackstageAccessForm";
 import BackstageHero from "@/components/BackstageHero";
+import BackstageCatalog from "@/components/BackstageCatalog";
+import BackstageSales from "@/components/BackstageSales";
 import PhoneEvents from "@/components/BackstagePhone";
 import BackstageModes from "@/components/BackstageModes";
 import {
@@ -12,11 +14,6 @@ import {
   BackstageSteps,
 } from "@/components/BackstageSections";
 import {
-  VisProfile,
-  VisPromoters,
-  VisStats,
-  VisTeam,
-  VisTickets,
 } from "@/components/BackstageVisuals";
 import Faq from "@/components/Faq";
 import Features from "@/components/Features";
@@ -30,7 +27,7 @@ const FEATURES: Feature[] = [
     id: "eventos",
     slot: "",
 
-    span: "md:col-span-7",
+    span: "md:col-span-5",
     bleed: true,
     visual: <PhoneEvents />,
   },
@@ -38,36 +35,59 @@ const FEATURES: Feature[] = [
     id: "entradas",
     slot: "",
 
-    span: "md:col-span-5",
-    visual: <VisTickets />,
+    span: "md:col-span-7",
+    bleed: true,
+    visual: <BackstageCatalog />,
   },
   {
     id: "equipo",
     slot: "",
 
-    span: "md:col-span-5",
-    visual: <VisTeam />,
+    span: "md:col-span-7",
+    bleed: true,
+    visual: (
+      <BackstageCatalog
+        src="/app/equipo.webp"
+        width={1967}
+        height={799}
+        centered
+        alt="backstage.feature.equipo.title"
+      />
+    ),
   },
   {
     id: "promotores",
     slot: "",
 
-    span: "md:col-span-7",
-    visual: <VisPromoters />,
-  },
-  {
-    id: "stats",
-    slot: "",
-
-    span: "md:col-span-6",
-    visual: <VisStats />,
+    span: "md:col-span-5",
+    variant: "pair",
+    screens: ["/app/promotores-1.webp", "/app/promotores-2.webp"],
   },
   {
     id: "perfil",
     slot: "",
 
     span: "md:col-span-6",
-    visual: <VisProfile />,
+    bleed: true,
+    visual: (
+      <PhoneEvents
+        screen="/app/perfil.webp"
+        alt="backstage.feature.perfil.title"
+        slot="backstage.feature.perfil.slot"
+      />
+    ),
+  },
+  {
+    id: "stats",
+    slot: "",
+
+    span: "md:col-span-6",
+    bleed: true,
+    visual: (
+      <BackstageCatalog centered>
+        <BackstageSales />
+      </BackstageCatalog>
+    ),
   },
 ];
 

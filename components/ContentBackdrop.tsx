@@ -5,9 +5,12 @@ import Image from "next/image";
 export default function ContentBackdrop({
   src,
   className = "",
+  cool = false,
 }: {
   src?: string;
   className?: string;
+  /** Tono azul frío, como el fondo del hero de Backstage. */
+  cool?: boolean;
 }) {
   if (!src) return null;
   return (
@@ -20,7 +23,7 @@ export default function ContentBackdrop({
         alt=""
         fill
         sizes="50vw"
-        className="scale-150 object-cover opacity-70 blur-[80px] saturate-150"
+        className={`scale-150 object-cover opacity-70 blur-[80px] ${cool ? "saturate-[1.7] hue-rotate-[200deg]" : "saturate-150"}`}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black" />
     </div>

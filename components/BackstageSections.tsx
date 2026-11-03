@@ -2,17 +2,18 @@
 
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useI18n } from "@/components/i18n/LocaleProvider";
+import BackstageCatalog from "@/components/BackstageCatalog";
+import BackstageOverview from "@/components/BackstageOverview";
 import ContentBackdrop from "@/components/ContentBackdrop";
+import PhoneFrame from "@/components/PhoneFrame";
 import {
-  CalendarIcon,
   CheckIcon,
   GlobalIcon,
   SmartphoneIcon,
-  UsersGroupIcon,
-  WidgetIcon,
 } from "@/components/icons/solar";
 import {
   StepChoose,
@@ -20,7 +21,6 @@ import {
   StepSell,
   VisEvents,
   VisStats,
-  VisTickets,
 } from "@/components/BackstageVisuals";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -126,59 +126,40 @@ export function BackstageDevices() {
       />
       <div
         data-sec-card
-        className={`${CARD} flex flex-col items-center gap-10 px-5 pb-0 pt-8 md:px-10 md:pt-10 lg:flex-row lg:items-end lg:gap-0`}
+        className={`${CARD} flex flex-col items-center gap-10 px-5 pb-0 pt-8 md:px-10 md:pb-0 md:pt-10 max-lg:justify-end min-h-[640px] md:min-h-[820px] lg:flex-row lg:items-end lg:gap-0`}
       >
-        <ContentBackdrop src="/app/home.webp" />
+        <ContentBackdrop src="/app/home.webp" cool />
         {/* Navegador: ocupa la tarjeta y se corta por abajo, como el panel del hero. */}
         <div className="relative z-10 flex w-full flex-col gap-4 lg:w-[68%] lg:pr-6">
           <DeviceTag
             icon={<GlobalIcon aria-hidden className="h-4 w-4" />}
             label={t("backstage.devices.web")}
           />
-          <div className="h-[420px] overflow-hidden rounded-t-[24px] bg-black/55 shadow-[0_-30px_100px_rgba(0,0,0,0.5)] ring-1 ring-white/15 backdrop-blur-md md:h-[520px]">
-            <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-3">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="h-2.5 w-2.5 rounded-full bg-white/20"
-                />
-              ))}
-            </div>
-            <div className="grid gap-3 p-3 sm:grid-cols-2 md:p-4">
-              <div className="h-[300px]">
-                <VisStats />
-              </div>
-              <div className="hidden h-[300px] sm:block">
-                <VisEvents />
-              </div>
-            </div>
-            <div className="hidden h-[200px] px-4 md:block">
-              <VisTickets />
-            </div>
+          <div className="relative h-[420px] overflow-hidden md:h-[560px]">
+            <BackstageCatalog fill>
+              <BackstageOverview />
+            </BackstageCatalog>
           </div>
         </div>
 
         {/* Móvil: sube desde abajo y se solapa con el navegador. */}
-        <div className="relative z-20 flex flex-col items-center gap-4 lg:-ml-24 lg:w-[32%]">
+        <div className="relative z-20 flex flex-col items-center lg:-ml-24 lg:w-[calc(32%+6rem)] lg:items-end">
+          <div className="flex flex-col items-center gap-4 lg:items-end">
           <DeviceTag
             icon={<SmartphoneIcon aria-hidden className="h-4 w-4" />}
             label={t("backstage.devices.app")}
           />
-          <div className="w-[min(300px,76vw)] rounded-t-[46px] bg-black p-2.5 pb-0 shadow-[0_-30px_100px_rgba(0,0,0,0.6)] ring-1 ring-white/25">
-            <div className="flex h-[520px] flex-col rounded-t-[36px] bg-[#0a0a0a] px-3 pt-4 ring-1 ring-white/10 md:h-[600px]">
-              <span className="mx-auto mb-3 h-6 w-24 rounded-full bg-black ring-1 ring-white/10" />
-              <p className="font-display px-1 text-2xl font-semibold text-white">
-                {t("orgs.panel.overviewTitle")}
-              </p>
-              <div className="min-h-0 flex-1 overflow-hidden">
-                <VisEvents />
-              </div>
-              <nav className="mb-3 mt-2 flex items-center justify-around rounded-full bg-white/[0.08] py-3 text-white/50">
-                <WidgetIcon aria-hidden className="h-5 w-5 text-white" />
-                <CalendarIcon aria-hidden className="h-5 w-5" />
-                <UsersGroupIcon aria-hidden className="h-5 w-5" />
-              </nav>
-            </div>
+          <div className="flex h-[420px] w-[min(340px,80vw)] items-start overflow-hidden md:h-[560px]">
+            <PhoneFrame glow={false} fill className="h-[calc(100%+8px)] w-full shrink-0 [--pr:46px]">
+              <Image
+                src="/app/dashboard.webp"
+                alt={t("backstage.devices.app")}
+                fill
+                sizes="340px"
+                className="object-cover object-top"
+              />
+            </PhoneFrame>
+          </div>
           </div>
         </div>
       </div>

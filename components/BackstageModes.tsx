@@ -3,8 +3,16 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Image from "next/image";
+import PhoneFrame from "@/components/PhoneFrame";
 import { useI18n } from "@/components/i18n/LocaleProvider";
-import { CheckIcon, LockIcon } from "@/components/icons/solar";
+import {
+  ArrowRightUpIcon,
+  CheckIcon,
+  GlobalIcon,
+  LinkIcon,
+  UsersGroupIcon,
+} from "@/components/icons/solar";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,7 +25,7 @@ function Item({ text, locked }: { text: string; locked?: boolean }) {
         }`}
       >
         {locked ? (
-          <LockIcon aria-hidden className="h-3.5 w-3.5" />
+          <ArrowRightUpIcon aria-hidden className="h-3.5 w-3.5" />
         ) : (
           <CheckIcon aria-hidden className="h-4 w-4" strokeWidth={2.4} />
         )}
@@ -149,6 +157,67 @@ export default function BackstageModes() {
           items={[1, 2, 3].map((n) => t(`backstage.modes.fv.i${n}`))}
           limits={[1, 2].map((n) => t(`backstage.modes.fv.l${n}`))}
         />
+      </div>
+      <div
+        data-mode-card
+        className="mt-[clamp(1rem,1.4vw,1.5rem)] grid overflow-hidden rounded-[36px] border border-line bg-raised md:grid-cols-[1.15fr_1fr]"
+      >
+        <div className="p-6 md:p-10 lg:p-12">
+          <span className="w-fit rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/80">
+            {t("backstage.modes.shared.eyebrow")}
+          </span>
+          <h3 className="font-display mt-6 max-w-[18ch] text-balance text-[clamp(2rem,3.4vw,3.4rem)] font-bold leading-[0.98]">
+            {t("backstage.modes.shared.title")}
+          </h3>
+          <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-muted md:text-lg">
+            {t("backstage.modes.shared.body")}
+          </p>
+          <ul className="mt-8 divide-y divide-white/10">
+            {(
+              [
+                [GlobalIcon, 1],
+                [UsersGroupIcon, 2],
+                [LinkIcon, 3],
+              ] as const
+            ).map(([Icon, n]) => (
+              <li key={n} className="flex items-start gap-4 py-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/80">
+                  <Icon aria-hidden className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-base font-semibold text-white md:text-lg">
+                    {t(`backstage.modes.shared.${n}.title`)}
+                  </p>
+                  <p className="mt-1 text-sm text-muted md:text-base">
+                    {t(`backstage.modes.shared.${n}.text`)}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="relative min-h-[560px] overflow-hidden md:min-h-0">
+          <div className="absolute inset-0 flex items-start justify-center px-4 pt-10 md:pt-12">
+          {["/app/screens/1.png", "/app/screens/3.png"].map((src, i) => (
+            <PhoneFrame
+              key={src}
+              glow={false}
+              className={`w-[min(330px,46vw)] shrink-0 [--pr:56px] ${
+                i === 0 ? "z-0 -rotate-[3deg]" : "z-10 -ml-16 mt-20 rotate-[3deg]"
+              }`}
+            >
+              <Image
+                src={src}
+                alt={t("backstage.modes.shared.title")}
+                width={920}
+                height={2000}
+                sizes="330px"
+                className="h-auto w-full"
+              />
+            </PhoneFrame>
+          ))}
+          </div>
+        </div>
       </div>
       <p className="mt-6 max-w-[70ch] text-sm text-muted">
         {t("backstage.modes.note")}

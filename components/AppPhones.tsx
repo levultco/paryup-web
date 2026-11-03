@@ -50,6 +50,14 @@ const LAYOUTS = {
     wrap: "items-start justify-center",
     phones: ["w-[min(250px,52%)] translate-y-24 [--pr:48px]"],
   },
+  // Dos móviles solapados: el de la izquierda detrás y más bajo, el de la derecha al frente.
+  pair: {
+    wrap: "items-start justify-center gap-0",
+    phones: [
+      "w-[min(280px,56%)] -rotate-[4deg] translate-y-12 -mr-14 [--pr:50px]",
+      "w-[min(280px,56%)] z-10 rotate-[3deg] translate-y-3 [--pr:50px]",
+    ],
+  },
   // Tres móviles
   fan: {
     wrap: "items-start justify-center gap-0",

@@ -8,17 +8,21 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import NumberFlow from "@number-flow/react";
 import { Segmented } from "@/components/organizations/promoters-ui";
 import { useI18n } from "@/components/i18n/LocaleProvider";
+import { VerifiedBadge } from "@/components/profile/VerifiedBadge";
 import {
   AddIcon,
   ArrowRightIcon,
   ArrowRightUpIcon,
+  CalendarDateIcon,
   CalendarIcon,
+  ChevronRightIcon,
   GlobalIcon,
   LayersIcon,
   SettingsIcon,
   SmartphoneIcon,
   SpeakerIcon,
   TicketIcon,
+  UserRoundedIcon,
   UsersGroupIcon,
   WidgetIcon,
   type SolarIcon,
@@ -76,18 +80,27 @@ const NAV: {
 ];
 
 // Cifras de demostración (no son datos reales de ninguna sala).
+const STAT_TONES = [
+  { Icon: CalendarDateIcon, tone: "bg-[#30d158]/15 text-[#30d158]" },
+  { Icon: TicketIcon, tone: "bg-white/10 text-white/70" },
+  { Icon: UserRoundedIcon, tone: "bg-sky-400/15 text-sky-300" },
+];
+
 const STATS: Record<Mode, { key: MsgKey; value: number; money?: boolean }[]> = {
   paryup: [
     { key: "orgs.panel.upcoming", value: 3 },
     { key: "backstage.p.sold", value: 842 },
-    { key: "backstage.p.revenue", value: 12480, money: true },
+    { key: "orgs.panel.followers", value: 963 },
   ],
   fv: [
     { key: "backstage.p.imported", value: 6 },
     { key: "backstage.p.soldChannel", value: 214 },
-    { key: "backstage.p.amountChannel", value: 3920, money: true },
+    { key: "orgs.panel.followers", value: 1248 },
   ],
 };
+
+// Misma superficie que las cards del panel real (OverviewView).
+const CARD = "rounded-[22px] bg-[#1a1a1a] ring-1 ring-white/[0.08]";
 
 const EVENTS = [
   { name: "Noche Aurora", meta: "1 nov · Barcelona", sold: 312 },
@@ -192,19 +205,20 @@ function PanelPreview({
   const dur = reduce ? 0 : 0.4;
 
   return (
-    <div className="mx-auto w-full max-w-[1320px] select-none rounded-[26px] bg-[#0a0a0a]/90 p-2.5 shadow-[0_50px_140px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.09)] ring-1 ring-white/[0.1] md:rounded-[32px] md:p-5">
+    <div className="mx-auto w-full max-w-[1320px] select-none rounded-[26px] bg-black p-2.5 shadow-[0_50px_140px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.09)] ring-1 ring-white/[0.1] md:rounded-[32px] md:p-5">
       <div className="mb-3 flex items-center justify-center border-b border-white/[0.07] pb-3 md:mb-4 md:pb-4">
         {toolbar}
       </div>
       <div role="img" aria-label={alt} className="flex gap-4 md:gap-5">
         <aside className="hidden w-64 shrink-0 flex-col md:flex">
-          <div className="mb-2 flex items-center gap-3 rounded-[20px] bg-[#1a1a1a] p-3.5 ring-1 ring-white/[0.08]">
-            <span className="h-10 w-10 rounded-full bg-gradient-to-b from-white/30 to-white/5" />
-            <span className="flex flex-col leading-tight">
-              <span className="text-[13px] font-semibold text-white">
-                {t("backstage.p.club")}
+          <div className={`mb-3 flex items-center gap-3 p-4 ${CARD}`}>
+            <span className="size-11 shrink-0 rounded-xl bg-white/[0.12]" />
+            <span className="flex flex-col gap-2">
+              <span className="flex items-center gap-1.5">
+                <span className="block h-2.5 w-20 rounded-full bg-white/[0.18]" />
+                <VerifiedBadge type="verified" className="h-5 w-5 shrink-0" />
               </span>
-              <span className="text-[11px] text-white/40">@tu-club</span>
+              <span className="block h-2 w-14 rounded-full bg-white/10" />
             </span>
           </div>
           <AnimatePresence initial={false}>
@@ -212,6 +226,9 @@ function PanelPreview({
               <NavItem key={item.id} item={item} mode={mode} />
             ))}
           </AnimatePresence>
+          <span className="mt-3 inline-flex h-10 items-center self-start rounded-full border border-white/15 px-4 text-sm text-white/70">
+            {t("orgs.panel.switch")}
+          </span>
         </aside>
 
         <div className="min-w-0 flex-1 text-left">
@@ -257,15 +274,17 @@ function PanelPreview({
           </div>
 
           <div className="mt-3 grid grid-cols-3 gap-2 md:mt-4 md:gap-3">
-            {STATS[mode].map((s, i) => (
-              <div
-                key={i}
-                className="rounded-[18px] bg-[#1a1a1a] p-3 ring-1 ring-white/[0.08] md:p-6"
-              >
-                <p className="min-h-[2.2em] text-[10px] leading-tight text-white/45 md:min-h-0 md:text-sm">
+            {STATS[mode].map((s, i) => {
+              const { Icon, tone } = STAT_TONES[i];
+              return (
+              <div key={i} className={`flex flex-col gap-3 p-3 md:gap-5 md:p-5 ${CARD}`}>
+                <span className={`flex size-8 items-center justify-center rounded-full md:size-10 ${tone}`}>
+                  <Icon aria-hidden className="size-4 md:size-5" />
+                </span>
+                <p className="min-h-[2.2em] text-[10px] leading-tight text-white/50 md:min-h-0 md:text-[13px]">
                   <Swap k={s.key}>{t(s.key)}</Swap>
                 </p>
-                <p className="font-display mt-1.5 text-[17px] font-semibold tabular-nums tracking-[-0.03em] text-white md:mt-4 md:text-5xl">
+                <p className="font-display mt-1.5 text-[17px] font-semibold tabular-nums tracking-[-0.03em] text-white md:mt-1 md:text-[40px] md:leading-none">
                   <NumberFlow
                     value={s.value}
                     locales="es-ES"
@@ -290,23 +309,20 @@ function PanelPreview({
                   />
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
 
-          <div className="mt-3 divide-y divide-white/[0.07] overflow-hidden rounded-[18px] bg-[#1a1a1a] ring-1 ring-white/[0.08] md:mt-4">
+          <div className={`mt-3 divide-y divide-white/[0.07] overflow-hidden md:mt-4 ${CARD}`}>
             {EVENTS.map((e) => (
               <div
                 key={e.name}
                 className="flex items-center gap-3 p-3 md:gap-5 md:p-5"
               >
-                <span className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-white/25 to-white/5 md:h-[88px] md:w-[88px] md:rounded-2xl" />
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-semibold text-white md:text-xl">
-                    {e.name}
-                  </span>
-                  <span className="truncate text-xs text-white/45 md:text-base">
-                    {e.meta}
-                  </span>
+                <span className="h-11 w-11 shrink-0 rounded-xl bg-white/10 md:h-14 md:w-14" />
+                <span className="flex min-w-0 flex-1 flex-col gap-2">
+                  <span className="block h-2.5 w-28 rounded-full bg-white/[0.18] md:h-3 md:w-40" />
+                  <span className="block h-2 w-20 rounded-full bg-white/10 md:w-32" />
                 </span>
                 <AnimatePresence initial={false}>
                   {fv ? null : (
@@ -337,9 +353,10 @@ function PanelPreview({
                   <Swap k={fv ? "fv" : "pu"}>
                     {fv
                       ? t("backstage.p.synced")
-                      : t("orgs.ev.status.PUBLISHED")}
+                      : t("orgs.panel.badgeUpcoming")}
                   </Swap>
                 </motion.span>
+                <ChevronRightIcon aria-hidden className="hidden size-4 shrink-0 text-white/25 sm:block" />
               </div>
             ))}
           </div>
