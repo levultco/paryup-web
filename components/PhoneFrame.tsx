@@ -8,18 +8,21 @@ export default function PhoneFrame({
   children,
   className = "",
   glow = true,
+  fill = false,
 }: {
   children: ReactNode;
   className?: string;
   /** Halo blanco alrededor del móvil (el de la home). Se apaga dentro de contenedores que recortan. */
   glow?: boolean;
+  /** Se estira para llenar la altura que le dé el contenedor (el contenido se recorta por abajo). */
+  fill?: boolean;
 }) {
   return (
     <div
-      className={`rounded-t-[var(--pr,64px)] bg-[linear-gradient(135deg,#a1a1a6_0%,#3b3b3f_18%,#1a1a1c_48%,#47474b_78%,#9c9ca1_100%)] p-[3px] ${glow ? "shadow-[0_0_120px_-10px_rgba(255,255,255,0.16)]" : ""} ${className}`}
+      className={`rounded-t-[var(--pr,64px)] bg-[linear-gradient(135deg,#a1a1a6_0%,#3b3b3f_18%,#1a1a1c_48%,#47474b_78%,#9c9ca1_100%)] p-[3px] ${glow ? "shadow-[0_0_120px_-10px_rgba(255,255,255,0.16)]" : ""} ${fill ? "flex flex-col" : ""} ${className}`}
     >
-      <div className="rounded-t-[calc(var(--pr,64px)-3px)] bg-black p-[9px] pb-0">
-        <div className="relative overflow-hidden rounded-t-[calc(var(--pr,64px)-12px)]">
+      <div className={`rounded-t-[calc(var(--pr,64px)-3px)] bg-black p-[9px] pb-0 ${fill ? "flex flex-1 flex-col" : ""}`}>
+        <div className={`relative overflow-hidden rounded-t-[calc(var(--pr,64px)-12px)] ${fill ? "flex-1" : ""}`}>
           {children}
           <div
             aria-hidden

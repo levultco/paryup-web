@@ -26,21 +26,14 @@ function FeatureCard({ f, prefix }: { f: Feature; prefix: string }) {
     const y = (e.clientY - r.top) / r.height;
     el.style.setProperty("--mx", `${x * 100}%`);
     el.style.setProperty("--my", `${y * 100}%`);
-    el.style.setProperty("--rx", `${(0.5 - y) * 3}deg`);
-    el.style.setProperty("--ry", `${(x - 0.5) * 3}deg`);
-  };
-  const onLeave = () => {
-    ref.current?.style.setProperty("--rx", "0deg");
-    ref.current?.style.setProperty("--ry", "0deg");
   };
 
   return (
-    <div data-card className={`${f.span} [perspective:1400px]`}>
+    <div data-card className={f.span}>
       <article
         ref={ref}
         onPointerMove={onMove}
-        onPointerLeave={onLeave}
-        className="glow-card flex h-full min-h-[480px] flex-col overflow-hidden rounded-[36px] border border-line bg-raised p-6 transition-transform duration-500 ease-[var(--ease-out)] [transform:rotateX(var(--rx,0))_rotateY(var(--ry,0))] md:min-h-[520px] md:p-8"
+        className="glow-card flex h-full min-h-[480px] flex-col overflow-hidden rounded-[36px] border border-line bg-raised p-6 md:min-h-[520px] md:p-8"
       >
         <ContentBackdrop src={f.screens?.[0] ?? f.image} />
         <span className="relative mb-6 w-fit rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/80 backdrop-blur-xl">
@@ -60,7 +53,7 @@ function FeatureCard({ f, prefix }: { f: Feature; prefix: string }) {
           }`}
         >
           {f.screens ? (
-            <div data-slot className="relative h-[400px] w-full md:h-[500px]">
+            <div data-slot className="relative min-h-[400px] w-full md:min-h-[460px]">
               <AppPhones screens={f.screens} alt={title} variant={f.variant} />
             </div>
           ) : f.visual ? (
@@ -166,23 +159,6 @@ export default function Features({
               },
             },
           );
-          // Parallax suave del hueco de imagen dentro de la card
-          const slot = card.querySelector("[data-slot]");
-          if (slot)
-            gsap.fromTo(
-              slot,
-              { yPercent: 8 },
-              {
-                yPercent: -4,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: card,
-                  start: "top bottom",
-                  end: "bottom top",
-                  scrub: true,
-                },
-              },
-            );
         });
       });
     }, root);

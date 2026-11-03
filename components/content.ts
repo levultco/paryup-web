@@ -77,12 +77,15 @@ export const FEATURES: Feature[] = [
 export const STEPS: {
   n: string;
   screen?: string;
-  variant?: import("./AppPhones").PhoneVariant;
+  /** Qué parte de la captura se ve en el recorte (object-position). */
+  position?: string;
+  /** Ancho de la card en la rejilla de 12 columnas. */
+  span?: string;
 }[] = [
-  { n: "01", variant: "center", screen: "/app/screens/11.png" },
-  { n: "02", variant: "tiltRight", screen: "/app/screens/12.png" },
-  { n: "03", variant: "floatRight", screen: "/app/screens/13.png" },
-  { n: "04", variant: "low", screen: "/app/screens/14.png" },
+  { n: "01", screen: "/app/screens/11.png", position: "50% 48%", span: "lg:col-span-7" },
+  { n: "02", screen: "/app/screens/12.png", position: "50% 30%", span: "lg:col-span-5" },
+  { n: "03", screen: "/app/screens/13.png", position: "50% 30%", span: "lg:col-span-5" },
+  { n: "04", screen: "/app/screens/14.png", position: "50% 40%", span: "lg:col-span-7" },
 ];
 
 export const FAQ_IDS = [1, 2, 3, 4, 5];

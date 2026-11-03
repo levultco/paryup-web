@@ -7,61 +7,65 @@ type Layout = { wrap: string; phones: string[] };
 // Tailwind las detecte; `--pr` es el redondeo del marco según el tamaño del móvil.
 const LAYOUTS = {
   center: {
-    wrap: "justify-center",
-    phones: ["w-[min(320px,64%)] [--pr:60px]"],
+    wrap: "items-start justify-center",
+    phones: ["w-[min(380px,72%)] [--pr:66px]"],
+  },
+  wide: {
+    wrap: "items-start justify-center",
+    phones: ["w-[min(360px,84%)] [--pr:64px]"],
   },
   right: {
-    wrap: "justify-end pr-[6%]",
-    phones: ["w-[min(340px,66%)] rotate-[5deg] translate-y-6 [--pr:62px]"],
+    wrap: "items-start justify-end pr-[6%]",
+    phones: ["w-[min(400px,74%)] rotate-[3deg] translate-y-10 [--pr:68px]"],
   },
   tiltLeft: {
-    wrap: "justify-center",
-    phones: ["w-[min(300px,62%)] -rotate-[7deg] translate-y-4 [--pr:58px]"],
+    wrap: "items-start justify-center",
+    phones: ["w-[min(380px,72%)] -rotate-[3deg] translate-y-10 [--pr:66px]"],
   },
   tiltRight: {
-    wrap: "justify-center",
-    phones: ["w-[min(300px,62%)] rotate-[7deg] translate-y-4 [--pr:58px]"],
+    wrap: "items-start justify-center",
+    phones: ["w-[min(380px,72%)] rotate-[3deg] translate-y-10 [--pr:66px]"],
   },
   left: {
-    wrap: "justify-start pl-[6%]",
-    phones: ["w-[min(300px,60%)] -rotate-[3deg] translate-y-10 [--pr:58px]"],
+    wrap: "items-start justify-start pl-[6%]",
+    phones: ["w-[min(380px,72%)] -rotate-[2deg] translate-y-10 [--pr:66px]"],
   },
   floatLeft: {
-    wrap: "justify-center",
+    wrap: "items-start justify-center",
     phones: [
-      "w-[min(300px,60%)] [transform:perspective(1100px)_rotateY(-18deg)_rotateX(4deg)] [--pr:58px]",
+      "w-[min(380px,72%)] [transform:perspective(1400px)_rotateY(-12deg)_translateY(40px)] [--pr:58px]",
     ],
   },
   floatRight: {
-    wrap: "justify-center",
+    wrap: "items-start justify-center",
     phones: [
-      "w-[min(300px,60%)] [transform:perspective(1100px)_rotateY(18deg)_rotateX(4deg)] [--pr:58px]",
+      "w-[min(380px,72%)] [transform:perspective(1400px)_rotateY(12deg)_translateY(40px)] [--pr:58px]",
     ],
   },
   bleedRight: {
-    wrap: "justify-end -mr-10",
-    phones: ["w-[min(320px,64%)] rotate-[6deg] translate-y-8 [--pr:60px]"],
+    wrap: "items-start justify-end -mr-10",
+    phones: ["w-[min(380px,72%)] rotate-[3deg] translate-y-10 [--pr:66px]"],
   },
   low: {
-    wrap: "justify-center",
+    wrap: "items-start justify-center",
     phones: ["w-[min(250px,52%)] translate-y-24 [--pr:48px]"],
   },
   // Tres móviles
   fan: {
-    wrap: "justify-center gap-0",
+    wrap: "items-end justify-center gap-0",
     phones: [
-      "w-[min(290px,31%)] -rotate-[8deg] translate-y-12 -mr-[11%] [--pr:54px]",
-      "w-[min(290px,31%)] z-10 translate-y-2 [--pr:54px]",
-      "w-[min(290px,31%)] rotate-[8deg] translate-y-12 -ml-[11%] [--pr:54px]",
+      "w-[330px] -rotate-[12deg] translate-y-14 -mr-44 [--pr:58px]",
+      "w-[330px] z-10 translate-y-2 [--pr:58px]",
+      "w-[330px] rotate-[12deg] translate-y-14 -ml-44 [--pr:58px]",
     ],
   },
-  // Sin solapar: el central al frente y arriba, los laterales más abajo a cada lado.
+  // El central al frente y los dos laterales simétricos (mismo ancho y misma altura) detrás.
   steps: {
-    wrap: "justify-center gap-0",
+    wrap: "items-end justify-center gap-0",
     phones: [
-      "w-[min(280px,31%)] translate-y-24 -mr-[11%] [--pr:54px]",
-      "w-[min(280px,31%)] z-10 [--pr:54px]",
-      "w-[min(280px,31%)] translate-y-12 -ml-[11%] [--pr:54px]",
+      "w-[330px] -rotate-[6deg] translate-y-16 -mr-44 [--pr:58px]",
+      "w-[330px] z-10 translate-y-2 [--pr:58px]",
+      "w-[330px] rotate-[6deg] translate-y-16 -ml-44 [--pr:58px]",
     ],
   },
 } satisfies Record<string, Layout>;
@@ -79,22 +83,38 @@ export default function AppPhones({
   variant?: PhoneVariant;
 }) {
   const layout: Layout = LAYOUTS[variant];
+  // Los móviles sueltos se estiran hasta el fondo de la card; los de varios van pegados abajo.
+  const fill = layout.wrap.includes("items-start");
   return (
-    <div className={`flex h-full w-full items-start gap-4 md:gap-6 ${layout.wrap}`}>
+    <div className={`flex h-full w-full gap-4 md:gap-6 ${layout.wrap}`}>
       {screens.map((src, i) => (
         <PhoneFrame
           key={src}
           glow={false}
-          className={`shrink-0 ${layout.phones[i] ?? layout.phones[0]}`}
+          fill={fill}
+          className={`shrink-0 ${fill ? "self-stretch" : ""} ${layout.phones[i] ?? layout.phones[0]}`}
         >
-          <Image
-            src={src}
-            alt={alt}
-            width={920}
-            height={2000}
-            sizes="300px"
-            className="h-auto w-full"
-          />
+          {fill ? (
+            <>
+              <div style={{ aspectRatio: "920 / 2000" }} className="w-full" />
+              <Image
+                src={src}
+                alt={alt}
+                fill
+                sizes="400px"
+                className="object-cover object-top"
+              />
+            </>
+          ) : (
+            <Image
+              src={src}
+              alt={alt}
+              width={920}
+              height={2000}
+              sizes="300px"
+              className="h-auto w-full"
+            />
+          )}
         </PhoneFrame>
       ))}
     </div>

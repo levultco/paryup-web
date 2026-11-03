@@ -3,8 +3,9 @@ import SmoothScroll from "@/components/SmoothScroll";
 import Hero from "@/components/Hero";
 import Manifesto from "@/components/Manifesto";
 import Features from "@/components/Features";
-import HowItWorks from "@/components/HowItWorks";
+import Posters from "@/components/Posters";
 import Faq from "@/components/Faq";
+import ClubsCta from "@/components/ClubsCta";
 import FinalCta from "@/components/FinalCta";
 import BottomBlur from "@/components/BottomBlur";
 
@@ -17,7 +18,8 @@ export default function Home() {
         <Hero />
         <Manifesto />
         <Features />
-        <HowItWorks />
+        <Posters />
+        <ClubsCta />
         <Faq />
         <FinalCta />
       </main>

@@ -207,6 +207,18 @@ export const es = {
   "features.head1": "Todo lo de",
   "features.head2": "tu noche.",
   "features.sub": "Una sola app. Del antes al día después.",
+  "posters.eyebrow": "Eventos",
+  "posters.title1": "Cada noche,",
+  "posters.title2": "un cartel distinto.",
+  "posters.sub":
+    "Fiestas, techno, latino, hip hop… Descubre qué se mueve en tu ciudad y entra con un toque.",
+  "clubs.eyebrow": "Para salas y promotores",
+  "clubs.title1": "¿Eres una sala",
+  "clubs.title2": "o un promotor?",
+  "clubs.text":
+    "Llena tus eventos con el público ideal, gestiona entradas y listas, y ten a tu equipo en un solo sitio.",
+  "clubs.cta": "Date de alta",
+  "clubs.more": "Descubre Backstage",
   "feature.inicio.eyebrow": "Inicio",
   "feature.inicio.title": "Mira qué pasa esta noche",
   "feature.inicio.body":

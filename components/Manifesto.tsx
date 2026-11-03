@@ -35,7 +35,7 @@ export default function Manifesto({
     const ctx = gsap.context(() => {
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        // Las palabras suben a su sitio y se encienden mientras la escena está fijada
+        // Las palabras suben a su sitio y se encienden según pasas por la sección, sin fijarla
         gsap.fromTo(
           "[data-word]",
           { opacity: 0.12, yPercent: 35, "--g": 0 },
@@ -47,8 +47,8 @@ export default function Manifesto({
             stagger: 0.08,
             scrollTrigger: {
               trigger: root.current,
-              start: "top 55%",
-              end: "bottom 104%",
+              start: "top 75%",
+              end: "bottom 55%",
               scrub: true,
             },
           },
@@ -61,9 +61,9 @@ export default function Manifesto({
   return (
     <section
       ref={root}
-      className="relative z-20 h-[150svh] motion-reduce:h-auto motion-reduce:py-24"
+      className="relative z-20 py-[clamp(6rem,14vw,12rem)]"
     >
-      <div className="sticky top-0 flex h-[100svh] items-center motion-reduce:static motion-reduce:h-auto">
+      <div className="flex items-center">
         <div className="mx-auto w-full max-w-[1800px] px-[clamp(1.25rem,3vw,3.5rem)]">
           <p className="mb-10 text-sm font-medium uppercase tracking-[0.18em] text-muted">
             {t(eyebrowKey)}

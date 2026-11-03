@@ -38,10 +38,10 @@ export default function FinalCta({
         // La card crece hasta casi ocupar la pantalla, como una puerta que se abre
         gsap.fromTo(
           "[data-cta-card]",
-          { scale: 0.86, borderRadius: "64px" },
+          { scale: 0.86, borderRadius: "64px 64px 0 0", transformOrigin: "50% 100%" },
           {
             scale: 1,
-            borderRadius: "40px",
+            borderRadius: "40px 40px 0 0",
             ease: "none",
             scrollTrigger: {
               trigger: root.current,
@@ -65,20 +65,13 @@ export default function FinalCta({
 
   return (
     <>
-      <section ref={root} className="px-3 pb-3 md:px-5 md:pb-5">
+      <section ref={root} className="px-3 md:px-5">
         <div
           data-cta-card
-          className="relative flex min-h-[76svh] flex-col items-center justify-center overflow-hidden rounded-[40px] border border-line bg-raised px-6 py-16 text-center"
+          className="relative flex min-h-[84svh] flex-col items-center justify-center overflow-hidden rounded-t-[40px] bg-raised px-6 pb-16 pt-[clamp(8rem,16vw,13rem)] text-center"
         >
           {/* Fondo tomado de la captura real de la app */}
           <ContentBackdrop src={backdrop} />
-          <Image
-            src="/brand/icon.png"
-            alt=""
-            width={88}
-            height={88}
-            className="relative mb-10 rounded-[22px] ring-1 ring-white/20"
-          />
           <h2 className="font-display relative text-[clamp(3.4rem,11vw,11rem)] font-bold leading-[0.88]">
             <span data-cta-line className="line-mask">
               <span>{t(keys.line1)}</span>
