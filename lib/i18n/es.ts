@@ -207,11 +207,10 @@ export const es = {
   "features.head1": "Todo lo de",
   "features.head2": "tu noche.",
   "features.sub": "Una sola app. Del antes al día después.",
-  "posters.eyebrow": "Eventos",
   "posters.title1": "Cada noche,",
   "posters.title2": "un cartel distinto.",
-  "posters.sub":
-    "Fiestas, techno, latino, hip hop… Descubre qué se mueve en tu ciudad y entra con un toque.",
+  "posters.sub": "Todo lo que se mueve en tu ciudad, a un toque.",
+  "posters.discover": "Descubrir ahora",
   "clubs.eyebrow": "Para salas y promotores",
   "clubs.title1": "¿Eres una sala",
   "clubs.title2": "o un promotor?",

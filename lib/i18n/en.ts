@@ -204,11 +204,10 @@ export const en: Record<MessageKey, string> = {
   "features.head1": "Everything about",
   "features.head2": "your night.",
   "features.sub": "One app. From before to the day after.",
-  "posters.eyebrow": "Events",
   "posters.title1": "Every night,",
   "posters.title2": "a different poster.",
-  "posters.sub":
-    "Parties, techno, latin, hip hop… Find what is on in your city and get in with a tap.",
+  "posters.sub": "Everything on in your city, one tap away.",
+  "posters.discover": "Discover now",
   "clubs.eyebrow": "For venues and promoters",
   "clubs.title1": "Are you a club",
   "clubs.title2": "or a promoter?",

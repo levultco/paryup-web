@@ -65,10 +65,10 @@ export default function FinalCta({
 
   return (
     <>
-      <section ref={root} className="px-3 md:px-5">
+      <section ref={root} className="px-0 md:px-5">
         <div
           data-cta-card
-          className="relative flex min-h-[84svh] flex-col items-center justify-center overflow-hidden rounded-t-[40px] bg-raised px-6 pb-16 pt-[clamp(8rem,16vw,13rem)] text-center"
+          className="relative flex min-h-[100svh] md:min-h-[84svh] flex-col items-center justify-center overflow-hidden rounded-t-[40px] bg-raised px-6 pb-16 pt-[clamp(8rem,16vw,13rem)] text-center"
         >
           {/* Fondo tomado de la captura real de la app */}
           <ContentBackdrop src={backdrop} />
@@ -88,7 +88,7 @@ export default function FinalCta({
           )}
         </div>
       </section>
-      <footer className="mx-auto w-full max-w-[1800px] px-[clamp(1.25rem,3vw,3.5rem)] flex flex-col items-start justify-between gap-4 py-10 text-sm text-muted md:flex-row md:py-12 md:items-center">
+      <footer className="mx-auto flex w-full max-w-[1800px] flex-col items-center justify-between gap-6 px-[clamp(1.25rem,3vw,3.5rem)] pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-10 text-center text-sm text-muted md:flex-row md:items-center md:py-12 md:text-left">
         <div className="flex items-center gap-2.5">
           <Image
             src="/brand/icon.png"
@@ -101,10 +101,10 @@ export default function FinalCta({
             ParyUp
           </span>
         </div>
-        <div className="flex flex-col gap-3 md:items-end">
+        <div className="flex flex-col items-center gap-3 md:items-end">
           <nav
             aria-label="Legal"
-            className="flex flex-wrap gap-x-5 gap-y-2 text-white/60"
+            className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-white/60 md:justify-end"
           >
             {LEGAL_IDS.map((id) => (
               <Link
@@ -116,7 +116,7 @@ export default function FinalCta({
               </Link>
             ))}
           </nav>
-          <p>{t("footer.text")}</p>
+          <p className="md:text-right">{t("footer.text")}</p>
         </div>
       </footer>
     </>

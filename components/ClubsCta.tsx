@@ -32,7 +32,7 @@ export default function ClubsCta() {
         <p className="mb-6 text-sm font-medium uppercase tracking-[0.18em] text-white/60">
           {t("clubs.eyebrow")}
         </p>
-        <h2 className="font-display text-[clamp(2.75rem,7vw,6.5rem)] font-bold leading-[0.92]">
+        <h2 className="font-display text-[clamp(2.75rem,6.5vw,6.5rem)] font-bold leading-[0.92]">
           {t("clubs.title1")}
           <br />
           <span className="text-white/55">{t("clubs.title2")}</span>

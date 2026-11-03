@@ -53,7 +53,7 @@ function FeatureCard({ f, prefix }: { f: Feature; prefix: string }) {
           }`}
         >
           {f.screens ? (
-            <div data-slot className="relative min-h-[400px] w-full md:min-h-[460px]">
+            <div data-slot className="relative min-h-[460px] w-full md:min-h-[560px]">
               <AppPhones screens={f.screens} alt={title} variant={f.variant} />
             </div>
           ) : f.visual ? (
@@ -159,6 +159,24 @@ export default function Features({
               },
             },
           );
+          // Los móviles suben con el scroll hasta su posición natural y ahí se quedan:
+          // no pasan de ahí, así que nunca se recortan por arriba ni dejan hueco abajo.
+          const phones = card.querySelector("[data-phones]");
+          if (phones)
+            gsap.fromTo(
+              phones,
+              { y: 40 },
+              {
+                y: 0,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: card,
+                  start: "top bottom",
+                  end: "top 25%",
+                  scrub: true,
+                },
+              },
+            );
         });
       });
     }, root);
