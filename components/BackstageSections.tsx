@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import Image from "next/image";
+import NumberFlow from "@number-flow/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useI18n } from "@/components/i18n/LocaleProvider";
@@ -10,17 +11,19 @@ import BackstageCatalog from "@/components/BackstageCatalog";
 import BackstageOverview from "@/components/BackstageOverview";
 import ContentBackdrop from "@/components/ContentBackdrop";
 import PhoneFrame from "@/components/PhoneFrame";
+import { SealCheck } from "@/components/profile/VerifiedBadge";
 import {
+  ArrowRightUpIcon,
   CheckIcon,
   GlobalIcon,
   SmartphoneIcon,
 } from "@/components/icons/solar";
 import {
+  Fade,
   StepChoose,
   StepRequest,
   StepSell,
-  VisEvents,
-  VisStats,
+  type StepMode,
 } from "@/components/BackstageVisuals";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -126,7 +129,7 @@ export function BackstageDevices() {
       />
       <div
         data-sec-card
-        className={`${CARD} flex flex-col items-center gap-10 px-5 pb-0 pt-8 md:px-10 md:pb-0 md:pt-10 max-lg:justify-end min-h-[640px] md:min-h-[820px] lg:flex-row lg:items-end lg:gap-0`}
+        className={`${CARD} flex flex-col items-center gap-10 px-5 pb-0 pt-8 md:px-10 md:pb-0 md:pt-10 max-lg:justify-end lg:flex-row lg:items-end lg:gap-0`}
       >
         <ContentBackdrop src="/app/home.webp" cool />
         {/* Navegador: ocupa la tarjeta y se corta por abajo, como el panel del hero. */}
@@ -175,10 +178,13 @@ export function BackstageSteps() {
   const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
   useReveal(root);
+  // La modalidad elegida en el paso 2 cambia también lo que se ve en el paso 3.
+  const [mode, setMode] = useState<StepMode>("paryup");
+  const fv = mode === "fv";
   const steps: { n: string; visual: ReactNode }[] = [
     { n: "01", visual: <StepRequest /> },
-    { n: "02", visual: <StepChoose /> },
-    { n: "03", visual: <StepSell /> },
+    { n: "02", visual: <StepChoose mode={mode} onChange={setMode} /> },
+    { n: "03", visual: <StepSell mode={mode} /> },
   ];
 
   return (
@@ -195,22 +201,34 @@ export function BackstageSteps() {
             data-sec-card
             className={`${CARD} flex min-h-[520px] flex-col`}
           >
-            <span
-              aria-hidden
-              className="font-display pointer-events-none absolute -right-4 -top-8 text-[13rem] font-bold leading-none text-white/[0.05]"
-            >
-              {s.n}
-            </span>
-            <span className="font-display relative text-xl font-semibold text-white/50">
-              {s.n}
-            </span>
-            <h3 className="font-display relative mt-3 text-[clamp(2.2rem,3.4vw,3.6rem)] font-bold leading-none">
-              {t(`backstage.step.${s.n}.title`)}
+            <div className="relative flex items-center gap-3">
+              <span className="font-display flex size-9 items-center justify-center rounded-full bg-white text-[15px] font-semibold tabular-nums text-black">
+                {Number(s.n)}
+              </span>
+              <span aria-hidden className="flex flex-1 gap-1.5">
+                {steps.map((o) => (
+                  <span
+                    key={o.n}
+                    className={`h-1 flex-1 rounded-full ${o.n <= s.n ? "bg-white/70" : "bg-white/10"}`}
+                  />
+                ))}
+              </span>
+            </div>
+            <h3 className="font-display relative mt-8 text-[clamp(2rem,3vw,3.1rem)] font-bold leading-[1.02] tracking-[-0.03em]">
+              {s.n === "03" && fv ? (
+                <Fade block k="fv">{t("backstage.step.03.fv.title")}</Fade>
+              ) : (
+                <Fade block k={s.n}>{t(`backstage.step.${s.n}.title`)}</Fade>
+              )}
             </h3>
-            <p className="relative mt-4 max-w-[34ch] text-base leading-relaxed text-muted md:text-lg">
-              {t(`backstage.step.${s.n}.body`)}
+            <p className="relative mt-3 max-w-[34ch] text-base leading-relaxed text-muted md:text-[17px]">
+              {s.n === "03" && fv ? (
+                <Fade block k="fv">{t("backstage.step.03.fv.body")}</Fade>
+              ) : (
+                <Fade block k={s.n}>{t(`backstage.step.${s.n}.body`)}</Fade>
+              )}
             </p>
-            <div className="relative mt-8 flex min-h-[220px] flex-1 items-center">
+            <div className="relative mt-8 flex min-h-[240px] flex-1 items-end">
               {s.visual}
             </div>
           </article>
@@ -224,66 +242,254 @@ export function BackstageSteps() {
 /* Precio                                                               */
 /* ------------------------------------------------------------------ */
 
+// Tarifa mensual por organización.
+const BASE_PRICE = 400;
+const MULTI_DISCOUNT = 0.2;
+const MIN_ORGS = 2;
+const MAX_ORGS = 10;
+
+const euro = {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 0,
+} as const;
+
+const stepBtn =
+  "flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-lg text-white transition-[transform,opacity] duration-100 active:scale-[0.92] disabled:opacity-30 disabled:active:scale-100";
+
+function Tick({ muted, gold, delay }: { muted?: boolean; gold?: boolean; delay?: number }) {
+  if (!muted)
+    return <SealCheck color={gold ? "#FFC107" : undefined} delay={delay} className="h-6 w-6 shrink-0" />;
+  return (
+    <span className="mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/45">
+      <ArrowRightUpIcon aria-hidden className="h-3 w-3" />
+    </span>
+  );
+}
+
+function Block({
+  title,
+  keys,
+  muted,
+}: {
+  title: string;
+  keys: string[];
+  muted?: boolean;
+}) {
+  const { t } = useI18n();
+  return (
+    <div>
+      <h4 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/55">{title}</h4>
+      <ul className="space-y-2.5">
+        {keys.map((k) => (
+          <li
+            key={k}
+            className={`flex items-start gap-2.5 text-[15px] leading-snug ${
+              muted ? "text-white/60" : "text-white/90"
+            }`}
+          >
+            <Tick muted={muted} gold={k === "b1i2"} />
+            {t(`backstage.pricing.${k}`)}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Lo que incluye una organización: valor comercial, herramientas y lo que cambia según la operativa. */
+function OneBody() {
+  const { t } = useI18n();
+  const n = (p: string, c: number) => Array.from({ length: c }, (_, i) => `${p}${i + 1}`);
+  return (
+    <div className="relative mt-8 space-y-7 border-t border-white/10 pt-7">
+      <div className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
+        <Block title={t("backstage.pricing.b1")} keys={n("b1i", 4)} />
+        <Block title={t("backstage.pricing.b2")} keys={n("b2i", 3)} />
+      </div>
+      <div className="border-t border-white/10 pt-7">
+        <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+          <Block title={t("backstage.pricing.b3p")} keys={n("b3pi", 5)} />
+          <Block title={t("backstage.pricing.b3f")} keys={n("b3fi", 2)} muted />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Plan({
+  name,
+  price,
+  note,
+  body,
+  highlight,
+  children,
+}: {
+  name: string;
+  price: ReactNode;
+  note: ReactNode;
+  body: ReactNode;
+  highlight?: boolean;
+  children: ReactNode;
+}) {
+  const { t } = useI18n();
+  return (
+    <article
+      data-sec-card
+      className="relative flex flex-col overflow-hidden rounded-[36px] border border-line bg-raised p-7 md:p-9"
+    >
+      {highlight && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white/[0.07] to-transparent"
+        />
+      )}
+      <div className="relative flex items-center justify-between gap-3">
+        <h3 className="font-display text-2xl font-semibold">{name}</h3>
+        {highlight && (
+          <span className="relative overflow-hidden rounded-full border border-white/35 bg-gradient-to-b from-[#3d9bff] to-[#0a84ff] px-4 py-1.5 text-sm font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
+            <span
+              aria-hidden
+              className="pill-glint pointer-events-none absolute inset-y-0 left-0 w-2/5 bg-gradient-to-r from-transparent via-white/80 to-transparent"
+            />
+            <span className="relative">{t("backstage.pricing.off")}</span>
+          </span>
+        )}
+      </div>
+      <p className="relative mt-6 flex items-baseline gap-2">{price}</p>
+      <div className="relative mt-3 flex min-h-[72px] flex-col justify-center gap-2 text-sm text-white/55">
+        {note}
+      </div>
+      {children}
+      <p className="relative mt-3 text-center text-sm text-white/50">{t("backstage.pricing.billed")}</p>
+      {body}
+    </article>
+  );
+}
+
 export function BackstagePricing({ onRequest }: { onRequest: () => void }) {
   const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
   useReveal(root);
+  const [orgs, setOrgs] = useState(3);
+  const each = BASE_PRICE * (1 - MULTI_DISCOUNT);
+
+  const bigPrice = "font-display text-[clamp(3rem,5vw,4.25rem)] font-bold leading-none tracking-[-0.03em]";
+  const unit = "text-base font-semibold text-white/55";
+  const cta = (primary: boolean) => (
+    <button
+      type="button"
+      onClick={onRequest}
+      className={`relative mt-6 flex h-12 w-full items-center justify-center rounded-full text-[15px] font-semibold transition-transform duration-100 ease-out active:scale-[0.97] ${
+        primary ? "bg-white text-black hover:bg-white/90" : "bg-white/10 text-white hover:bg-white/15"
+      }`}
+    >
+      {t("backstage.cta")}
+    </button>
+  );
 
   return (
     <section ref={root} id="precio" className={SECTION}>
-      <div data-sec-card className={`${CARD} md:p-12`}>
-        <ContentBackdrop src="/app/home-list.jpg" />
-        <div className="relative grid items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
-          <div className="flex flex-col items-start">
-            <span className="mb-6 rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/80 backdrop-blur-xl">
-              {t("backstage.pricing.eyebrow")}
-            </span>
-            <h2 className="font-display text-[clamp(2.75rem,5vw,5rem)] font-bold leading-[0.95]">
-              {t("backstage.pricing.title")}
-            </h2>
-            <p className="font-display mt-6 text-[clamp(1.8rem,3vw,3rem)] font-semibold leading-none">
-              {t("backstage.pricing.price")}
-            </p>
-            <p className="mt-3 text-base text-white/60 md:text-lg">
-              {t("backstage.pricing.priceNote")}
-            </p>
-            <p className="mt-6 max-w-[48ch] text-base leading-relaxed text-white/75 md:text-lg">
-              {t("backstage.pricing.text")}
-            </p>
-            <ul className="mt-8 grid w-full gap-x-8 gap-y-3.5 sm:grid-cols-2">
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <li
-                  key={n}
-                  className="flex items-start gap-3 text-[15px] text-white/80"
-                >
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#30d158] text-black">
-                    <CheckIcon
-                      aria-hidden
-                      className="h-3.5 w-3.5"
-                      strokeWidth={2.4}
-                    />
-                  </span>
-                  {t(`backstage.pricing.i${n}`)}
-                </li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              onClick={onRequest}
-              className="mt-10 inline-flex h-[58px] items-center gap-3 rounded-full bg-white px-7 text-[17px] font-semibold text-black transition-[transform,translate,scale,box-shadow] duration-300 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:scale-[1.04] hover:shadow-[0_14px_44px_-12px_rgba(255,255,255,0.55)] active:translate-y-0 active:scale-[0.97]"
-            >
-              {t("backstage.cta")}
-            </button>
-          </div>
-          <div className="hidden h-[460px] flex-col justify-center gap-3 lg:flex">
-            <div className="h-[220px]">
-              <VisStats />
+      <Head
+        l1={t("backstage.pricing.h1")}
+        l2={t("backstage.pricing.h2")}
+        sub={t("backstage.pricing.priceNote")}
+      />
+      <div className="grid items-start gap-[clamp(1rem,1.4vw,1.5rem)] lg:grid-cols-2">
+        <Plan
+          name={t("backstage.pricing.one")}
+          body={<OneBody />}
+          price={
+            <>
+              <span className={bigPrice}>{BASE_PRICE.toLocaleString("es-ES")} €</span>
+              <span className={unit}>{t("backstage.pricing.perMonth")}</span>
+            </>
+          }
+          note={<span>{t("backstage.pricing.one.note")}</span>}
+        >
+          {cta(false)}
+        </Plan>
+
+        <Plan
+          highlight
+          name={t("backstage.pricing.multi")}
+          price={
+            <>
+              <span className={bigPrice}>{each.toLocaleString("es-ES")} €</span>
+              <span className={unit}>{t("backstage.pricing.perOrgMonth")}</span>
+            </>
+          }
+          note={
+            <>
+              <div className="flex items-center justify-between gap-3">
+                <span>{t("backstage.pricing.orgs")}</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    aria-label={t("backstage.pricing.less")}
+                    disabled={orgs <= MIN_ORGS}
+                    onClick={() => setOrgs((n) => Math.max(MIN_ORGS, n - 1))}
+                    className={stepBtn}
+                  >
+                    −
+                  </button>
+                  <NumberFlow
+                    value={orgs}
+                    aria-label={t("backstage.pricing.orgs")}
+                    className="w-6 text-center text-lg font-semibold tabular-nums text-white"
+                  />
+                  <button
+                    type="button"
+                    aria-label={t("backstage.pricing.more")}
+                    disabled={orgs >= MAX_ORGS}
+                    onClick={() => setOrgs((n) => Math.min(MAX_ORGS, n + 1))}
+                    className={stepBtn}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <p className="flex flex-wrap items-baseline gap-x-1.5 tabular-nums">
+                {t("backstage.pricing.total")}
+                <NumberFlow
+                  value={each * orgs}
+                  locales="es-ES"
+                  format={euro}
+                  className="font-semibold text-white"
+                />
+                {t("backstage.pricing.perMonth")} · {t("backstage.pricing.save")}
+                <NumberFlow
+                  value={(BASE_PRICE - each) * orgs}
+                  locales="es-ES"
+                  format={euro}
+                  className="font-semibold text-[#0a84ff]"
+                />
+              </p>
+            </>
+          }
+          body={
+            <div className="relative mt-8 border-t border-white/10 pt-7">
+              <h4 className="mb-4 text-base font-semibold">{t("backstage.pricing.includesPlus")}</h4>
+              <ul className="space-y-4">
+                {["x1", "x2", "x3"].map((k) => (
+                  <li key={k} className="flex items-start gap-3 text-[15px] text-white/90">
+                    <Tick />
+                    <span>
+                      {t(`backstage.pricing.${k}`)}
+                      {k === "x1" && (
+                        <span className="mt-0.5 block text-sm text-white/50">
+                          {t("backstage.pricing.x1.sub")}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="h-[220px]">
-              <VisEvents />
-            </div>
-          </div>
-        </div>
+          }
+        >
+          {cta(true)}
+        </Plan>
       </div>
     </section>
   );

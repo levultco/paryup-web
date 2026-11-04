@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import type { BadgeType } from "@/lib/social";
 
@@ -33,6 +34,49 @@ export function VerifiedBadge({
     >
       <title>{label}</title>
       <path d={SHIELD} fill={color} />
+      <path d={CHECK} fill="#ffffff" />
+    </svg>
+  );
+}
+
+/** Sello decorativo (mismo escudo que la insignia) con color propio y una pasada de brillo, para listas de beneficios. */
+export function SealCheck({
+  color = "#30d158",
+  className = "h-6 w-6",
+  delay = 0,
+}: {
+  color?: string;
+  className?: string;
+  /** Retraso (s) de la pasada de brillo, para escalonarla entre sellos. */
+  delay?: number;
+}) {
+  const id = useId();
+  return (
+    <svg aria-hidden viewBox="0 0 22 22" className={className}>
+      <defs>
+        <clipPath id={`${id}-c`}>
+          <path d={SHIELD} />
+        </clipPath>
+        <linearGradient id={`${id}-g`} x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.5" stopColor="#fff" stopOpacity="0.85" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={SHIELD} fill={color} />
+      <g clipPath={`url(#${id}-c)`}>
+        <g transform="rotate(20 11 11)">
+          <rect
+            className="seal-glint"
+            x="0"
+            y="-9"
+            width="8"
+            height="40"
+            fill={`url(#${id}-g)`}
+            style={{ animationDelay: `${delay}s` }}
+          />
+        </g>
+      </g>
       <path d={CHECK} fill="#ffffff" />
     </svg>
   );

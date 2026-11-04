@@ -1,6 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
+import { AnimatePresence, motion, useInView, useReducedMotion } from "framer-motion";
+import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import {
   CalendarIcon,
@@ -72,77 +74,261 @@ function Row({
 
 /* ---------- Pasos de "Cómo funciona" ---------- */
 
+// Muelle crítico (sin rebote) para lo que aparece solo; el rebote se reserva a gestos con inercia.
+const SPRING = { type: "spring", bounce: 0, duration: 0.5 } as const;
+
+/** Entra con un muelle suave cuando el paso se ve en pantalla; sin movimiento si el usuario lo pide. */
+function Reveal({
+  children,
+  delay = 0,
+  className,
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      className={className}
+      initial={reduce ? false : { opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+      transition={reduce ? { duration: 0 } : { ...SPRING, delay }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+const group = "overflow-hidden rounded-[22px] bg-[#1a1a1a] ring-1 ring-white/[0.08]";
+
 export function StepRequest() {
   const { t } = useI18n();
   return (
     <Frame>
-      <div className={`flex flex-col gap-2 p-4 ${card}`}>
-        {[0.7, 0.5].map((w, i) => (
-          <span
-            key={i}
-            className="h-9 rounded-lg bg-white/[0.07]"
-            style={{ width: `${w * 100 + 30}%` }}
-          />
-        ))}
-        <span className="mt-1 flex h-10 items-center justify-center rounded-full bg-white text-sm font-semibold text-black">
+      <Reveal>
+        <ul className={`${group} divide-y divide-white/[0.07]`}>
+          {(
+            [
+              ["backstage.v.room", "w-24"],
+              ["backstage.v.city", "w-16"],
+              ["backstage.v.orgType", null],
+            ] as const
+          ).map(([k, w]) => (
+            <li key={k} className="flex items-center justify-between gap-4 px-4 py-3.5">
+              <span className="text-[14px] text-white/55">{t(k)}</span>
+              {w ? (
+                <span className={`h-2.5 rounded-full bg-white/[0.16] ${w}`} />
+              ) : (
+                <span className="text-[14px] font-medium text-white">
+                  {t("backstage.v.orgTypeValue")}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </Reveal>
+      <Reveal delay={0.08}>
+        <span className="flex h-12 items-center justify-center rounded-full bg-white text-[15px] font-semibold text-black">
           {t("backstage.form.submit")}
         </span>
-      </div>
-      <div className="flex items-center gap-2 text-sm text-white/60">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#30d158] text-black">
-          <CheckIcon aria-hidden className="h-3.5 w-3.5" />
-        </span>
-        {t("backstage.v.sent")}
-      </div>
+      </Reveal>
     </Frame>
   );
 }
 
-export function StepChoose() {
-  const { t } = useI18n();
+export type StepMode = "paryup" | "fv";
+
+/** Cambia un contenido con un fundido corto; las dos versiones comparten celda para no saltar. */
+export function Fade({
+  k,
+  block = false,
+  children,
+}: {
+  k: string;
+  /** Ocupa todo el ancho (títulos y párrafos que deben ajustar línea). */
+  block?: boolean;
+  children: ReactNode;
+}) {
+  const reduce = useReducedMotion();
   return (
-    <Frame>
-      {[
-        ["backstage.v.forModeParyup", true],
-        ["backstage.v.forModeFv", false],
-      ].map(([key, on]) => (
-        <div
-          key={String(key)}
-          className={`flex items-center justify-between gap-3 p-4 ${card} ${on ? "ring-white/30" : ""}`}
+    <span className={block ? "grid" : "inline-grid"}>
+      <AnimatePresence initial={false}>
+        <motion.span
+          key={k}
+          style={{ gridArea: "1 / 1" }}
+          initial={reduce ? false : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduce ? undefined : { opacity: 0, y: -6 }}
+          transition={reduce ? { duration: 0 } : { ...SPRING, duration: 0.3 }}
         >
-          <span className="text-[15px] font-semibold text-white">
-            {t(String(key))}
-          </span>
-          <span
-            className={`flex h-6 w-6 items-center justify-center rounded-full ${
-              on ? "bg-white text-black" : "border border-white/20"
-            }`}
-          >
-            {on ? <CheckIcon aria-hidden className="h-3.5 w-3.5" /> : null}
-          </span>
-        </div>
+          {children}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
+const MODES: { id: StepMode; name: string }[] = [
+  { id: "paryup", name: "ParyUp" },
+  { id: "fv", name: "Fourvenues" },
+];
+
+/** Control segmentado con muelle (el rebote leve es por ser un gesto). */
+export function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+  label,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { id: T; name: string }[];
+  label: string;
+}) {
+  const reduce = useReducedMotion();
+  const i = Math.max(0, options.findIndex((o) => o.id === value));
+  return (
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="relative flex rounded-full bg-[#1a1a1a] p-1 ring-1 ring-white/[0.08]"
+    >
+      <motion.span
+        aria-hidden
+        className="absolute inset-y-1 left-1 rounded-full bg-white/[0.16]"
+        style={{ width: `calc(${100 / options.length}% - 8px / ${options.length})` }}
+        initial={false}
+        animate={{ x: `${i * 100}%` }}
+        transition={reduce ? { duration: 0 } : { type: "spring", bounce: 0.2, duration: 0.45 }}
+      />
+      {options.map(({ id, name }) => (
+        <button
+          key={id}
+          type="button"
+          role="radio"
+          aria-checked={value === id}
+          onClick={() => onChange(id)}
+          className={`relative z-10 flex-1 rounded-full py-2 text-center text-[14px] font-semibold transition-[color,transform] duration-100 active:scale-[0.97] ${
+            value === id ? "text-white" : "text-white/55 hover:text-white/80"
+          }`}
+        >
+          {name}
+        </button>
       ))}
+    </div>
+  );
+}
+
+/** Selector ParyUp / Fourvenues. */
+export function ModeSwitch({
+  mode,
+  onChange,
+}: {
+  mode: StepMode;
+  onChange: (m: StepMode) => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <Segmented value={mode} onChange={onChange} options={MODES} label={t("backstage.mode.paryup")} />
+  );
+}
+
+export function StepChoose({
+  mode,
+  onChange,
+}: {
+  mode: StepMode;
+  onChange: (m: StepMode) => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <Frame>
+      <Reveal>
+        <div className={`${group} flex items-center justify-between px-4 py-3.5`}>
+          <span className="text-[14px] font-medium text-white">
+            {t("backstage.v.orgCreated")}
+          </span>
+          <Tick />
+        </div>
+      </Reveal>
+      <Reveal delay={0.08}>
+        <ModeSwitch mode={mode} onChange={onChange} />
+      </Reveal>
+      <Reveal delay={0.16}>
+        <div className={`${group} flex items-center justify-between px-4 py-3.5`}>
+          <span className="text-[14px] font-medium text-white">
+            {t("backstage.v.ready")}
+          </span>
+          <Tick />
+        </div>
+      </Reveal>
     </Frame>
   );
 }
 
-export function StepSell() {
+function Tick() {
+  return (
+    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#30d158] text-black">
+      <CheckIcon aria-hidden className="h-3.5 w-3.5" />
+    </span>
+  );
+}
+
+export function StepSell({ mode }: { mode: StepMode }) {
   const { t } = useI18n();
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const seen = useInView(ref, { once: true, margin: "0px 0px -10% 0px" });
+  const fv = mode === "fv";
+  const shown = reduce || seen;
+  const sold = shown ? (fv ? 214 : 312) : 0;
   return (
     <Frame>
-      <Row
-        title="Noche Aurora"
-        meta="1 nov · Barcelona"
-        right={<Pill>{t("orgs.ev.status.PUBLISHED")}</Pill>}
-      />
-      <div className={`flex items-center justify-between p-4 ${card}`}>
-        <span className="flex items-center gap-2 text-sm text-white/60">
-          <TicketIcon aria-hidden className="h-4 w-4" />
-          {t("backstage.v.tickets")}
-        </span>
-        <span className="font-display text-3xl font-semibold tabular-nums text-white">
-          312
-        </span>
+      <div ref={ref} className="flex flex-col gap-2.5">
+        <Reveal>
+          <div className={`${group} flex items-center gap-3 p-3`}>
+            <span className="h-11 w-11 shrink-0 rounded-xl bg-white/10" />
+            <span className="flex min-w-0 flex-1 flex-col gap-2">
+              <span className="block h-2.5 w-28 rounded-full bg-white/[0.18]" />
+              <span className="block h-2 w-20 rounded-full bg-white/10" />
+            </span>
+            <Fade k={mode}>
+              <Pill tone={fv ? "sky" : "green"}>
+                {fv ? t("backstage.p.synced") : t("orgs.ev.status.PUBLISHED")}
+              </Pill>
+            </Fade>
+          </div>
+        </Reveal>
+        <Reveal delay={0.08}>
+          <div className={`${group} p-4`}>
+            <div className="flex items-end justify-between gap-3">
+              <span className="flex items-center gap-2 text-[14px] text-white/55">
+                <TicketIcon aria-hidden className="h-4 w-4 shrink-0" />
+                <Fade k={mode}>
+                  {fv ? t("backstage.p.soldChannel") : t("backstage.v.tickets")}
+                </Fade>
+              </span>
+              <span className="font-display text-[34px] font-semibold leading-none tabular-nums tracking-[-0.03em] text-white">
+                <NumberFlow
+                  value={sold}
+                  locales="es-ES"
+                  transformTiming={{ duration: reduce ? 0 : 700, easing: "ease-out" }}
+                  spinTiming={{ duration: reduce ? 0 : 700, easing: "ease-out" }}
+                />
+              </span>
+            </div>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+              <motion.div
+                className={`h-full origin-left rounded-full ${fv ? "bg-sky-300" : "bg-[#30d158]"}`}
+                initial={false}
+                animate={{ scaleX: shown ? (fv ? 0.42 : 0.62) : 0 }}
+                transition={reduce ? { duration: 0 } : { type: "spring", bounce: 0, duration: 0.8 }}
+              />
+            </div>
+          </div>
+        </Reveal>
       </div>
     </Frame>
   );

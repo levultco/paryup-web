@@ -295,3 +295,44 @@ html[data-no-scrollbar]::-webkit-scrollbar {
     transparent 100%
   );
 }
+
+/* Pasada de resplandor sobre los sellos de beneficios, en bucle. */
+@keyframes seal-glint {
+  0% {
+    transform: translateX(-16px);
+  }
+  35%,
+  100% {
+    transform: translateX(34px);
+  }
+}
+.seal-glint {
+  transform: translateX(-16px);
+  animation: seal-glint 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .seal-glint {
+    display: none;
+  }
+}
+
+/* Mismo resplandor, para etiquetas rectangulares (cruza de izquierda a derecha, sincronizado con los sellos). */
+@keyframes pill-glint {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  35%,
+  100% {
+    transform: translateX(450%) skewX(-20deg);
+  }
+}
+.pill-glint {
+  transform: translateX(-150%) skewX(-20deg);
+  animation: pill-glint 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill-glint {
+    display: none;
+  }
+}
+
