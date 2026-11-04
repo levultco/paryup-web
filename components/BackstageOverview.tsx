@@ -1,9 +1,9 @@
 "use client";
 
+import { SealCheck } from "@/components/profile/VerifiedBadge";
 import { PanelShell } from "@/components/BackstageSales";
 import {
   CalendarDateIcon,
-  CheckIcon,
   ChevronRightIcon,
   HistoryIcon,
   PenIcon,
@@ -134,9 +134,7 @@ export default function BackstageOverview() {
             <ul className="mt-2 divide-y divide-white/[0.07]">
               {STEPS.map((s) => (
                 <li key={s} className="flex items-center gap-2 py-1.5 text-[11px]">
-                  <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-[#30d158] text-black">
-                    <CheckIcon aria-hidden className="size-2.5" />
-                  </span>
+                  <SealCheck className="size-4 shrink-0" />
                   <span className="text-white/90">{s}</span>
                 </li>
               ))}

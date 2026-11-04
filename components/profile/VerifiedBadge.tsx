@@ -44,11 +44,14 @@ export function SealCheck({
   color = "#30d158",
   className = "h-6 w-6",
   delay = 0,
+  glint = false,
 }: {
   color?: string;
   className?: string;
   /** Retraso (s) de la pasada de brillo, para escalonarla entre sellos. */
   delay?: number;
+  /** Pasada de brillo en bucle. */
+  glint?: boolean;
 }) {
   const id = useId();
   return (
@@ -64,6 +67,7 @@ export function SealCheck({
         </linearGradient>
       </defs>
       <path d={SHIELD} fill={color} />
+      {glint && (
       <g clipPath={`url(#${id}-c)`}>
         <g transform="rotate(20 11 11)">
           <rect
@@ -77,6 +81,7 @@ export function SealCheck({
           />
         </g>
       </g>
+      )}
       <path d={CHECK} fill="#ffffff" />
     </svg>
   );

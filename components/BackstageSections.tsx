@@ -259,7 +259,7 @@ const stepBtn =
 
 function Tick({ muted, gold, delay }: { muted?: boolean; gold?: boolean; delay?: number }) {
   if (!muted)
-    return <SealCheck color={gold ? "#FFC107" : undefined} delay={delay} className="h-6 w-6 shrink-0" />;
+    return <SealCheck glint color={gold ? "#FFC107" : undefined} delay={delay} className="h-6 w-6 shrink-0" />;
   return (
     <span className="mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/45">
       <ArrowRightUpIcon aria-hidden className="h-3 w-3" />

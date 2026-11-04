@@ -1,5 +1,6 @@
 "use client";
 
+import { SealCheck } from "@/components/profile/VerifiedBadge";
 import { CheckIcon, CopyIcon, LockIcon } from "@/components/icons/solar";
 import { useState } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
@@ -157,23 +158,13 @@ export function SettingsView() {
           const allowed = can(c.permission);
           return (
             <li key={c.key} className="flex items-center gap-3.5 px-4 py-3.5">
-              <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                  allowed
-                    ? "bg-[#30d158] text-black"
-                    : "bg-white/[0.08] text-white/35"
-                }`}
-              >
-                {allowed ? (
-                  <CheckIcon
-                    aria-hidden
-                    className="h-3.5 w-3.5"
-                    strokeWidth={3}
-                  />
-                ) : (
+              {allowed ? (
+                <SealCheck className="h-6 w-6 shrink-0" />
+              ) : (
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/35">
                   <LockIcon aria-hidden className="h-3 w-3" />
-                )}
-              </span>
+                </span>
+              )}
               <span
                 className={`text-[15px] ${allowed ? "text-white/90" : "text-white/40"}`}
               >

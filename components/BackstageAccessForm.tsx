@@ -9,6 +9,7 @@ import {
   LetterOpenedIcon,
 } from "@/components/icons/solar";
 import { useI18n } from "@/components/i18n/LocaleProvider";
+import { SealCheck } from "@/components/profile/VerifiedBadge";
 import { Dialog } from "@/components/organizations/promoters-ui";
 import { Select } from "@/components/organizations/select";
 import { notify } from "@/lib/toast";
@@ -158,15 +159,13 @@ export default function BackstageAccessForm({
               ] as const
             ).map(([Icon, key, ok]) => (
               <li key={key} className="flex items-center gap-3.5 px-4 py-3.5">
-                <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                    ok
-                      ? "bg-[#30d158] text-black"
-                      : "bg-white/[0.08] text-white/60"
-                  }`}
-                >
-                  <Icon aria-hidden className="h-[18px] w-[18px]" />
-                </span>
+                {ok ? (
+                  <SealCheck className="h-8 w-8 shrink-0" />
+                ) : (
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/60">
+                    <Icon aria-hidden className="h-[18px] w-[18px]" />
+                  </span>
+                )}
                 <span
                   className={`text-[15px] ${ok ? "text-white" : "text-white/60"}`}
                 >

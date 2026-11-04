@@ -4,9 +4,9 @@ import { useRef, type ReactNode } from "react";
 import { AnimatePresence, motion, useInView, useReducedMotion } from "framer-motion";
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
+import { SealCheck } from "@/components/profile/VerifiedBadge";
 import {
   CalendarIcon,
-  CheckIcon,
   LinkIcon,
   TicketIcon,
 } from "@/components/icons/solar";
@@ -269,11 +269,7 @@ export function StepChoose({
 }
 
 function Tick() {
-  return (
-    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#30d158] text-black">
-      <CheckIcon aria-hidden className="h-3.5 w-3.5" />
-    </span>
-  );
+  return <SealCheck className="h-6 w-6 shrink-0" />;
 }
 
 export function StepSell({ mode }: { mode: StepMode }) {

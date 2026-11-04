@@ -1,12 +1,12 @@
 "use client";
 
+import { SealCheck } from "@/components/profile/VerifiedBadge";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarAddIcon,
   CalendarDateIcon,
-  CheckIcon,
   ChevronRightIcon,
   HistoryIcon,
   PenIcon,
@@ -386,19 +386,11 @@ export function OverviewView() {
                   key={f.key}
                   className="flex items-center gap-3 py-2.5 text-[15px]"
                 >
-                  <span
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                      f.done
-                        ? "bg-[#30d158] text-black"
-                        : "border border-white/20 text-transparent"
-                    }`}
-                  >
-                    <CheckIcon
-                      aria-hidden
-                      className="h-3 w-3"
-                      strokeWidth={3}
-                    />
-                  </span>
+                  {f.done ? (
+                    <SealCheck className="h-5 w-5 shrink-0" />
+                  ) : (
+                    <span className="h-5 w-5 shrink-0 rounded-full border border-white/20" />
+                  )}
                   <span className={f.done ? "text-white/90" : "text-white/55"}>
                     {t(`orgs.field.${f.key}`)}
                   </span>

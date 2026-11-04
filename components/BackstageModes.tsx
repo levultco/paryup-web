@@ -5,10 +5,10 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 import PhoneFrame from "@/components/PhoneFrame";
+import { SealCheck } from "@/components/profile/VerifiedBadge";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import {
   ArrowRightUpIcon,
-  CheckIcon,
   GlobalIcon,
   LinkIcon,
   UsersGroupIcon,
@@ -19,17 +19,13 @@ gsap.registerPlugin(ScrollTrigger);
 function Item({ text, locked }: { text: string; locked?: boolean }) {
   return (
     <li className="flex items-center gap-3.5 py-3.5">
-      <span
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-          locked ? "bg-white/[0.08] text-white/40" : "bg-[#30d158] text-black"
-        }`}
-      >
-        {locked ? (
+      {locked ? (
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/40">
           <ArrowRightUpIcon aria-hidden className="h-3.5 w-3.5" />
-        ) : (
-          <CheckIcon aria-hidden className="h-4 w-4" strokeWidth={2.4} />
-        )}
-      </span>
+        </span>
+      ) : (
+        <SealCheck className="h-7 w-7 shrink-0" />
+      )}
       <span
         className={`text-base md:text-lg ${locked ? "text-white/45" : "text-white/90"}`}
       >
