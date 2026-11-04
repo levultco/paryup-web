@@ -22,11 +22,14 @@ export default function FinalCta({
   keys = HOME_CTA_KEYS,
   actions,
   backdrop = "/app/home.webp",
+  cool = false,
 }: {
   keys?: typeof HOME_CTA_KEYS;
   /** Acciones bajo el texto. Por defecto, los botones de las tiendas. */
   actions?: ReactNode;
   backdrop?: string;
+  /** Fondo azul frío y viñeteado, como el hero de Backstage. */
+  cool?: boolean;
 }) {
   const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
@@ -71,7 +74,21 @@ export default function FinalCta({
           className="relative flex min-h-[100svh] md:min-h-[84svh] flex-col items-center justify-center overflow-hidden rounded-t-[40px] bg-raised px-6 pb-16 pt-[clamp(8rem,16vw,13rem)] text-center"
         >
           {/* Fondo tomado de la captura real de la app */}
-          <ContentBackdrop src={backdrop} />
+          {cool ? (
+            <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div
+                className="absolute left-1/2 top-[-12%] h-[120%] w-[150%] max-w-[2200px] -translate-x-1/2 bg-cover bg-top opacity-[0.7]"
+                style={{
+                  backgroundImage: `url(${backdrop})`,
+                  filter: "blur(70px) saturate(1.7) hue-rotate(200deg)",
+                }}
+              />
+              <div className="absolute inset-0 bg-[radial-gradient(70%_55%_at_50%_30%,transparent,rgba(0,0,0,0.55)_70%,#000_100%)]" />
+              <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-b from-transparent to-black" />
+            </div>
+          ) : (
+            <ContentBackdrop src={backdrop} />
+          )}
           <h2 className="font-display relative text-[clamp(3.4rem,11vw,11rem)] font-bold leading-[0.88]">
             <span data-cta-line className="line-mask">
               <span>{t(keys.line1)}</span>

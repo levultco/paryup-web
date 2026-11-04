@@ -124,6 +124,7 @@ export default function BackstageLanding() {
         }}
       />
       <FinalCta
+        cool
         keys={{
           line1: "backstage.cta.line1",
           line2: "backstage.cta.line2",

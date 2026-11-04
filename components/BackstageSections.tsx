@@ -415,8 +415,8 @@ export function BackstagePricing({ onRequest }: { onRequest: () => void }) {
           name={t("backstage.pricing.multi")}
           price={
             <>
-              <span className={bigPrice}>{each.toLocaleString("es-ES")} €</span>
-              <span className={unit}>{t("backstage.pricing.perOrgMonth")}</span>
+              <NumberFlow value={each * orgs} locales="es-ES" format={euro} className={bigPrice} />
+              <span className={unit}>{t("backstage.pricing.perMonth")}</span>
             </>
           }
           note={
@@ -450,20 +450,14 @@ export function BackstagePricing({ onRequest }: { onRequest: () => void }) {
                 </div>
               </div>
               <p className="flex flex-wrap items-baseline gap-x-1.5 tabular-nums">
-                {t("backstage.pricing.total")}
-                <NumberFlow
-                  value={each * orgs}
-                  locales="es-ES"
-                  format={euro}
-                  className="font-semibold text-white"
-                />
-                {t("backstage.pricing.perMonth")} · {t("backstage.pricing.save")}
+                {each.toLocaleString("es-ES")} € {t("backstage.pricing.perOrg")} · {t("backstage.pricing.save")}
                 <NumberFlow
                   value={(BASE_PRICE - each) * orgs}
                   locales="es-ES"
                   format={euro}
                   className="font-semibold text-[#0a84ff]"
                 />
+                {t("backstage.pricing.perMonth")}
               </p>
             </>
           }
