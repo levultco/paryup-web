@@ -8,12 +8,23 @@ import {
   fetchSessionUser,
 } from "@/lib/backend";
 
+// SESSION_COOKIE_DOMAIN=.paryup.com comparte la sesión entre paryup.com y backstage.paryup.com.
+// En local los navegadores no comparten cookies entre localhost y backstage.localhost:
+// inicia sesión una vez en http://backstage.localhost:3001/login.
 const cookieOptions = {
   httpOnly: true,
   sameSite: "lax" as const,
   secure: process.env.NODE_ENV === "production",
   path: "/",
+  ...(process.env.SESSION_COOKIE_DOMAIN
+    ? { domain: process.env.SESSION_COOKIE_DOMAIN }
+    : {}),
 };
+
+/** Borra la cookie con el mismo dominio y ruta con que se creó. */
+function clearSession(store: Awaited<ReturnType<typeof cookies>>) {
+  store.set(SESSION_COOKIE, "", { ...cookieOptions, maxAge: 0 });
+}
 
 export async function GET() {
   const store = await cookies();
@@ -22,7 +33,7 @@ export async function GET() {
 
   const user = await fetchSessionUser(token);
   if (!user) {
-    store.delete(SESSION_COOKIE);
+    clearSession(store);
     return NextResponse.json({ user: null });
   }
   return NextResponse.json({ user });
@@ -125,6 +136,6 @@ export async function DELETE() {
       body: "{}",
     }).catch(() => null);
   }
-  store.delete(SESSION_COOKIE);
+  clearSession(store);
   return NextResponse.json({ user: null });
 }

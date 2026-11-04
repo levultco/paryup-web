@@ -52,7 +52,7 @@ export function EventsList() {
   const { t, locale } = useI18n();
   const { slug, org, can } = useOrg();
   const canCreate = can(ORG_PERMISSIONS.eventsCreate);
-  const base = `/organizations/${slug}/events`;
+  const base = `/${slug}/events`;
 
   const [timeframe, setTimeframe] = useState<Timeframe>("upcoming");
   const [status, setStatus] = useState("");

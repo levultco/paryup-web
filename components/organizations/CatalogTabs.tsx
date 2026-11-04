@@ -18,7 +18,7 @@ export function CatalogHeader({
 }) {
   const { t } = useI18n();
   const { slug } = useOrg();
-  const base = `/organizations/${slug}/catalog`;
+  const base = `/${slug}/catalog`;
   return (
     <div className="flex flex-col gap-5">
       <PageHeader

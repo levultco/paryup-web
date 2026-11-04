@@ -181,7 +181,7 @@ export function OverviewView() {
     };
   }, [slug]);
 
-  const base = `/organizations/${slug}`;
+  const base = `/${slug}`;
   const canEdit = can(ORG_PERMISSIONS.profileEdit);
   const number = new Intl.NumberFormat(intlLocale(locale));
   const day = new Intl.DateTimeFormat(intlLocale(locale), {

@@ -30,7 +30,7 @@ type EventSummary = {
 export function EventDetail({ eventId }: { eventId: string }) {
   const { t, locale } = useI18n();
   const { slug, can } = useOrg();
-  const base = `/organizations/${slug}/events`;
+  const base = `/${slug}/events`;
   const [event, setEvent] = useState<EventSummary | null>(null);
   const [failed, setFailed] = useState(false);
 

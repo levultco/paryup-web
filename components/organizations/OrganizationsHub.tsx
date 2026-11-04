@@ -40,9 +40,9 @@ export function OrganizationsHub() {
 
   useEffect(() => {
     if (state.status === "unauthenticated") {
-      router.replace("/login?next=/organizations");
+      router.replace("/login?next=/");
     } else if (single) {
-      router.replace(`/organizations/${firstSlug}`);
+      router.replace(`/${firstSlug}`);
     } else if (noAccess) {
       router.replace("/");
     }
@@ -75,7 +75,7 @@ export function OrganizationsHub() {
         <p className="mt-5 max-w-md text-lg text-white/55">
           {t("orgs.welcomeText")}
         </p>
-        <Link href="/organizations/new" className="mt-10">
+        <Link href="/new" className="mt-10">
           <ShimmerButton type="button">
             {t("orgs.welcomeCta")}
             <ArrowRightIcon className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function OrganizationsHub() {
         {orgs.map((m) => (
           <li key={m.organizationId}>
             <Link
-              href={`/organizations/${m.organization.slug}`}
+              href={`/${m.organization.slug}`}
               className="group flex items-center gap-4 rounded-3xl border border-white/10 bg-raised p-4 transition-colors hover:border-white/30 hover:bg-[color-mix(in_srgb,var(--bg-raised),white_7%)]"
             >
               <OrgAvatar org={m.organization} />
@@ -122,7 +122,7 @@ export function OrganizationsHub() {
         </p>
       ) : canCreate ? (
         <Link
-          href="/organizations/new"
+          href="/new"
           className="mt-6 inline-flex h-11 items-center rounded-full border border-white/15 px-5 text-sm text-white/80 transition-colors hover:border-white/50 hover:text-white"
         >
           {t("orgs.createAnother")}

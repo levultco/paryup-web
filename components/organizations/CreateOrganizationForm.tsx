@@ -94,11 +94,11 @@ export function CreateOrganizationForm() {
       });
       const data = await res.json().catch(() => null);
       if (res.ok && data?.organization?.slug) {
-        router.replace(`/organizations/${data.organization.slug}?created=1`);
+        router.replace(`/${data.organization.slug}?created=1`);
         return;
       }
       if (res.status === 401) {
-        router.replace("/login?next=/organizations/new");
+        router.replace("/login?next=/new");
         return;
       }
       if (data?.code === "slugTaken") {

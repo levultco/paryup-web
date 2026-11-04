@@ -63,7 +63,7 @@ export function EventTemplateEditor({
   const { t } = useI18n();
   const { slug, can } = useOrg();
   const isEdit = !!templateId;
-  const base = `/organizations/${slug}/catalog/events`;
+  const base = `/${slug}/catalog/events`;
   const allowed = isEdit
     ? can(ORG_PERMISSIONS.eventsEdit)
     : can(ORG_PERMISSIONS.eventsCreate);

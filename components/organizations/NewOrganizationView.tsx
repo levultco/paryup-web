@@ -18,9 +18,9 @@ export function NewOrganizationView() {
 
   useEffect(() => {
     if (state.status === "unauthenticated") {
-      router.replace("/login?next=/organizations/new");
+      router.replace("/login?next=/new");
     } else if (denied) {
-      router.replace("/organizations");
+      router.replace("/");
     }
   }, [state.status, denied, router]);
 
@@ -42,7 +42,7 @@ export function NewOrganizationView() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-8">
       <Link
-        href="/organizations?all=1"
+        href="/?all=1"
         className="inline-flex w-fit items-center gap-2 text-sm text-white/55 transition-colors hover:text-white"
       >
         <ArrowLeftIcon className="h-4 w-4" />

@@ -202,7 +202,7 @@ export function EventEditor({ eventId }: { eventId?: string }) {
   const router = useRouter();
   const { t, locale } = useI18n();
   const { slug, org, can } = useOrg();
-  const base = `/organizations/${slug}/events`;
+  const base = `/${slug}/events`;
   const isEdit = !!eventId;
 
   const [form, setForm] = useState<Form>(EMPTY);
@@ -1158,7 +1158,7 @@ export function EventEditor({ eventId }: { eventId?: string }) {
               <Flash message={message} />
               {message.settings ? (
                 <Link
-                  href={`/organizations/${slug}/settings`}
+                  href={`/${slug}/settings`}
                   className={pillButton}
                 >
                   {t("orgs.ed.goSettings")}

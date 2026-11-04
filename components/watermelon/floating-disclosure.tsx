@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
 import useMeasure from "react-use-measure";
 
 export interface DisclosureItem {
   title: string;
-  description: string;
+  /** Ya no se muestra en el menú; se conserva por si otro uso lo necesita. */
+  description?: string;
   icon: ReactNode;
   onSelect: () => void;
   danger?: boolean;
@@ -25,6 +26,7 @@ export function FloatingDisclosure({
   label: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const reduce = useReducedMotion();
   const [ref, bounds] = useMeasure({ offsetSize: true });
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +49,7 @@ export function FloatingDisclosure({
   return (
     <div ref={rootRef} className="relative h-11 w-11">
       <MotionConfig
-        transition={{ type: "spring", stiffness: 280, damping: 26 }}
+        transition={reduce ? { duration: 0 } : { type: "spring", bounce: 0, duration: 0.45 }}
       >
         <motion.div
           // El radio es fijo (24 px ya es un círculo en el botón de 44 px). Cambiarlo
@@ -63,7 +65,7 @@ export function FloatingDisclosure({
             height: bounds.height > 0 ? bounds.height : "auto",
           }}
         >
-          <div ref={ref} className={`shrink-0 ${isOpen ? "p-2" : ""}`}>
+          <div ref={ref} className={`shrink-0 ${isOpen ? "p-1.5" : ""}`}>
             <AnimatePresence mode="popLayout" initial={false}>
               {!isOpen ? (
                 <motion.button
@@ -86,65 +88,55 @@ export function FloatingDisclosure({
               ) : (
                 <motion.div
                   key="open"
-                  className="flex w-64 shrink-0 flex-col gap-1"
+                  className="flex w-60 shrink-0 flex-col"
                 >
                   <motion.div
-                    className="px-2 pb-2 pt-1"
-                    initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
-                    animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                    transition={{
-                      delay: 0.1,
-                      type: "spring",
-                      stiffness: 200,
-                      damping: 20,
-                    }}
+                    className="px-2.5 pb-3 pt-1.5"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={
+                      reduce ? { duration: 0 } : { delay: 0.08, type: "spring", bounce: 0, duration: 0.4 }
+                    }
                   >
                     {header}
                   </motion.div>
-                  {items.map((item, index) => (
-                    <motion.button
-                      key={item.title}
-                      type="button"
-                      className="flex w-full cursor-pointer items-center gap-3 rounded-xl p-1.5 text-left hover:bg-white/5"
-                      initial={{ opacity: 0, filter: "blur(4px)", y: 20 }}
-                      animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                      exit={{
-                        opacity: 0,
-                        filter: "blur(4px)",
-                        transition: { duration: 0.2, ease: "easeOut" },
-                      }}
-                      transition={{
-                        delay: 0.15 + index * 0.04,
-                        type: "spring",
-                        stiffness: 200,
-                        damping: 20,
-                      }}
-                      onClick={() => {
-                        setIsOpen(false);
-                        item.onSelect();
-                      }}
-                    >
-                      <span
-                        className={`shrink-0 rounded-lg bg-neutral-700 p-2 ${
-                          item.danger ? "text-red-400" : "text-neutral-100"
-                        }`}
-                      >
-                        {item.icon}
-                      </span>
-                      <span className="flex flex-col leading-tight">
-                        <span
-                          className={`font-semibold ${
+                  <div className="mx-2.5 h-px bg-white/[0.08]" />
+                  <div className="flex flex-col gap-0.5 pt-1.5">
+                    {items.map((item, index) => (
+                      <div key={item.title}>
+                        {item.danger && index > 0 ? (
+                          <div className="mx-2.5 my-1.5 h-px bg-white/[0.08]" />
+                        ) : null}
+                        <motion.button
+                          type="button"
+                          className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2.5 text-left text-[15px] font-medium transition-[background-color,transform] duration-100 hover:bg-white/[0.07] active:scale-[0.98] ${
                             item.danger ? "text-red-400" : "text-neutral-100"
                           }`}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, transition: { duration: 0.15, ease: "easeOut" } }}
+                          transition={
+                            reduce
+                              ? { duration: 0 }
+                              : { delay: 0.12 + index * 0.03, type: "spring", bounce: 0, duration: 0.4 }
+                          }
+                          onClick={() => {
+                            setIsOpen(false);
+                            item.onSelect();
+                          }}
                         >
+                          <span
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center ${
+                              item.danger ? "" : "text-white/60"
+                            }`}
+                          >
+                            {item.icon}
+                          </span>
                           {item.title}
-                        </span>
-                        <span className="text-sm text-neutral-400">
-                          {item.description}
-                        </span>
-                      </span>
-                    </motion.button>
-                  ))}
+                        </motion.button>
+                      </div>
+                    ))}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

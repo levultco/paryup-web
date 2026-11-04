@@ -49,6 +49,17 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
   const router = useRouter();
   const { user, status: authStatus, logout } = useAuth();
   const { t, locale, setLocale } = useI18n();
+  // En backstage.paryup.com las rutas relativas son del panel: los enlaces de la web principal
+  // (inicio, eventos, backstage…) se vuelven absolutos al dominio principal.
+  const [mainOrigin, setMainOrigin] = useState("");
+  useEffect(() => {
+    const { protocol, host } = window.location;
+    if (host.toLowerCase().startsWith("backstage.")) {
+      setMainOrigin(`${protocol}//${host.replace(/^backstage\./i, "")}`);
+    }
+  }, []);
+  const to = (href: string) =>
+    mainOrigin && href.startsWith("/") && !href.startsWith("/login") ? `${mainOrigin}${href}` : href;
   const orgAccess = useOrganizations();
   const hasOrganizations =
     orgAccess.status === "ready" &&
@@ -187,11 +198,11 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
 
               <nav className="hidden items-center gap-1 text-xs font-medium tracking-wide text-white/70 sm:text-sm lg:-ml-3 lg:flex">
                 {NavItems.map(({ labelKey, href, icon }) => {
-                  const isActive = pathname === href;
+                  const isActive = !mainOrigin && pathname === href;
                   return (
                     <Link
                       key={labelKey}
-                      href={href}
+                      href={to(href)}
                       className={`group inline-flex items-center gap-2 rounded-full px-3 py-2.5 transition-colors  ${
                         isActive
                           ? "text-white"
@@ -217,7 +228,7 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
             </div>
 
             <Link
-              href="/"
+              href={to("/")}
               className="absolute left-1/2 -translate-x-1/2 rounded-full p-2.5"
               aria-label="ParyUp Home"
             >
@@ -347,7 +358,7 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                     strength={0.7}
                   >
                     <Link
-                      href={ticketsHref}
+                      href={to(ticketsHref)}
                       className={`group inline-flex h-11 items-center gap-2.5 rounded-full bg-white/80 border border-white px-5 text-xs font-medium tracking-wide ring-1 ring-white/7 transition-colors ${
                         pathname === "/tickets"
                           ? "text-white"
@@ -447,7 +458,11 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                         if (pathname === "/tickets") router.push("/");
                         return;
                       }
-                      if (item.href) router.push(item.href);
+                      if (item.href) {
+                        const target = to(item.href);
+                        if (target.startsWith("http")) window.location.assign(target);
+                        else router.push(target);
+                      }
                     },
                   }))}
                 />
@@ -465,11 +480,11 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                   <div className="flex flex-col gap-2">
                     <nav className="grid grid-cols-2 gap-2">
                       {NavItems.map(({ labelKey, href, icon }) => {
-                        const isActive = pathname === href;
+                        const isActive = !mainOrigin && pathname === href;
                         return (
                           <Link
                             key={`mobile-${labelKey}`}
-                            href={href}
+                            href={to(href)}
                             onClick={() => {
                               setIsMobileMenuOpen(false);
                               setMobileMenuOpenPath(null);
@@ -492,7 +507,7 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                         ({ labelKey, icon }) => (
                           <Link
                             key={`mobile-right-${labelKey}`}
-                            href={ticketsHref}
+                            href={to(ticketsHref)}
                             onClick={() => {
                               setIsMobileMenuOpen(false);
                               setMobileMenuOpenPath(null);

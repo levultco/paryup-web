@@ -152,7 +152,7 @@ export function OrgShell({
             : t("orgs.loadError")}
         </p>
         <Link
-          href="/organizations?all=1"
+          href="/?all=1"
           className="mt-6 inline-flex h-11 items-center rounded-full border border-white/15 px-5 text-sm text-white/80 hover:border-white/50"
         >
           {t("orgs.title")}
@@ -161,7 +161,7 @@ export function OrgShell({
     );
   }
 
-  const base = `/organizations/${slug}`;
+  const base = `/${slug}`;
   const canSwitch =
     access.status === "ready" &&
     (access.organizations.length > 1 || access.canCreateOrganization);
@@ -216,7 +216,7 @@ export function OrgShell({
           </nav>
           {canSwitch ? (
             <Link
-              href="/organizations?all=1"
+              href="/?all=1"
               className="mt-3 inline-flex h-10 items-center rounded-full border border-white/15 px-4 text-sm text-white/70 transition-colors hover:border-white/50 hover:text-white"
             >
               {t("orgs.panel.switch")}

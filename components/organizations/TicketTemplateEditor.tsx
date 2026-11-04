@@ -170,7 +170,7 @@ export function TicketTemplateEditor({
   const { t } = useI18n();
   const { slug, can } = useOrg();
   const isEdit = !!templateId;
-  const base = `/organizations/${slug}/catalog`;
+  const base = `/${slug}/catalog`;
   const allowed = can(ORG_PERMISSIONS.ticketTemplatesManage);
 
   const [loading, setLoading] = useState(isEdit);
