@@ -208,7 +208,11 @@ export function OrgShell({
                     }`}
                   >
                     <Icon className="h-[18px] w-[18px]" />
-                    {t(`orgs.nav.${key}`)}
+                    {t(
+                      key === "overview" && value.capabilities.channelHome
+                        ? "orgs.nav.home"
+                        : `orgs.nav.${key}`,
+                    )}
                   </Link>
                 );
               },

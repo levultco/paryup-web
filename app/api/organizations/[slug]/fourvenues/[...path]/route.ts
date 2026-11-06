@@ -7,6 +7,7 @@ import { resolveMembership, sessionToken } from "@/lib/organizations-server";
 const ALLOWED: { method: string; pattern: RegExp }[] = [
   { method: "GET", pattern: /^status$/ },
   { method: "GET", pattern: /^hosts$/ },
+  { method: "GET", pattern: /^home$/ },
   { method: "POST", pattern: /^link-requests$/ },
   { method: "POST", pattern: /^link-requests\/[\w-]+\/cancel$/ },
   { method: "POST", pattern: /^link\/disconnect$/ },

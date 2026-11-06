@@ -15,6 +15,7 @@ import {
   UsersGroupIcon,
 } from "@/components/icons/solar";
 import { useI18n } from "@/components/i18n/LocaleProvider";
+import { FourvenuesHomeView } from "@/components/organizations/FourvenuesHomeView";
 import { useOrg } from "@/components/organizations/OrgShell";
 import { Flash } from "@/components/organizations/flash";
 import { Group } from "@/components/organizations/promoters-ui";
@@ -162,7 +163,13 @@ function NavRow({
   );
 }
 
+/** Inicio: en FOURVENUES es el resumen del canal; en NATIVE, el resumen de siempre. */
 export function OverviewView() {
+  const { capabilities } = useOrg();
+  return capabilities.channelHome ? <FourvenuesHomeView /> : <NativeOverviewView />;
+}
+
+function NativeOverviewView() {
   const justCreated = useSearchParams().get("created") === "1";
   const { t, locale } = useI18n();
   const { slug, org, role, can } = useOrg();
