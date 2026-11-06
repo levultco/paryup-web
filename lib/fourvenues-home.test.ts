@@ -64,7 +64,11 @@ describe("Inicio de organización Fourvenues (web)", () => {
     for (const label of ["PENDING_REVIEW", "REJECTED", "CANCELLED", "ACTIVE", "SUSPENDED", "REVOKED", "DISCONNECTED", "x"]) {
       keys.add(activityKey({ id: "", type: "LINK_STATUS", at: "", label }).key);
     }
-    for (const type of ["EVENT_SYNCED", "EVENT_UNAVAILABLE"] as const) {
+    for (const detail of ["PENDING", "ACCEPTED", "REJECTED", "CANCELLED", "UNCONFIRMED", undefined]) {
+      keys.add(activityKey({ id: "", type: "BOOKING_REQUEST", at: "", label: "x", detail }).key);
+    }
+    keys.add("orgs.fvHome.bookingBreakdown");
+    for (const type of ["EVENT_SYNCED", "EVENT_UNAVAILABLE", "LIST_SIGNUP"] as const) {
       keys.add(activityKey({ id: "", type, at: "", label: "x" }).key);
     }
     keys.add("orgs.fvHome.syncPending");

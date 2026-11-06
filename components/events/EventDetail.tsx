@@ -7,6 +7,7 @@ import { useI18n } from "@/components/i18n/LocaleProvider";
 import type { PublicEvent } from "@/lib/events";
 import { longDateLabel } from "@/lib/discovery";
 import {
+  describeListCondition,
   externalCopy,
   externalPrice,
   externalWhen,
@@ -157,11 +158,31 @@ export function EventDetail({
                       <span className="block font-medium">{rate.name}</span>
                       <span className="block text-sm text-white/60">
                         {rate.available ? copy.listOpen : copy.listClosed}
+                        {rate.max ? ` · ${copy.maxPeople.replace("{n}", String(rate.max))}` : ""}
                       </span>
+                      {rate.conditions.map((condition, i) => {
+                        const line = describeListCondition(condition, externalRates.currency, locale);
+                        return line ? (
+                          <span key={i} className="block text-sm text-white/60">
+                            {line}
+                          </span>
+                        ) : null;
+                      })}
+                      {rate.available && externalRates.writes.lists ? (
+                        <span className="mt-1 block text-sm text-white/60">{copy.listInApp}</span>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
               )}
+              {externalRates ? (
+                <div>
+                  <span className="block font-medium">{copy.reservedHeading}</span>
+                  <span className="block text-sm text-white/60">
+                    {externalRates.writes.bookings ? copy.reservedEnabled : copy.reservedDisabled}
+                  </span>
+                </div>
+              ) : null}
               {externalRates && !externalRates.live ? (
                 <p className="text-xs text-white/50">{copy.stale}</p>
               ) : null}

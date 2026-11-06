@@ -104,10 +104,17 @@ export function FourvenuesHomeView() {
               <p className="max-w-2xl text-sm leading-6 text-white/60">{t(emptyKey)}</p>
             ) : home.channel.totals ? (
               <div className="grid grid-cols-3 gap-4">
-                <Metric label={t("orgs.fvHome.tickets")} value={home.channel.totals.tickets} />
+                {home.channel.enabled.tickets ? (
+                  <Metric label={t("orgs.fvHome.tickets")} value={home.channel.totals.tickets} />
+                ) : null}
                 <Metric label={t("orgs.fvHome.lists")} value={home.channel.totals.lists} />
                 <Metric label={t("orgs.fvHome.bookings")} value={home.channel.totals.bookings} />
               </div>
+            ) : null}
+            {home.channel.bookingBreakdown && home.channel.totals?.bookings ? (
+              <p className="mt-4 text-sm text-white/50">
+                {t("orgs.fvHome.bookingBreakdown", home.channel.bookingBreakdown)}
+              </p>
             ) : null}
           </section>
 

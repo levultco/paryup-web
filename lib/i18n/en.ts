@@ -1218,4 +1218,12 @@ export const en: Record<MessageKey, string> = {
   "orgs.fvHome.act.SUSPENDED": "Connection suspended",
   "orgs.fvHome.act.REVOKED": "Authorization withdrawn by Fourvenues",
   "orgs.fvHome.act.DISCONNECTED": "Connection disconnected",
+  "orgs.fvHome.act.listSignup": "New guest list sign-up: {name}",
+  "orgs.fvHome.act.booking": "Booking request: {name}",
+  "orgs.fvHome.act.booking.PENDING": "Booking request pending the venue: {name}",
+  "orgs.fvHome.act.booking.ACCEPTED": "Booking request accepted by the venue: {name}",
+  "orgs.fvHome.act.booking.REJECTED": "Booking request declined by the venue: {name}",
+  "orgs.fvHome.act.booking.CANCELLED": "Booking request cancelled: {name}",
+  "orgs.fvHome.act.booking.UNCONFIRMED": "Booking request awaiting confirmation: {name}",
+  "orgs.fvHome.bookingBreakdown": "Booking requests: {pending} pending · {accepted} accepted · {rejected} declined (the venue decides on Fourvenues)",
 };

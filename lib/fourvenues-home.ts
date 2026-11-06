@@ -2,10 +2,17 @@ import type { MessageKey } from "@/lib/i18n";
 
 export type ChannelActivityItem = {
   id: string;
-  type: "LINK_STATUS" | "EVENT_SYNCED" | "EVENT_UNAVAILABLE";
+  type:
+    | "LINK_STATUS"
+    | "EVENT_SYNCED"
+    | "EVENT_UNAVAILABLE"
+    | "LIST_SIGNUP"
+    | "BOOKING_REQUEST";
   at: string;
-  /** Estado del vínculo (LINK_STATUS) o nombre del evento. */
+  /** Estado del vínculo (LINK_STATUS) o nombre del evento. Nunca datos personales. */
   label: string;
+  /** BOOKING_REQUEST: resultado informado por Fourvenues. */
+  detail?: string;
   eventId?: string;
 };
 
@@ -41,6 +48,7 @@ export type FourvenuesHome = {
     enabled: { tickets: boolean; lists: boolean; bookings: boolean };
     /** null = no medido: todavía no hay operaciones hechas desde ParyUp. */
     totals: { tickets: number; lists: number; bookings: number } | null;
+    bookingBreakdown?: { pending: number; accepted: number; rejected: number } | null;
     hasActivity: boolean;
   };
   activity: ChannelActivityItem[];
@@ -73,6 +81,18 @@ export function activityKey(item: ChannelActivityItem): {
   }
   if (item.type === "EVENT_UNAVAILABLE") {
     return { key: "orgs.fvHome.act.eventUnavailable", params: { name: item.label } };
+  }
+  if (item.type === "LIST_SIGNUP") {
+    return { key: "orgs.fvHome.act.listSignup", params: { name: item.label } };
+  }
+  if (item.type === "BOOKING_REQUEST") {
+    const known = ["PENDING", "ACCEPTED", "REJECTED", "CANCELLED", "UNCONFIRMED"];
+    const key = (
+      item.detail && known.includes(item.detail)
+        ? `orgs.fvHome.act.booking.${item.detail}`
+        : "orgs.fvHome.act.booking"
+    ) as MessageKey;
+    return { key, params: { name: item.label } };
   }
   return { key: LINK_ACTIVITY[item.label] ?? "orgs.fvHome.act.linkChanged" };
 }

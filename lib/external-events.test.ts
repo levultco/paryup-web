@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { externalPrice, externalWhen, rateStatus } from "./external-events";
+import { describeListCondition, externalPrice, externalWhen, rateStatus } from "./external-events";
 
 const info = {
   timezone: "Europe/Madrid",
@@ -68,5 +68,14 @@ describe("eventos Fourvenues en la web", () => {
     expect(
       rateStatus({ ...base, onSale: false, soldOut: false, validFrom: "2099-01-01T00:00:00Z" }, "es"),
     ).toBe("Próximamente");
+  });
+
+  test("condiciones de lista legibles en ambos idiomas", () => {
+    const c = { men: 10, women: 0, age: 18, from: "23:00" };
+    expect(describeListCondition(c, "EUR", "es").replace(/\s/g, " ")).toBe(
+      "Hombres: 10 € · Mujeres: gratis · Edad mínima: 18 · Desde: 23:00",
+    );
+    expect(describeListCondition(c, "EUR", "en")).toContain("Women: free");
+    expect(describeListCondition({ extra: "x", vacio: "" }, null, "es")).toBe("extra: x");
   });
 });

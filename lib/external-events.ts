@@ -21,7 +21,15 @@ export type ExternalRates = {
     validFrom: string | null;
     price: number | null;
   }[];
-  listRates: { id: string; name: string; available: boolean }[];
+  listRates: {
+    id: string;
+    name: string;
+    available: boolean;
+    max: number | null;
+    conditions: Record<string, string | number | boolean>[];
+  }[];
+  /** Falso hasta validar las escrituras en Alpha: la web no ofrece acciones activas. */
+  writes: { lists: boolean; bookings: boolean };
 };
 
 // Textos propios del bloque Fourvenues (es/en); el resto de la web usa el diccionario general.
@@ -41,6 +49,16 @@ const COPY = {
     stale: "Precios de la última sincronización; pueden haber cambiado.",
     noRates: "Sin entradas a la venta",
     from: "Desde",
+    maxPeople: "máx. {n} personas",
+    listInApp: "Apúntate desde la app de ParyUp.",
+    reservedHeading: "Reservados",
+    reservedEnabled: "Solicita tu reserva desde la app. El local la acepta o la rechaza en Fourvenues.",
+    reservedDisabled: "Las solicitudes de reserva desde ParyUp todavía no están habilitadas.",
+    free: "gratis",
+    minAge: "Edad mínima",
+    men: "Hombres",
+    women: "Mujeres",
+    sinceTime: "Desde",
   },
   en: {
     heading: "Tickets and guest lists",
@@ -57,6 +75,16 @@ const COPY = {
     stale: "Prices from the last sync; they may have changed.",
     noRates: "No tickets on sale",
     from: "From",
+    maxPeople: "max. {n} people",
+    listInApp: "Sign up from the ParyUp app.",
+    reservedHeading: "Bookings",
+    reservedEnabled: "Request your booking from the app. The venue accepts or declines it on Fourvenues.",
+    reservedDisabled: "Booking requests through ParyUp aren't enabled yet.",
+    free: "free",
+    minAge: "Minimum age",
+    men: "Men",
+    women: "Women",
+    sinceTime: "From",
   },
 } as const;
 
@@ -170,3 +198,28 @@ const SYNC_LABEL: Record<Locale, Record<ExternalSyncState, string>> = {
 
 export const syncStateLabel = (state: ExternalSyncState, locale: Locale) =>
   (SYNC_LABEL[locale] ?? SYNC_LABEL.es)[state];
+
+/** Una línea legible por tramo de lista; las claves que no conocemos se muestran tal cual. */
+export function describeListCondition(
+  condition: Record<string, string | number | boolean>,
+  currency: string | null,
+  locale: Locale,
+) {
+  const copy = externalCopy(locale);
+  const labels: Record<string, string> = {
+    men: copy.men,
+    women: copy.women,
+    age: copy.minAge,
+    from: copy.sinceTime,
+  };
+  return Object.entries(condition)
+    .filter(([, v]) => v !== "" && v !== false)
+    .map(([key, value]) => {
+      const label = labels[key] ?? key;
+      if (typeof value === "number" && (key === "men" || key === "women" || key === "price")) {
+        return `${label}: ${value > 0 ? formatMoney(value, currency, locale) : copy.free}`;
+      }
+      return `${label}: ${value === true ? "✓" : value}`;
+    })
+    .join(" · ");
+}

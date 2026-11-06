@@ -12,6 +12,7 @@ import {
   TonightCard,
   UpcomingTicketCard,
 } from "@/components/tickets/TicketCards";
+import { ExternalRegistrations } from "@/components/tickets/ExternalRegistrations";
 import { TicketDialog } from "@/components/tickets/TicketDialog";
 import { groupTickets, type MyTicket } from "@/lib/tickets";
 
@@ -74,6 +75,7 @@ export function TicketsView() {
       </h1>
 
       <div className="mt-10">
+        <ExternalRegistrations />
         {failed ? (
           <p className="py-20 text-center text-muted">{t("tickets.error")}</p>
         ) : !groups ? (

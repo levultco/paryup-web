@@ -1237,6 +1237,14 @@ export const es = {
   "orgs.fvHome.act.SUSPENDED": "Vinculación suspendida",
   "orgs.fvHome.act.REVOKED": "Autorización retirada por Fourvenues",
   "orgs.fvHome.act.DISCONNECTED": "Vinculación desconectada",
+  "orgs.fvHome.act.listSignup": "Nueva inscripción en lista: {name}",
+  "orgs.fvHome.act.booking": "Solicitud de reserva: {name}",
+  "orgs.fvHome.act.booking.PENDING": "Solicitud de reserva pendiente del local: {name}",
+  "orgs.fvHome.act.booking.ACCEPTED": "Solicitud de reserva aceptada por el local: {name}",
+  "orgs.fvHome.act.booking.REJECTED": "Solicitud de reserva rechazada por el local: {name}",
+  "orgs.fvHome.act.booking.CANCELLED": "Solicitud de reserva cancelada: {name}",
+  "orgs.fvHome.act.booking.UNCONFIRMED": "Solicitud de reserva sin confirmar: {name}",
+  "orgs.fvHome.bookingBreakdown": "Solicitudes de reserva: {pending} pendientes · {accepted} aceptadas · {rejected} rechazadas (decide el local en Fourvenues)",
 } as const;
 
 export type MessageKey = keyof typeof es;
