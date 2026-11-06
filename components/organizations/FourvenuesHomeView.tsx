@@ -10,6 +10,7 @@ import { externalPrice, externalWhen } from "@/lib/external-events";
 import {
   activityKey,
   channelEmptyKey,
+  syncPhaseKey,
   syncState,
   type FourvenuesHome,
 } from "@/lib/fourvenues-home";
@@ -70,6 +71,8 @@ export function FourvenuesHomeView() {
       )
     : null;
   const sync = syncState(link?.lastSyncAt, link?.lastSyncStatus);
+  const phaseKey = syncPhaseKey(link?.sync);
+  const dateTime = new Intl.DateTimeFormat(intlLocale(locale), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
   return (
     <div className="flex flex-col gap-7">
@@ -157,7 +160,11 @@ export function FourvenuesHomeView() {
                 </p>
               )}
             </div>
-            <p className="mt-4 text-xs text-white/40">{t(sync.key, sync.params)}</p>
+            <p className="mt-4 text-xs text-white/40">
+              {phaseKey
+                ? t(phaseKey, { date: link?.sync?.at ? dateTime.format(new Date(link.sync.at)) : "" })
+                : t(sync.key, sync.params)}
+            </p>
           </section>
 
           <section className={card} aria-labelledby="fv-activity">

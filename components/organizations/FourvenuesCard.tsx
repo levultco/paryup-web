@@ -10,6 +10,7 @@ import {
   primaryButton,
 } from "@/components/organizations/ui";
 import { orgFetch } from "@/lib/org-api";
+import { syncPhaseKey, type SyncInfo } from "@/lib/fourvenues-home";
 import type { MessageKey } from "@/lib/i18n";
 
 type Status = {
@@ -19,6 +20,7 @@ type Status = {
     status: string;
     rejectionReason: string | null;
     lastSyncAt: string | null;
+    eventsSync?: SyncInfo | null;
     /** Solo existe una vez vinculada; el propietario nunca ve otras salas. */
     host: { name: string } | null;
   } | null;
@@ -28,7 +30,7 @@ const OPEN = ["ACTIVE", "SUSPENDED", "REVOKED"];
 
 /** Vinculación con Fourvenues: solicitud, estado y desconexión (la aprobación la hace ParyUp). */
 export function FourvenuesCard() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { slug } = useOrg();
   const [status, setStatus] = useState<Status | null>(null);
   const [busy, setBusy] = useState(false);
@@ -82,6 +84,20 @@ export function FourvenuesCard() {
             <p className="text-[15px] font-semibold text-white">{t("orgs.fv.status.ACTIVE")}</p>
             {link.host ? (
               <p className="text-[13px] text-white/50">{t("orgs.fv.connectedTo", { name: link.host.name })}</p>
+            ) : null}
+            {syncPhaseKey(link.eventsSync) ? (
+              <p className="text-[13px] text-white/50">
+                {t(syncPhaseKey(link.eventsSync)!, {
+                  date: link.eventsSync?.at
+                    ? new Date(link.eventsSync.at).toLocaleString(locale === "es" ? "es-ES" : "en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "",
+                })}
+              </p>
             ) : null}
           </>
         ) : null}

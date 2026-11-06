@@ -1,5 +1,12 @@
 import type { MessageKey } from "@/lib/i18n";
 
+/** Estado de la sincronización automática del catálogo (solo vínculos activos). */
+export type SyncInfo = {
+  phase: "PENDING" | "SYNCING" | "UPDATED" | "ERROR";
+  at: string | null;
+  withWarnings: boolean;
+};
+
 export type ChannelActivityItem = {
   id: string;
   type:
@@ -23,6 +30,7 @@ export type FourvenuesHome = {
     activatedAt: string | null;
     lastSyncAt: string | null;
     lastSyncStatus: string | null;
+    sync?: SyncInfo | null;
   } | null;
   catalog: {
     upcoming: number;
@@ -115,4 +123,13 @@ export function syncState(
   if (mins < 60) return { key: `${base}.min` as MessageKey, params: { n: mins } };
   if (mins < 2880) return { key: `${base}.hours` as MessageKey, params: { n: Math.round(mins / 60) } };
   return { key: `${base}.days` as MessageKey, params: { n: Math.round(mins / 1440) } };
+}
+
+/** Clave de texto de la fase de sincronización; `{date}` se rellena con la fecha formateada. */
+export function syncPhaseKey(sync: SyncInfo | null | undefined): MessageKey | null {
+  if (!sync) return null;
+  if (sync.phase === "PENDING") return "orgs.fvSync.pending";
+  if (sync.phase === "SYNCING") return "orgs.fvSync.syncing";
+  if (sync.phase === "UPDATED") return sync.withWarnings ? "orgs.fvSync.updatedWarn" : "orgs.fvSync.updated";
+  return "orgs.fvSync.error";
 }

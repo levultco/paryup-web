@@ -4,6 +4,7 @@ import { es } from "@/lib/i18n/es";
 import {
   activityKey,
   channelEmptyKey,
+  syncPhaseKey,
   syncState,
   type FourvenuesHome,
 } from "./fourvenues-home";
@@ -75,6 +76,20 @@ describe("Inicio de organización Fourvenues (web)", () => {
     for (const key of keys) {
       expect(key in es).toBe(true);
       expect(key in en).toBe(true);
+    }
+  });
+
+  test("fases de sincronización: claves existentes en es y en", () => {
+    const sync = (phase: "PENDING" | "SYNCING" | "UPDATED" | "ERROR", withWarnings = false) => ({ phase, at: null, withWarnings });
+    expect(syncPhaseKey(sync("PENDING"))).toBe("orgs.fvSync.pending");
+    expect(syncPhaseKey(sync("SYNCING"))).toBe("orgs.fvSync.syncing");
+    expect(syncPhaseKey(sync("UPDATED"))).toBe("orgs.fvSync.updated");
+    expect(syncPhaseKey(sync("UPDATED", true))).toBe("orgs.fvSync.updatedWarn");
+    expect(syncPhaseKey(sync("ERROR"))).toBe("orgs.fvSync.error");
+    expect(syncPhaseKey(null)).toBeNull();
+    for (const k of ["pending", "syncing", "updated", "updatedWarn", "error"]) {
+      expect(`orgs.fvSync.${k}` in es).toBe(true);
+      expect(`orgs.fvSync.${k}` in en).toBe(true);
     }
   });
 });

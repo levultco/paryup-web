@@ -39,6 +39,7 @@ type Detail = {
     contactEmail: string;
     contactPhone: string | null;
     requestNote: string | null;
+    eventsSync?: { phase: string; at: string | null; withWarnings: boolean } | null;
     organizationId: string;
     organization: LinkRow["organization"] & {
       city: string | null;
@@ -291,6 +292,12 @@ export function FourvenuesAdminView() {
                 value={`${date(link.organization.createdAt)}${link.organization.city ? ` · ${link.organization.city}` : ""}${link.organization.isVerified ? " · verificada" : ""}`}
               />
               <Info label="Solicitada" value={date(link.requestedAt)} />
+              {link.eventsSync ? (
+                <Info
+                  label="Sincronización de eventos"
+                  value={`${{ PENDING: "Sincronización pendiente", SYNCING: "Sincronizando", UPDATED: "Actualizado", ERROR: "Error de sincronización" }[link.eventsSync.phase] ?? link.eventsSync.phase}${link.eventsSync.at ? ` · ${date(link.eventsSync.at)}` : ""}`}
+                />
+              ) : null}
               {link.host ? (
                 <Info label="Sala Fourvenues" value={`${link.host.name} (${link.host.slug})`} />
               ) : (
