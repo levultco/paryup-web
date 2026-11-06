@@ -124,12 +124,11 @@ export function FourvenuesAdminView() {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [method, setMethod] = useState<string>("ACCOUNT_MANAGER");
+  const [method, setMethod] = useState<string>("");
   const [note, setNote] = useState("");
   const [hosts, setHosts] = useState<CandidateHost[] | "error" | null>(null);
   const [hostId, setHostId] = useState("");
-  const [sameBusiness, setSameBusiness] = useState(false);
-  const [authorizedRep, setAuthorizedRep] = useState(false);
+  const [ownershipChecked, setOwnershipChecked] = useState(false);
 
   const loadList = useCallback(async () => {
     const r = await call<{ links: LinkRow[] }>(
@@ -163,8 +162,8 @@ export function FourvenuesAdminView() {
     // Cambio de solicitud: se reinicia la verificación para que no se arrastre a otra.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHostId("");
-    setSameBusiness(false);
-    setAuthorizedRep(false);
+    setOwnershipChecked(false);
+    setMethod("");
     setNote("");
     void call<{ hosts: CandidateHost[]; refresh: { ok: boolean } }>("hosts").then((r) =>
       setHosts(r.ok && r.data?.refresh.ok ? r.data.hosts : "error"),
@@ -352,44 +351,55 @@ export function FourvenuesAdminView() {
                   </select>
                 )}
                 <label className="flex items-start gap-2 text-sm text-white/80">
-                  <input type="checkbox" checked={sameBusiness} onChange={(e) => setSameBusiness(e.target.checked)} className="mt-1" />
-                  He verificado que la organización de ParyUp y la sala de Fourvenues son el mismo negocio.
+                  <input
+                    type="checkbox"
+                    checked={ownershipChecked}
+                    onChange={(e) => setOwnershipChecked(e.target.checked)}
+                    className="mt-1"
+                  />
+                  He comprobado que esta sala corresponde a esta organización y que quien la solicita puede
+                  representarla.
                 </label>
-                <label className="flex items-start gap-2 text-sm text-white/80">
-                  <input type="checkbox" checked={authorizedRep} onChange={(e) => setAuthorizedRep(e.target.checked)} className="mt-1" />
-                  He verificado que el solicitante está autorizado para representarlo.
-                </label>
-                <select
-                  className={inputClass}
-                  value={method}
-                  onChange={(e) => setMethod(e.target.value)}
-                >
-                  {VERIFICATION_METHODS.map(([value, label]) => (
-                    <option key={value} value={value} className="bg-black">
-                      {label}
-                    </option>
-                  ))}
-                </select>
-                <textarea
-                  className={`${inputClass} min-h-24`}
-                  placeholder="Cómo se ha verificado la titularidad: persona, fecha y canal (mín. 20 caracteres)"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
+                <p className="text-xs text-white/40">
+                  Estar autorizada en Fourvenues no demuestra la titularidad: la comprobación es tuya. Queda
+                  registrado quién aprobó, qué organización y qué sala, y cuándo.
+                </p>
+                <details className="rounded-2xl border border-white/10 px-4 py-3">
+                  <summary className="cursor-pointer text-sm text-white/70">
+                    Detalles de la comprobación (opcional)
+                  </summary>
+                  <div className="mt-3 flex flex-col gap-3">
+                    <select className={inputClass} value={method} onChange={(e) => setMethod(e.target.value)}>
+                      <option value="" className="bg-black">
+                        Cómo se comprobó
+                      </option>
+                      {VERIFICATION_METHODS.map(([value, label]) => (
+                        <option key={value} value={value} className="bg-black">
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <textarea
+                      className={`${inputClass} min-h-20`}
+                      placeholder="Nota: persona, fecha y canal"
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                    />
+                  </div>
+                </details>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     className={primaryButton}
                     disabled={
-                      busy || !hostId || !sameBusiness || !authorizedRep || note.trim().length < 20
+                      busy || !hostId || !ownershipChecked
                     }
                     onClick={() =>
                       void act(`link-requests/${link.id}/approve`, {
                         hostId,
-                        confirmedSameBusiness: sameBusiness,
-                        confirmedRequesterAuthorized: authorizedRep,
-                        verificationMethod: method,
-                        verificationNote: note.trim(),
+                        confirmedOwnership: ownershipChecked,
+                        ...(method ? { verificationMethod: method } : {}),
+                        ...(note.trim() ? { verificationNote: note.trim() } : {}),
                       })
                     }
                   >
