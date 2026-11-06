@@ -60,22 +60,41 @@ describe("eventos Fourvenues en la web", () => {
     expect(externalPrice(null, "es")).toBeNull();
   });
 
-  test("estado de tarifa", () => {
-    const base = { id: "t", name: "G", validFrom: null, price: 10 };
-    expect(rateStatus({ ...base, onSale: true, soldOut: false }, "es")).toBe("A la venta");
-    expect(rateStatus({ ...base, onSale: false, soldOut: true }, "en")).toBe("Sold out");
-    expect(rateStatus({ ...base, onSale: false, soldOut: false }, "es")).toBe("No disponible");
-    expect(
-      rateStatus({ ...base, onSale: false, soldOut: false, validFrom: "2099-01-01T00:00:00Z" }, "es"),
-    ).toBe("Próximamente");
+  test("estado de tarifa: lo decide el backend; sin venta abierta no es «agotada»", () => {
+    expect(rateStatus({ state: "ON_SALE" }, "es")).toBe("A la venta");
+    expect(rateStatus({ state: "SOLD_OUT" }, "en")).toBe("Sold out");
+    expect(rateStatus({ state: "SOON" }, "es")).toBe("Próximamente");
+    expect(rateStatus({ state: "UNAVAILABLE" }, "es")).toBe("No disponible");
   });
 
-  test("condiciones de lista legibles en ambos idiomas", () => {
-    const c = { men: 10, women: 0, age: 18, from: "23:00" };
-    expect(describeListCondition(c, "EUR", "es").replace(/\s/g, " ")).toBe(
-      "Hombres: 10 € · Mujeres: gratis · Edad mínima: 18 · Desde: 23:00",
+  test("display_date real de Alpha (instante) es el día del local, no el día UTC", () => {
+    const w = externalWhen(
+      "2026-11-16T22:00:00.000Z",
+      "2026-11-17T04:00:00.000Z",
+      { timezone: "Europe/Madrid", displayDateRaw: "2026-11-15T23:00:00.000Z" },
+      "es",
+      2026,
     );
-    expect(describeListCondition(c, "EUR", "en")).toContain("Women: free");
-    expect(describeListCondition({ extra: "x", vacio: "" }, null, "es")).toBe("extra: x");
+    expect(w.dayKey).toBe("2026-11-16");
+    expect(w.start).toBe("23:00");
+    expect(w.end).toBe("05:00");
+  });
+
+  test("condiciones de lista reales: men/women son admisión y el importe no se presenta como pago", () => {
+    const c = {
+      validFrom: "2026-11-16T22:00:00.000Z",
+      validUntil: "2026-11-17T04:00:00.000Z",
+      men: true,
+      women: true,
+      minAge: 18,
+      amount: 10,
+      open: true,
+    };
+    const es = describeListCondition(c, { currency: "EUR", timezone: "Europe/Madrid", locale: "es" }).replace(/\s/g, " ");
+    expect(es).toContain("Hombres y mujeres");
+    expect(es).toContain("Desde 18 años");
+    expect(es).toContain("23:00");
+    expect(es).toContain("Importe indicado: 10 € (condiciones por confirmar)");
+    expect(describeListCondition({ ...c, men: false, amount: 0 }, { currency: null, timezone: null, locale: "en" })).toContain("Women only");
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { ArrowLeftIcon, MapPointIcon } from "@/components/icons/solar";
 import { EventActions } from "@/components/events/EventActions";
 import { useI18n } from "@/components/i18n/LocaleProvider";
@@ -31,6 +32,7 @@ export function EventDetail({
   externalRates?: ExternalRates | null;
 }) {
   const { t, locale } = useI18n();
+  const [nowMs] = useState(() => new Date().getTime());
   const startKey = localDayKey(event.date);
   const endKey = event.endDate ? localDayKey(event.endDate) : null;
   const start = timeLabel(event.date);
@@ -157,18 +159,28 @@ export function EventDetail({
                     <li key={rate.id}>
                       <span className="block font-medium">{rate.name}</span>
                       <span className="block text-sm text-white/60">
-                        {rate.available ? copy.listOpen : copy.listClosed}
+                        {rate.open
+                          ? copy.listOpen
+                          : rate.validFrom && new Date(rate.validFrom).getTime() > nowMs
+                            ? copy.listSoon
+                            : copy.listClosed}
                         {rate.max ? ` · ${copy.maxPeople.replace("{n}", String(rate.max))}` : ""}
                       </span>
                       {rate.conditions.map((condition, i) => {
-                        const line = describeListCondition(condition, externalRates.currency, locale);
+                        const line = describeListCondition(condition, {
+                          currency: externalRates.currency,
+                          timezone: event.external?.timezone ?? null,
+                          locale,
+                        });
                         return line ? (
                           <span key={i} className="block text-sm text-white/60">
                             {line}
                           </span>
                         ) : null;
                       })}
-                      {rate.available && externalRates.writes.lists ? (
+                      {rate.open && !rate.signup.allowed ? (
+                        <span className="mt-1 block text-sm text-white/60">{copy.listPaidUnclear}</span>
+                      ) : rate.open && externalRates.writes.lists ? (
                         <span className="mt-1 block text-sm text-white/60">{copy.listInApp}</span>
                       ) : null}
                     </li>

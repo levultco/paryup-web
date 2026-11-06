@@ -18,6 +18,8 @@ export type ExternalRates = {
     name: string;
     onSale: boolean;
     soldOut: boolean;
+    /** Lo calcula el backend: available:false no significa agotada. */
+    state: "SOON" | "ON_SALE" | "SOLD_OUT" | "UNAVAILABLE";
     validFrom: string | null;
     price: number | null;
   }[];
@@ -25,8 +27,12 @@ export type ExternalRates = {
     id: string;
     name: string;
     available: boolean;
+    open: boolean;
+    validFrom: string | null;
+    validUntil: string | null;
+    signup: { allowed: boolean; reason: "PAID_OR_UNCLEAR" | null };
     max: number | null;
-    conditions: Record<string, string | number | boolean>[];
+    conditions: ListCondition[];
   }[];
   /** Falso hasta validar las escrituras en Alpha: la web no ofrece acciones activas. */
   writes: { lists: boolean; bookings: boolean };
@@ -54,11 +60,17 @@ const COPY = {
     reservedHeading: "Reservados",
     reservedEnabled: "Solicita tu reserva desde la app. El local la acepta o la rechaza en Fourvenues.",
     reservedDisabled: "Las solicitudes de reserva desde ParyUp todavía no están habilitadas.",
-    free: "gratis",
-    minAge: "Edad mínima",
-    men: "Hombres",
-    women: "Mujeres",
-    sinceTime: "Desde",
+    menAndWomen: "Hombres y mujeres",
+    onlyMen: "Solo hombres",
+    onlyWomen: "Solo mujeres",
+    noAccess: "Sin acceso indicado",
+    fromAge: "Desde {n} años",
+    until: "Hasta",
+    statedAmount: "Importe indicado: {amount} (condiciones por confirmar)",
+    noCost: "Sin coste",
+    tierClosed: "Tramo cerrado",
+    listPaidUnclear: "Apuntarse desde ParyUp no está disponible: la lista tiene un importe por confirmar.",
+    listSoon: "Próximamente",
   },
   en: {
     heading: "Tickets and guest lists",
@@ -80,17 +92,24 @@ const COPY = {
     reservedHeading: "Bookings",
     reservedEnabled: "Request your booking from the app. The venue accepts or declines it on Fourvenues.",
     reservedDisabled: "Booking requests through ParyUp aren't enabled yet.",
-    free: "free",
-    minAge: "Minimum age",
-    men: "Men",
-    women: "Women",
-    sinceTime: "From",
+    menAndWomen: "Men and women",
+    onlyMen: "Men only",
+    onlyWomen: "Women only",
+    noAccess: "No access listed",
+    fromAge: "From {n} years old",
+    until: "Until",
+    statedAmount: "Stated amount: {amount} (conditions to be confirmed)",
+    noCost: "No cost",
+    tierClosed: "Tier closed",
+    listPaidUnclear: "Signing up from ParyUp isn't available: the list has an amount to be confirmed.",
+    listSoon: "Coming soon",
   },
 } as const;
 
 export const externalCopy = (locale: Locale) => COPY[locale] ?? COPY.es;
 
-const DATE_ONLY = /^(\d{4}-\d{2}-\d{2})/;
+/** Solo un día exacto (sin hora) es un día; con hora es un instante y se pasa a la zona del local. */
+const DATE_ONLY = /^(\d{4}-\d{2}-\d{2})$/;
 
 function safeZone(timeZone: string | null) {
   if (!timeZone) return undefined;
@@ -131,7 +150,10 @@ export function externalWhen(
     const d = new Date(iso);
     return Number.isNaN(d.getTime()) ? null : timeFmt.format(d);
   };
-  const dayKey = info.displayDateRaw?.match(DATE_ONLY)?.[1] ?? dayFmt.format(new Date(startIso));
+  const shown = info.displayDateRaw ? new Date(info.displayDateRaw) : null;
+  const dayKey =
+    info.displayDateRaw?.match(DATE_ONLY)?.[1] ??
+    dayFmt.format(shown && !Number.isNaN(shown.getTime()) ? shown : new Date(startIso));
   const endDay = endIso ? dayFmt.format(new Date(endIso)) : null;
   return {
     dayKey,
@@ -167,16 +189,20 @@ export function formatMoney(amount: number, currency: string | null, locale: Loc
 }
 
 export function rateStatus(
-  rate: ExternalRates["ticketRates"][number],
+  rate: Pick<ExternalRates["ticketRates"][number], "state">,
   locale: Locale,
-  now = Date.now(),
 ) {
   const copy = externalCopy(locale);
-  if (rate.soldOut) return copy.soldOut;
-  if (rate.onSale) return copy.onSale;
-  return rate.validFrom && new Date(rate.validFrom).getTime() > now
-    ? copy.soon
-    : copy.notAvailable;
+  switch (rate.state) {
+    case "SOON":
+      return copy.soon;
+    case "SOLD_OUT":
+      return copy.soldOut;
+    case "ON_SALE":
+      return copy.onSale;
+    default:
+      return copy.notAvailable;
+  }
 }
 
 export type ExternalSyncState = "ACTIVE" | "MISSING" | "UNAVAILABLE" | "SUSPENDED";
@@ -199,27 +225,49 @@ const SYNC_LABEL: Record<Locale, Record<ExternalSyncState, string>> = {
 export const syncStateLabel = (state: ExternalSyncState, locale: Locale) =>
   (SYNC_LABEL[locale] ?? SYNC_LABEL.es)[state];
 
-/** Una línea legible por tramo de lista; las claves que no conocemos se muestran tal cual. */
+
+/** Un tramo de lista del backend: men/women son admisión (no importes). */
+export type ListCondition = {
+  validFrom: string | null;
+  validUntil: string | null;
+  men: boolean | null;
+  women: boolean | null;
+  minAge: number | null;
+  /** Importe indicado por Fourvenues: no se sabe si es pago online o en puerta. */
+  amount: number | null;
+  open: boolean | null;
+};
+
 export function describeListCondition(
-  condition: Record<string, string | number | boolean>,
-  currency: string | null,
-  locale: Locale,
+  c: ListCondition,
+  opts: { currency: string | null; timezone: string | null; locale: Locale },
 ) {
+  const { locale } = opts;
   const copy = externalCopy(locale);
-  const labels: Record<string, string> = {
-    men: copy.men,
-    women: copy.women,
-    age: copy.minAge,
-    from: copy.sinceTime,
-  };
-  return Object.entries(condition)
-    .filter(([, v]) => v !== "" && v !== false)
-    .map(([key, value]) => {
-      const label = labels[key] ?? key;
-      if (typeof value === "number" && (key === "men" || key === "women" || key === "price")) {
-        return `${label}: ${value > 0 ? formatMoney(value, currency, locale) : copy.free}`;
-      }
-      return `${label}: ${value === true ? "✓" : value}`;
-    })
-    .join(" · ");
+  const timeZone = safeZone(opts.timezone);
+  const when = (iso: string) =>
+    new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+      timeZone,
+    }).format(new Date(iso));
+  const parts: string[] = [];
+  if (c.men !== null || c.women !== null) {
+    parts.push(c.men && c.women ? copy.menAndWomen : c.men ? copy.onlyMen : c.women ? copy.onlyWomen : copy.noAccess);
+  }
+  if (c.minAge) parts.push(copy.fromAge.replace("{n}", String(c.minAge)));
+  if (c.validFrom && c.validUntil) parts.push(`${when(c.validFrom)} – ${when(c.validUntil)}`);
+  else if (c.validUntil) parts.push(`${copy.until} ${when(c.validUntil)}`);
+  if (c.amount !== null) {
+    parts.push(
+      c.amount > 0
+        ? copy.statedAmount.replace("{amount}", formatMoney(c.amount, opts.currency, locale))
+        : copy.noCost,
+    );
+  }
+  if (c.open === false) parts.push(copy.tierClosed);
+  return parts.join(" · ");
 }
