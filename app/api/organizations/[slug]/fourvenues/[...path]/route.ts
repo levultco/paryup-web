@@ -6,7 +6,6 @@ import { resolveMembership, sessionToken } from "@/lib/organizations-server";
 // Lista cerrada; el backend vuelve a validar permiso y estado en cada operación.
 const ALLOWED: { method: string; pattern: RegExp }[] = [
   { method: "GET", pattern: /^status$/ },
-  { method: "GET", pattern: /^hosts$/ },
   { method: "GET", pattern: /^home$/ },
   { method: "POST", pattern: /^link-requests$/ },
   { method: "POST", pattern: /^link-requests\/[\w-]+\/cancel$/ },

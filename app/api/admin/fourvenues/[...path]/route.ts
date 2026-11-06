@@ -6,6 +6,7 @@ import { sessionToken } from "@/lib/organizations-server";
 const ALLOWED: { method: string; pattern: RegExp }[] = [
   { method: "GET", pattern: /^health$/ },
   { method: "POST", pattern: /^hosts\/refresh$/ },
+  { method: "GET", pattern: /^hosts$/ },
   { method: "GET", pattern: /^link-requests$/ },
   { method: "GET", pattern: /^link-requests\/[\w-]+$/ },
   { method: "POST", pattern: /^link-requests\/[\w-]+\/(approve|reject)$/ },

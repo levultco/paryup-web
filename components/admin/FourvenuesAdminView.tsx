@@ -23,7 +23,9 @@ type LinkRow = {
   status: LinkStatus;
   requestedAt: string;
   contactName: string;
-  host: { name: string; slug: string; fvHostId: string; authorized: boolean };
+  /** null mientras la solicitud no tiene venue: lo asigna un administrador al aprobar. */
+  host: { name: string; slug: string } | null;
+  fvHostId?: string | null;
   organization: {
     id: string;
     name: string;
@@ -57,7 +59,15 @@ type Detail = {
   obligations: Record<string, number>;
   fourvenues:
     | { ok: true; organization: { name: string; slug: string } | null }
-    | { ok: false; error: string };
+    | { ok: false; error: string }
+    | null;
+};
+
+type CandidateHost = {
+  id: string;
+  name: string;
+  slug: string;
+  linkedTo: { organization: { name: string } } | null;
 };
 
 const STATUS_LABEL: Record<LinkStatus, string> = {
@@ -116,6 +126,10 @@ export function FourvenuesAdminView() {
   const [error, setError] = useState<string | null>(null);
   const [method, setMethod] = useState<string>("ACCOUNT_MANAGER");
   const [note, setNote] = useState("");
+  const [hosts, setHosts] = useState<CandidateHost[] | "error" | null>(null);
+  const [hostId, setHostId] = useState("");
+  const [sameBusiness, setSameBusiness] = useState(false);
+  const [authorizedRep, setAuthorizedRep] = useState(false);
 
   const loadList = useCallback(async () => {
     const r = await call<{ links: LinkRow[] }>(
@@ -142,6 +156,20 @@ export function FourvenuesAdminView() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selected) void loadDetail(selected);
   }, [selected, loadDetail]);
+
+  const pendingSelected = detail?.link.status === "PENDING_REVIEW";
+  useEffect(() => {
+    if (!pendingSelected) return;
+    // Cambio de solicitud: se reinicia la verificación para que no se arrastre a otra.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHostId("");
+    setSameBusiness(false);
+    setAuthorizedRep(false);
+    setNote("");
+    void call<{ hosts: CandidateHost[]; refresh: { ok: boolean } }>("hosts").then((r) =>
+      setHosts(r.ok && r.data?.refresh.ok ? r.data.hosts : "error"),
+    );
+  }, [pendingSelected, selected]);
 
   const act = async (path: string, body: unknown) => {
     setBusy(true);
@@ -219,7 +247,7 @@ export function FourvenuesAdminView() {
                   className={`flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left transition-colors hover:bg-white/[0.04] ${selected === l.id ? "bg-white/[0.06]" : ""}`}
                 >
                   <span className="text-[15px] font-semibold text-white">
-                    {l.organization.name} → {l.host.name}
+                    {l.organization.name}{l.host ? ` → ${l.host.name}` : " · sin sala asignada"}
                   </span>
                   <span className="text-xs text-white/50">
                     {STATUS_LABEL[l.status]} · {date(l.requestedAt)}
@@ -260,9 +288,16 @@ export function FourvenuesAdminView() {
                 <Info label="Nota" value={link.requestNote} />
               ) : null}
               <Info
-                label="Sala Fourvenues"
-                value={`${link.host.name} (${link.host.slug}) · ${link.host.authorized ? "autoriza a ParyUp" : "NO autoriza a ParyUp ahora"}`}
+                label="Organización creada"
+                value={`${date(link.organization.createdAt)}${link.organization.city ? ` · ${link.organization.city}` : ""}${link.organization.isVerified ? " · verificada" : ""}`}
               />
+              <Info label="Solicitada" value={date(link.requestedAt)} />
+              {link.host ? (
+                <Info label="Sala Fourvenues" value={`${link.host.name} (${link.host.slug})`} />
+              ) : (
+                <Info label="Sala Fourvenues" value="Sin asignar: se elige al aprobar" />
+              )}
+              {detail.fourvenues ? (
               <Info
                 label="Fourvenues en vivo"
                 value={
@@ -273,6 +308,7 @@ export function FourvenuesAdminView() {
                     : `Error: ${detail.fourvenues.error}`
                 }
               />
+              ) : null}
             </Group>
 
             <Group title="Obligaciones nativas abiertas">
@@ -291,6 +327,38 @@ export function FourvenuesAdminView() {
 
             {link.status === "PENDING_REVIEW" ? (
               <div className="flex flex-col gap-3">
+                <p className="text-sm font-semibold text-white">Asignar sala y aprobar</p>
+                {hosts === null ? (
+                  <p className="text-sm text-white/50">Cargando salas autorizadas…</p>
+                ) : hosts === "error" ? (
+                  <p className="text-sm text-red-400">
+                    No se pudo consultar Fourvenues. No se puede aprobar ahora.
+                  </p>
+                ) : (
+                  <select
+                    className={inputClass}
+                    value={hostId}
+                    onChange={(e) => setHostId(e.target.value)}
+                  >
+                    <option value="" className="bg-black">
+                      Elige la sala de Fourvenues
+                    </option>
+                    {hosts.map((h) => (
+                      <option key={h.id} value={h.id} disabled={!!h.linkedTo} className="bg-black">
+                        {h.name}
+                        {h.linkedTo ? ` · ya vinculada a ${h.linkedTo.organization.name}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <label className="flex items-start gap-2 text-sm text-white/80">
+                  <input type="checkbox" checked={sameBusiness} onChange={(e) => setSameBusiness(e.target.checked)} className="mt-1" />
+                  He verificado que la organización de ParyUp y la sala de Fourvenues son el mismo negocio.
+                </label>
+                <label className="flex items-start gap-2 text-sm text-white/80">
+                  <input type="checkbox" checked={authorizedRep} onChange={(e) => setAuthorizedRep(e.target.checked)} className="mt-1" />
+                  He verificado que el solicitante está autorizado para representarlo.
+                </label>
                 <select
                   className={inputClass}
                   value={method}
@@ -304,7 +372,7 @@ export function FourvenuesAdminView() {
                 </select>
                 <textarea
                   className={`${inputClass} min-h-24`}
-                  placeholder="Cómo se ha verificado (persona, fecha, canal)"
+                  placeholder="Cómo se ha verificado la titularidad: persona, fecha y canal (mín. 20 caracteres)"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                 />
@@ -312,9 +380,14 @@ export function FourvenuesAdminView() {
                   <button
                     type="button"
                     className={primaryButton}
-                    disabled={busy || note.trim().length < 3}
+                    disabled={
+                      busy || !hostId || !sameBusiness || !authorizedRep || note.trim().length < 20
+                    }
                     onClick={() =>
                       void act(`link-requests/${link.id}/approve`, {
+                        hostId,
+                        confirmedSameBusiness: sameBusiness,
+                        confirmedRequesterAuthorized: authorizedRep,
                         verificationMethod: method,
                         verificationNote: note.trim(),
                       })
