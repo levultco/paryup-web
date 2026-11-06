@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+import { AdminLink } from "@/components/admin/AdminLink";
 import { ArrowRightIcon } from "@/components/icons/solar";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { ShimmerButton } from "@/components/watermelon/shimmer-button";
@@ -81,6 +82,7 @@ export function OrganizationsHub() {
             <ArrowRightIcon className="h-4 w-4" />
           </ShimmerButton>
         </Link>
+        <AdminLink className="mt-6" />
       </div>
     );
   }
@@ -128,6 +130,7 @@ export function OrganizationsHub() {
           {t("orgs.createAnother")}
         </Link>
       ) : null}
+      <AdminLink className="mt-6 block w-fit" />
     </div>
   );
 }
