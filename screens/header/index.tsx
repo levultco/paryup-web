@@ -22,6 +22,7 @@ import BorderBeam from "@/components/common/borderBeam";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import type { Locale } from "@/lib/i18n";
+import { PANEL_DIR, panelCleanPath } from "@/lib/backstage-host";
 import { FloatingDisclosure } from "@/components/watermelon/floating-disclosure";
 
 // Degradado negro con curva suave (ease) para que el texto se funda sin que se note dónde acaba.
@@ -58,8 +59,12 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
       setMainOrigin(`${protocol}//${host.replace(/^backstage\./i, "")}`);
     }
   }, []);
-  const to = (href: string) =>
-    mainOrigin && href.startsWith("/") && !href.startsWith("/login") ? `${mainOrigin}${href}` : href;
+  const to = (href: string) => {
+    if (!mainOrigin || !href.startsWith("/") || href.startsWith("/login")) return href;
+    // El panel vive en este mismo subdominio: /organizations -> / (no es ruta de la web principal).
+    if (href === PANEL_DIR || href.startsWith(`${PANEL_DIR}/`)) return panelCleanPath(href);
+    return `${mainOrigin}${href}`;
+  };
   const orgAccess = useOrganizations();
   const hasOrganizations =
     orgAccess.status === "ready" &&
