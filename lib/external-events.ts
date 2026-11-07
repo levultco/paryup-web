@@ -8,6 +8,12 @@ export type ExternalEventInfo = {
   currency: string | null;
   fromPrice: number | null;
   hasAvailableRates: boolean | null;
+  /** Estado de venta calculado por el backend a la hora actual. */
+  sales?: {
+    state: "ON_SALE" | "SOON" | "SOLD_OUT" | "UNAVAILABLE" | "NONE";
+    fromPrice: number | null;
+    opensAt: string | null;
+  } | null;
 };
 
 export type ExternalRates = {
@@ -54,6 +60,9 @@ const COPY = {
     listClosed: "Lista cerrada",
     stale: "Precios de la última sincronización; pueden haber cambiado.",
     noRates: "Sin entradas a la venta",
+    opensOn: "desde el {date}",
+    ticketsSoldOut: "Entradas agotadas",
+    ticketsUnavailable: "Entradas no disponibles",
     from: "Desde",
     maxPeople: "máx. {n} personas",
     listInApp: "Apúntate desde la app de ParyUp.",
@@ -86,6 +95,9 @@ const COPY = {
     listClosed: "List closed",
     stale: "Prices from the last sync; they may have changed.",
     noRates: "No tickets on sale",
+    opensOn: "from {date}",
+    ticketsSoldOut: "Tickets sold out",
+    ticketsUnavailable: "Tickets unavailable",
     from: "From",
     maxPeople: "max. {n} people",
     listInApp: "Sign up from the ParyUp app.",
@@ -164,17 +176,52 @@ export function externalWhen(
   };
 }
 
-export function externalPrice(
+export type SalesTone = "good" | "soon" | "bad" | "muted";
+
+export const SALES_TONE_CLASS: Record<SalesTone, string> = {
+  good: "text-emerald-300",
+  soon: "text-amber-300",
+  bad: "text-red-400",
+  muted: "text-white/60",
+};
+
+/** Estado de venta: verde a la venta, ámbar próximamente, rojo agotadas, gris no disponibles. */
+export function externalSalesBadge(
   info: ExternalEventInfo | null,
   locale: Locale,
-): string | null {
+): { label: string; tone: SalesTone } | null {
   if (!info) return null;
   const copy = externalCopy(locale);
-  if (info.fromPrice !== null && info.fromPrice > 0) {
-    return `${copy.from} ${formatMoney(info.fromPrice, info.currency, locale)}`;
+  const sales = info.sales;
+  const price = sales?.fromPrice ?? info.fromPrice;
+  const from = price !== null && price !== undefined && price > 0 ? formatMoney(price, info.currency, locale) : null;
+  switch (sales?.state) {
+    case "ON_SALE":
+      return { label: from ? `${copy.from} ${from}` : copy.onSale, tone: "good" };
+    case "SOON": {
+      const when = sales.opensAt
+        ? new Intl.DateTimeFormat(locale === "es" ? "es-ES" : "en-GB", {
+            day: "numeric",
+            month: "short",
+            timeZone: safeZone(info.timezone),
+          }).format(new Date(sales.opensAt))
+        : null;
+      return {
+        label: [copy.soon, when ? copy.opensOn.replace("{date}", when) : null, from].filter(Boolean).join(" · "),
+        tone: "soon",
+      };
+    }
+    case "SOLD_OUT":
+      return { label: copy.ticketsSoldOut, tone: "bad" };
+    case "UNAVAILABLE":
+      return { label: copy.ticketsUnavailable, tone: "muted" };
+    default:
+      return from ? { label: `${copy.from} ${from}`, tone: "muted" } : null;
   }
-  return info.hasAvailableRates === false ? copy.noRates : null;
 }
+
+export const externalPrice = (info: ExternalEventInfo | null, locale: Locale) =>
+  externalSalesBadge(info, locale)?.label ?? null;
 
 export function formatMoney(amount: number, currency: string | null, locale: Locale) {
   try {

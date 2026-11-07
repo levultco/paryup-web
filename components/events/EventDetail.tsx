@@ -10,7 +10,8 @@ import { longDateLabel } from "@/lib/discovery";
 import {
   describeListCondition,
   externalCopy,
-  externalPrice,
+  externalSalesBadge,
+  SALES_TONE_CLASS,
   externalWhen,
   formatMoney,
   rateStatus,
@@ -43,7 +44,7 @@ export function EventDetail({
     ? externalWhen(event.date, event.endDate, event.external!, locale, year)
     : null;
   const price = isExternal
-    ? externalPrice(event.external, locale)
+    ? (externalSalesBadge(event.external, locale)?.label ?? null)
     : priceLabel(event.price, event.soldOut, t, locale);
 
   return (
@@ -123,7 +124,15 @@ export function EventDetail({
                 <dt className="text-xs uppercase tracking-[0.2em] text-white/40">
                   {t("detail.tickets")}
                 </dt>
-                <dd className="mt-1 text-lg">{price}</dd>
+                <dd
+                  className={`mt-1 text-lg ${
+                    isExternal
+                      ? SALES_TONE_CLASS[externalSalesBadge(event.external, locale)?.tone ?? "muted"]
+                      : ""
+                  }`}
+                >
+                  {price}
+                </dd>
               </div>
             ) : null}
           </dl>

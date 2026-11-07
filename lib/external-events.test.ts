@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { describeListCondition, externalPrice, externalWhen, rateStatus } from "./external-events";
+import { describeListCondition, externalPrice, externalSalesBadge, externalWhen, rateStatus } from "./external-events";
 
 const info = {
   timezone: "Europe/Madrid",
@@ -53,11 +53,23 @@ describe("eventos Fourvenues en la web", () => {
 
   test("precio desde / sin entradas / desconocido", () => {
     expect(externalPrice(info, "es")?.replace(/\s/g, " ")).toBe("Desde 15 €");
-    expect(externalPrice({ ...info, fromPrice: null, hasAvailableRates: false }, "en")).toBe(
-      "No tickets on sale",
-    );
+    // Sin estado de venta del backend no se afirma «sin entradas»: puede que la venta aún no haya empezado.
+    expect(externalPrice({ ...info, fromPrice: null, hasAvailableRates: false }, "en")).toBeNull();
     expect(externalPrice({ ...info, fromPrice: null, hasAvailableRates: null }, "es")).toBeNull();
     expect(externalPrice(null, "es")).toBeNull();
+  });
+
+  test("estado de venta con color: próximamente no es «sin entradas»", () => {
+    const sales = (state: "ON_SALE" | "SOON" | "SOLD_OUT" | "UNAVAILABLE" | "NONE", over = {}) => ({
+      ...info,
+      sales: { state, fromPrice: 10, opensAt: "2026-11-09T11:44:00Z", ...over },
+    });
+    const soon = externalSalesBadge(sales("SOON"), "es")!;
+    expect(soon.tone).toBe("soon");
+    expect(soon.label.replace(/\s/g, " ")).toBe("Próximamente · desde el 9 nov · 10 €");
+    expect(externalSalesBadge(sales("ON_SALE"), "en")).toMatchObject({ tone: "good" });
+    expect(externalSalesBadge(sales("SOLD_OUT"), "es")).toEqual({ label: "Entradas agotadas", tone: "bad" });
+    expect(externalSalesBadge(sales("UNAVAILABLE"), "en")).toEqual({ label: "Tickets unavailable", tone: "muted" });
   });
 
   test("estado de tarifa: lo decide el backend; sin venta abierta no es «agotada»", () => {

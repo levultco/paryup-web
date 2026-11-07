@@ -77,6 +77,7 @@ export function toPublicEvent(raw: RawEvent): PublicEvent {
               typeof raw.externalRef.hasAvailableRates === "boolean"
                 ? raw.externalRef.hasAvailableRates
                 : null,
+            sales: raw.externalRef.sales ?? null,
           }
         : null,
   };

@@ -65,10 +65,7 @@ export function FourvenuesHomeView() {
     ? externalWhen(next.date, next.endDate, next.externalRef, locale)
     : null;
   const nextPrice = next?.externalRef
-    ? externalPrice(
-        { ...next.externalRef, hasAvailableRates: null },
-        locale,
-      )
+    ? externalPrice({ ...next.externalRef, hasAvailableRates: null }, locale)
     : null;
   const sync = syncState(link?.lastSyncAt, link?.lastSyncStatus);
   const phaseKey = syncPhaseKey(link?.sync);
