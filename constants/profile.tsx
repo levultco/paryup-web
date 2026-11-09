@@ -1,4 +1,5 @@
 import { ExitIcon, TicketIcon } from "@/public/icons/icons";
+import { ShieldCheck as ShieldIcon } from "lucide-react";
 import { UserCircleIcon, WidgetIcon } from "@/components/icons/solar";
 
 export type ProfileMenuItem = {
@@ -8,7 +9,7 @@ export type ProfileMenuItem = {
   icon: React.ReactNode;
   action?: "logout";
   /** Solo se muestra si el usuario puede crear o ya pertenece a una organización. */
-  requires?: "organizations";
+  requires?: "organizations" | "admin";
 };
 
 export const ProfileMenuItems: ProfileMenuItem[] = [
@@ -30,6 +31,13 @@ export const ProfileMenuItems: ProfileMenuItem[] = [
     href: "/organizations",
     icon: <WidgetIcon className="h-5 w-5" />,
     requires: "organizations",
+  },
+  {
+    labelKey: "menu.admin",
+    descriptionKey: "menu.adminDesc",
+    href: "/organizations/admin/fourvenues",
+    icon: <ShieldIcon className="h-5 w-5" />,
+    requires: "admin",
   },
   {
     labelKey: "menu.logout",

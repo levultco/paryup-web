@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 import { AppToaster } from "@/components/ui/AppToaster";
+import { SoundEffects } from "@/components/ui/SoundEffects";
 
 const display = Bricolage_Grotesque({
   variable: "--font-display-face",
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <LocaleProvider>
           <AuthProvider>{children}</AuthProvider>
           <AppToaster />
+          <SoundEffects />
         </LocaleProvider>
       </body>
     </html>

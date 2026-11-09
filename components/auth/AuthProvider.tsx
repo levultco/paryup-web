@@ -16,6 +16,8 @@ export type AuthUser = {
   email: string;
   nickname: string | null;
   image: string | null;
+  emailVerified: boolean;
+  basicProfileComplete: boolean;
 };
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
@@ -24,7 +26,10 @@ type AuthContextValue = {
   user: AuthUser | null;
   status: AuthStatus;
   login: (email: string, password: string) => Promise<string | null>;
-  loginWithGoogle: (idToken: string) => Promise<string | null>;
+  loginWithGoogle: (idToken: string, register?: boolean) => Promise<string | null>;
+  register: (email: string, password: string) => Promise<string | null>;
+  /** Sustituye el usuario tras completar un paso (perfil, verificación). */
+  updateUser: (user: AuthUser) => void;
   logout: () => Promise<void>;
 };
 
@@ -52,9 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const submit = useCallback(async (payload: Record<string, string>) => {
+  const submit = useCallback(
+    async (payload: Record<string, string | boolean>, url = "/api/session") => {
     try {
-      const res = await fetch("/api/session", {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -69,16 +75,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       return "connect";
     }
-  }, []);
+    },
+    [],
+  );
 
   const login = useCallback(
     (email: string, password: string) => submit({ email, password }),
     [submit],
   );
   const loginWithGoogle = useCallback(
-    (googleIdToken: string) => submit({ googleIdToken }),
+    (googleIdToken: string, register = false) =>
+      submit(register ? { googleIdToken, register: true } : { googleIdToken }),
     [submit],
   );
+  const register = useCallback(
+    (email: string, password: string) =>
+      submit({ email, password }, "/api/session/register"),
+    [submit],
+  );
+  const updateUser = useCallback((next: AuthUser) => {
+    setUser(next);
+    setStatus("authenticated");
+  }, []);
 
   const logout = useCallback(async () => {
     await fetch("/api/session", { method: "DELETE" }).catch(() => null);
@@ -87,8 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, status, login, loginWithGoogle, logout }),
-    [user, status, login, loginWithGoogle, logout],
+    () => ({ user, status, login, loginWithGoogle, register, updateUser, logout }),
+    [user, status, login, loginWithGoogle, register, updateUser, logout],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;

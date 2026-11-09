@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import { AdminLink } from "@/components/admin/AdminLink";
 import { ArrowRightIcon } from "@/components/icons/solar";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { ShimmerButton } from "@/components/watermelon/shimmer-button";
 import { OrgAvatar, OrgName } from "@/components/organizations/OrgAvatar";
 import { PendingInvites } from "@/components/organizations/PendingInvites";
+import { mainSiteUrl } from "@/lib/site-urls";
 import { useOrganizations } from "@/components/organizations/useOrganizations";
 import type { OrgRole } from "@/lib/organizations";
 import { HubSkeletonView } from "@/components/organizations/skeletons";
@@ -45,7 +45,8 @@ export function OrganizationsHub() {
     } else if (single) {
       router.replace(`/${firstSlug}`);
     } else if (noAccess) {
-      router.replace("/");
+      // Backstage es solo para quien tiene organización o permiso (se concede desde base de datos).
+      window.location.replace(mainSiteUrl("/"));
     }
   }, [state.status, single, noAccess, firstSlug, router]);
 
@@ -59,7 +60,7 @@ export function OrganizationsHub() {
 
   if (orgs.length === 0 && !canCreate) {
     return (
-      <div className="mx-auto flex max-w-xl flex-col items-center py-16">
+      <div className="mx-auto flex max-w-xl flex-col items-center gap-8 py-16">
         <PendingInvites invites={invites} />
       </div>
     );
@@ -82,7 +83,6 @@ export function OrganizationsHub() {
             <ArrowRightIcon className="h-4 w-4" />
           </ShimmerButton>
         </Link>
-        <AdminLink className="mt-6" />
       </div>
     );
   }
@@ -130,7 +130,6 @@ export function OrganizationsHub() {
           {t("orgs.createAnother")}
         </Link>
       ) : null}
-      <AdminLink className="mt-6 block w-fit" />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { EventAccess } from "@/components/organizations/EventAccess";
 import { EventAttendees } from "@/components/organizations/EventAttendees";
+import { FourvenuesEventStats } from "@/components/organizations/FourvenuesEventStats";
 import { EventSales } from "@/components/organizations/EventSales";
 import { SalesChart } from "@/components/organizations/SalesChart";
 import { StatusBadge } from "@/components/organizations/EventsList";
@@ -24,6 +25,7 @@ type EventSummary = {
   date?: string;
   location?: string | null;
   status: EventStatus;
+  source?: "NATIVE" | "FOURVENUES";
 };
 
 /** Vista principal de un evento: estadísticas. La edición vive en /settings. */
@@ -78,6 +80,7 @@ export function EventDetail({ eventId }: { eventId: string }) {
   const showAccess = published && can(ORG_PERMISSIONS.accessRequestsManage);
   const showSales = published && can(ORG_PERMISSIONS.statsView);
   const showAttendees = published && can(ORG_PERMISSIONS.accessControlView);
+  const fourvenues = event.source === "FOURVENUES";
 
   return (
     <div className="flex flex-col gap-6">
@@ -114,9 +117,11 @@ export function EventDetail({ eventId }: { eventId: string }) {
           </p>
         </div>
         <StatusBadge status={event.status} />
-        <Link href={`${base}/${eventId}/settings`} className={pillButton}>
-          {t("orgs.ev.viewSettings")}
-        </Link>
+        {!fourvenues ? (
+          <Link href={`${base}/${eventId}/settings`} className={pillButton}>
+            {t("orgs.ev.viewSettings")}
+          </Link>
+        ) : null}
       </div>
 
       {!published ? (
@@ -124,14 +129,23 @@ export function EventDetail({ eventId }: { eventId: string }) {
           {t("orgs.ev.draftStats")}
         </p>
       ) : null}
-      {published && !showAccess && !showSales && !showAttendees ? (
+      {fourvenues && published ? (
+        <FourvenuesEventStats eventId={eventId} />
+      ) : null}
+      {!fourvenues &&
+      published &&
+      !showAccess &&
+      !showSales &&
+      !showAttendees ? (
         <p className="text-white/55">{t("orgs.ev.noStatsAccess")}</p>
       ) : null}
 
-      {showSales ? <SalesChart eventId={eventId} /> : null}
-      {showSales ? <EventSales eventId={eventId} /> : null}
-      {showAccess ? <EventAccess eventId={eventId} /> : null}
-      {showAttendees ? <EventAttendees eventId={eventId} /> : null}
+      {!fourvenues && showSales ? <SalesChart eventId={eventId} /> : null}
+      {!fourvenues && showSales ? <EventSales eventId={eventId} /> : null}
+      {!fourvenues && showAccess ? <EventAccess eventId={eventId} /> : null}
+      {!fourvenues && showAttendees ? (
+        <EventAttendees eventId={eventId} />
+      ) : null}
     </div>
   );
 }

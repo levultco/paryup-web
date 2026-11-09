@@ -12,22 +12,16 @@ import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { FloatingInput } from "@/components/watermelon/floating-input";
 import { ShimmerButton } from "@/components/watermelon/shimmer-button";
 
-function AppleIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-      aria-hidden
-    >
-      <path d="M16.37 12.62c-.03-2.7 2.2-4 2.3-4.06-1.25-1.83-3.2-2.08-3.9-2.11-1.66-.17-3.24.98-4.08.98-.85 0-2.15-.96-3.53-.93-1.82.03-3.49 1.06-4.43 2.69-1.89 3.28-.48 8.13 1.36 10.79.9 1.3 1.97 2.76 3.37 2.71 1.36-.05 1.87-.88 3.51-.88 1.63 0 2.1.88 3.53.85 1.46-.02 2.38-1.32 3.27-2.63 1.03-1.51 1.46-2.97 1.48-3.04-.03-.01-2.84-1.09-2.88-4.37zM13.7 4.67c.75-.91 1.25-2.17 1.11-3.43-1.08.04-2.38.72-3.15 1.62-.69.8-1.3 2.09-1.14 3.32 1.2.09 2.43-.61 3.18-1.51z" />
-    </svg>
-  );
-}
-
-export function LoginScreen({ art }: { art?: ReactNode }) {
+export function LoginScreen({
+  art,
+  mode = "login",
+}: {
+  art?: ReactNode;
+  mode?: "login" | "signup";
+}) {
+  const signup = mode === "signup";
   const router = useRouter();
-  const { status, login, loginWithGoogle } = useAuth();
+  const { status, login, loginWithGoogle, register } = useAuth();
   const { t } = useI18n();
 
   const [email, setEmail] = useState("");
@@ -36,9 +30,17 @@ export function LoginScreen({ art }: { art?: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const leave = () => {
+    // Siempre pasa por /signup/continue: si falta verificar el correo o completar el perfil
+    // básico lo pide ahí (también recupera un registro interrumpido); si no, sigue su camino.
+    const search = window.location.search;
+    router.replace(`/signup/continue${search}`);
+  };
+
   useEffect(() => {
-    if (status === "authenticated") router.replace("/");
-  }, [status, router]);
+    if (status === "authenticated") leave();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   const finish = (code: string | null) => {
     if (code) {
@@ -46,7 +48,7 @@ export function LoginScreen({ art }: { art?: ReactNode }) {
       setSubmitting(false);
       return;
     }
-    router.replace("/");
+    leave();
   };
 
   // Vuelve a la página de la que se venía; solo si se abrió el login directamente va al inicio.
@@ -60,14 +62,16 @@ export function LoginScreen({ art }: { art?: ReactNode }) {
     if (submitting) return;
     setSubmitting(true);
     setError(null);
-    finish(await login(email, password));
+    finish(
+      signup ? await register(email, password) : await login(email, password),
+    );
   };
 
   const onGoogle = async (idToken: string) => {
     if (submitting) return;
     setSubmitting(true);
     setError(null);
-    finish(await loginWithGoogle(idToken));
+    finish(await loginWithGoogle(idToken, signup));
   };
 
   return (
@@ -100,26 +104,14 @@ export function LoginScreen({ art }: { art?: ReactNode }) {
             <ParyUpIsoIcon className="mb-8 h-10 w-10" />
           </Link>
           <h1 className="font-display text-3xl font-semibold tracking-tight">
-            {t("login.title")}
+            {t(signup ? "signup.title" : "login.title")}
           </h1>
           <p className="mt-2 text-sm leading-6 text-muted">
-            {t("login.subtitle")}
+            {t(signup ? "signup.subtitle" : "login.subtitle")}
           </p>
 
           <div className="mt-8 flex flex-col gap-3">
             <GoogleSignInButton onCredential={onGoogle} disabled={submitting} />
-            <button
-              type="button"
-              disabled
-              title={t("login.soonTitle")}
-              className="flex h-12 w-full cursor-not-allowed items-center justify-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-6 text-sm font-medium text-white/45"
-            >
-              <AppleIcon className="h-[18px] w-[18px]" />
-              {t("login.apple")}
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wider">
-                {t("login.soon")}
-              </span>
-            </button>
           </div>
 
           <div className="my-7 flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-white/35">
@@ -143,7 +135,7 @@ export function LoginScreen({ art }: { art?: ReactNode }) {
             <FloatingInput
               id="login-password"
               type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
+              autoComplete={signup ? "new-password" : "current-password"}
               label={t("login.password")}
               labelClassName="bg-background"
               value={password}
@@ -179,19 +171,20 @@ export function LoginScreen({ art }: { art?: ReactNode }) {
               className="h-12 w-full px-6 py-0 text-sm font-semibold"
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {submitting ? t("login.submitting") : t("login.submit")}
+              {submitting
+                ? t("login.submitting")
+                : t(signup ? "signup.submit" : "login.submit")}
             </ShimmerButton>
           </form>
 
           <p className="mt-8 text-center text-sm text-muted">
-            {t("login.newHere")}{" "}
+            {t(signup ? "signup.haveAccount" : "login.newHere")}{" "}
             <Link
-              href="/#descarga"
+              href={signup ? "/login" : "/signup"}
               className="text-white underline-offset-4 hover:underline"
             >
-              {t("login.appLink")}
+              {t(signup ? "signup.loginLink" : "login.signupLink")}
             </Link>
-            .
           </p>
         </div>
       </section>

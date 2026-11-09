@@ -10,6 +10,7 @@ import {
   primaryButton,
 } from "@/components/organizations/ui";
 import { orgFetch } from "@/lib/org-api";
+import { notify } from "@/lib/toast";
 import { syncPhaseKey, type SyncInfo } from "@/lib/fourvenues-home";
 import type { MessageKey } from "@/lib/i18n";
 
@@ -53,7 +54,7 @@ export function FourvenuesCard() {
   const canRequest = !!status && !pending && !open;
   const rejected = link?.status === "REJECTED";
 
-  const act = async (path: string, body: unknown) => {
+  const act = async (path: string, body: unknown, successText?: string) => {
     setBusy(true);
     setError(null);
     const r = await orgFetch<{ message?: string }>(slug, path, {
@@ -62,6 +63,7 @@ export function FourvenuesCard() {
     });
     setBusy(false);
     if (!r.ok) setError(r.data?.message ?? t("orgs.fv.actionError"));
+    else if (successText) notify("success", successText, t("orgs.fv.requestSentText"));
     await load();
   };
 
@@ -154,7 +156,7 @@ export function FourvenuesCard() {
             type="button"
             className={primaryButton}
             disabled={busy}
-            onClick={() => void act("fourvenues/link-requests", {})}
+            onClick={() => void act("fourvenues/link-requests", {}, t("orgs.fv.requestSent"))}
           >
             {rejected ? t("orgs.fv.requestAgain") : t("orgs.fv.request")}
           </button>

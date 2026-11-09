@@ -8,7 +8,6 @@ export const PANEL_DIR = "/organizations";
 /** Rutas compartidas con la web principal que no son una organización. */
 const SHARED_PATHS = [
   "/api",
-  "/login",
   "/assets",
   "/.well-known",
   "/terms",
@@ -25,6 +24,16 @@ export function isBackstageHost(host: string): boolean {
 /** `paryup.com` / `www.paryup.com` / `localhost:3001` -> `backstage.…` */
 export function backstageHostFor(host: string): string {
   return `backstage.${host.replace(/^www\./i, "")}`;
+}
+
+/** `backstage.paryup.com` / `backstage.localhost:3001` -> `paryup.com` / `localhost:3001` */
+export function mainHostFor(host: string): string {
+  return host.replace(/^backstage\./i, "");
+}
+
+/** Solo rutas internas del propio host: nunca URLs absolutas ni `//host`. */
+export function safeNextPath(value: string | null | undefined): string {
+  return value && value.startsWith("/") && !value.startsWith("//") ? value : "/";
 }
 
 export function isSharedPath(pathname: string): boolean {

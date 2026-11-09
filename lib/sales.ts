@@ -120,3 +120,19 @@ export function buildSalesSeries(
   }
   return window ? all.slice(-window) : all;
 }
+
+/** Serie a cero para un evento sin ventas: los últimos N días (30 si es "todo") hasta `today`. */
+export function buildEmptySalesSeries(
+  today: string,
+  window: number | null,
+): SeriesPoint[] {
+  const n = window ?? 30;
+  const end = toMs(today);
+  return Array.from({ length: n }, (_, i) => ({
+    date: toDate(end - (n - 1 - i) * DAY_MS),
+    tickets: 0,
+    amount: 0,
+    cumTickets: 0,
+    cumAmount: 0,
+  }));
+}

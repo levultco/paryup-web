@@ -11,7 +11,6 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
-import { AdminLink } from "@/components/admin/AdminLink";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   CalendarIcon,
@@ -227,7 +226,6 @@ export function OrgShell({
               {t("orgs.panel.switch")}
             </Link>
           ) : null}
-          <AdminLink className="mt-3 !h-10 !px-4 !text-white/70" />
         </aside>
         <div className="min-w-0 flex-1">{children}</div>
       </div>

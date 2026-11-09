@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildSalesSeries, formatMoney } from "./sales";
+import { buildEmptySalesSeries, buildSalesSeries, formatMoney } from "./sales";
 
 describe("formatMoney", () => {
   test("convierte céntimos a euros", () => {
@@ -32,5 +32,18 @@ describe("buildSalesSeries", () => {
   });
   test("sin ventas no hay serie", () => {
     expect(buildSalesSeries([], "2026-10-14", 7)).toEqual([]);
+  });
+});
+
+describe("buildEmptySalesSeries", () => {
+  test("sin ventas dibuja N días a cero hasta hoy", () => {
+    const s = buildEmptySalesSeries("2026-11-08", 7);
+    expect(s).toHaveLength(7);
+    expect(s[0].date).toBe("2026-11-02");
+    expect(s[6].date).toBe("2026-11-08");
+    expect(s.every((p) => p.cumTickets === 0 && p.cumAmount === 0)).toBe(true);
+  });
+  test("«todo» usa los últimos 30 días", () => {
+    expect(buildEmptySalesSeries("2026-11-08", null)).toHaveLength(30);
   });
 });

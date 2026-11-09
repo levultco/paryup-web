@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { FloatingInput } from "@/components/watermelon/floating-input";
 import { ShimmerButton } from "@/components/watermelon/shimmer-button";
@@ -14,22 +13,25 @@ import {
 
 type SlugState = "idle" | "checking" | "available" | "taken" | "invalid";
 
-export function CreateOrganizationForm() {
-  const router = useRouter();
+export type OrgDraft = { name: string; slug: string };
+
+/** Paso 1: solo recoge los datos; la organización se crea al terminar el último paso. */
+export function CreateOrganizationForm({
+  initial,
+  onNext,
+}: {
+  initial: OrgDraft | null;
+  onNext: (draft: OrgDraft) => void;
+}) {
   const { t } = useI18n();
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [city, setCity] = useState("");
+  const [name, setName] = useState(initial?.name ?? "");
+  const [slug, setSlug] = useState(initial?.slug ?? "");
+  const [slugTouched, setSlugTouched] = useState(!!initial);
   // Resultado de la comprobación remota, ligado al identificador que se comprobó.
   const [remote, setRemote] = useState<{
     slug: string;
     state: "available" | "taken" | "invalid";
   } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  // Evita dobles envíos aunque el estado aún no se haya repintado.
-  const inFlight = useRef(false);
 
   const onName = (value: string) => {
     setName(value);
@@ -74,55 +76,12 @@ export function CreateOrganizationForm() {
   }, [normalizedSlug]);
 
   const nameOk = name.trim().length >= 2 && name.trim().length <= 80;
-  const canSubmit = nameOk && slugState === "available" && !submitting;
+  const canSubmit = nameOk && slugState === "available";
 
-  const onSubmit = async (event: FormEvent) => {
+  const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    if (!canSubmit || inFlight.current) return;
-    inFlight.current = true;
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/organizations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          slug: normalizeOrgSlug(slug),
-          city: city.trim(),
-        }),
-      });
-      const data = await res.json().catch(() => null);
-      if (res.ok && data?.organization?.slug) {
-        router.replace(`/${data.organization.slug}?created=1`);
-        return;
-      }
-      if (res.status === 401) {
-        router.replace("/login?next=/new");
-        return;
-      }
-      if (data?.code === "slugTaken") {
-        setRemote({ slug: normalizeOrgSlug(slug), state: "taken" });
-      }
-      setError(
-        data?.code === "forbidden"
-          ? t("orgs.form.forbidden")
-          : data?.code === "limitReached"
-            ? t("orgs.form.limitReached")
-            : data?.code === "slugTaken"
-              ? t("orgs.form.taken")
-              : data?.code === "invalid"
-                ? t("orgs.form.invalidSlug")
-                : data?.code === "connect"
-                  ? t("orgs.form.connect")
-                  : t("orgs.form.generic"),
-      );
-    } catch {
-      setError(t("orgs.form.connect"));
-    } finally {
-      inFlight.current = false;
-      setSubmitting(false);
-    }
+    if (!canSubmit) return;
+    onNext({ name: name.trim(), slug: normalizeOrgSlug(slug) });
   };
 
   const slugMessage =
@@ -186,27 +145,8 @@ export function CreateOrganizationForm() {
         </p>
       </div>
 
-      <FloatingInput
-        id="org-city"
-        label={t("orgs.form.city")}
-        value={city}
-        maxLength={80}
-        autoComplete="address-level2"
-        onChange={(e) => setCity(e.target.value)}
-        labelClassName="bg-black"
-      />
-
-      {error ? (
-        <p
-          role="alert"
-          className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-300"
-        >
-          {error}
-        </p>
-      ) : null}
-
-      <ShimmerButton type="submit" disabled={!canSubmit} aria-busy={submitting}>
-        {submitting ? t("orgs.form.submitting") : t("orgs.form.submit")}
+      <ShimmerButton type="submit" disabled={!canSubmit}>
+        {t("orgs.form.next")}
       </ShimmerButton>
     </form>
   );

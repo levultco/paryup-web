@@ -51,6 +51,7 @@ const FEATURES: Feature[] = [
         width={1967}
         height={799}
         centered
+        zoom={138}
         alt="backstage.feature.equipo.title"
       />
     ),

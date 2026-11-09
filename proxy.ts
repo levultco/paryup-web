@@ -9,6 +9,7 @@ import {
   panelCleanPath,
   panelRewrite,
 } from "@/lib/backstage-host";
+import { backstageVerdict } from "@/lib/backstage-access";
 
 const PREVIEW_COOKIE = "paryup_preview";
 
@@ -67,7 +68,7 @@ function gate(request: NextRequest) {
   return NextResponse.redirect(new URL("/waitlist", request.url));
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const gated = gate(request);
   // Redirecciones y bloqueos de la lista de espera: tal cual.
   if (gated.headers.get("x-middleware-next") !== "1") return gated;
@@ -80,6 +81,13 @@ export function proxy(request: NextRequest) {
     // La ruta interna no se muestra: /organizations/x -> /x
     if (inPanelDir) {
       return NextResponse.redirect(new URL(`${panelCleanPath(pathname)}${search}`, request.url));
+    }
+    // El login es único y vive en la web principal: backstage no tiene /login propio.
+    if (pathname === "/login") {
+      // (la redirección la hace la ruta: desde el proxy Next la dejaría relativa al mismo host)
+      const login = request.nextUrl.clone();
+      login.pathname = "/api/session/backstage-login";
+      return NextResponse.rewrite(login);
     }
     if (isSharedPath(pathname)) return gated;
     // Solo desarrollo: sin cookie en este host, la pide a localhost (ver /api/session/handoff).
@@ -94,6 +102,17 @@ export function proxy(request: NextRequest) {
       const headers = new Headers(request.headers);
       headers.set("x-handoff-next", `${pathname}${search}`);
       return NextResponse.rewrite(handoff, { request: { headers } });
+    }
+    // Control de acceso en el servidor, antes de servir nada (HTML, RSC y datos): Backstage es solo
+    // para quien tiene organización o permiso. Sin acceso se sale a la web principal.
+    const verdict = await backstageVerdict(request.cookies.get("paryup_session")?.value);
+    if (verdict !== "ok") {
+      const exit = request.nextUrl.clone();
+      exit.pathname = "/api/session/backstage-exit";
+      // El motivo viaja en una cabecera: la ruta reescrita ve la URL original, no la nueva.
+      const headers = new Headers(request.headers);
+      headers.set("x-backstage-exit", verdict === "denied" ? "home" : verdict);
+      return NextResponse.rewrite(exit, { request: { headers } });
     }
     const url = request.nextUrl.clone();
     url.pathname = panelRewrite(pathname);

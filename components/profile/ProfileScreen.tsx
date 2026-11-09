@@ -247,24 +247,7 @@ export function ProfileScreen({
               <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3">
                 {events.map((event) => (
                   <li key={event.id}>
-                    <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-[#0e0e0e]">
-                      {event.coverImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={event.coverImage}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center">
-                          <span className="font-display text-5xl font-semibold text-white/25">
-                            {event.name.trim().charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    <EventCover src={event.coverImage} name={event.name} />
                     <p className="font-display mt-3 line-clamp-2 text-base font-semibold leading-snug">
                       {event.name}
                     </p>
@@ -329,6 +312,33 @@ export function ProfileScreen({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Portada del evento; si la imagen no carga, muestra la inicial en lugar de una imagen rota. */
+function EventCover({ src, name }: { src: string | null; name: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-[#0e0e0e]">
+      {src && !failed ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center">
+          <span className="font-display text-5xl font-semibold text-white/25">
+            {name.trim().charAt(0).toUpperCase()}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

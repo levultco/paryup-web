@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { Header } from "@/screens/header";
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
 
 /** Solo administradores de ParyUp; al resto la ruta no existe. El backend lo vuelve a exigir. */
 async function AdminGate() {
+  // Fuerza render en petición: la vista cliente usa Date.now() (framer-motion).
+  await connection();
   const token = await sessionToken();
   if (!token) redirect("/login");
   const res = await backendFetch("/authz/bootstrap", { token }).catch(

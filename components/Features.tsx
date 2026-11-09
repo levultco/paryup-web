@@ -53,14 +53,19 @@ function FeatureCard({ f, prefix }: { f: Feature; prefix: string }) {
           }`}
         >
           {f.screens ? (
-            <div data-slot className="relative min-h-[460px] w-full md:min-h-[560px]">
+            <div
+              data-slot
+              className="relative min-h-[460px] w-full md:min-h-[560px]"
+            >
               <AppPhones screens={f.screens} alt={title} variant={f.variant} />
             </div>
           ) : f.visual ? (
             <div
               data-slot
               className={`relative w-full ${
-                f.bleed ? "h-[400px] md:h-[500px]" : "h-[340px] md:h-[400px]"
+                f.bleed
+                  ? "min-h-[400px] md:min-h-[500px]"
+                  : "h-[340px] md:h-[400px]"
               }`}
             >
               {f.visual}

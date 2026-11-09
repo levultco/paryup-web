@@ -1,5 +1,6 @@
 "use client";
 
+import { playSound } from "@/lib/sounds";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
@@ -208,6 +209,7 @@ export function DateRibbon({
               }`}
               onClick={() => {
                 if (suppressClick.current || active || past) return;
+                playSound("pick");
                 onSelect(key);
               }}
               initial={{ x, opacity: 0 }}

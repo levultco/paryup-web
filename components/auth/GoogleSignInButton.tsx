@@ -80,11 +80,13 @@ export function GoogleSignInButton({
           width: Math.min(400, Math.round(element.clientWidth)),
           locale,
         });
-        // Si Google no acepta el origen, el botón se queda sin tamaño
+        // Si Google no acepta el origen, no se pinta nada con tamaño. Con FedCM el botón es un
+        // `div[role=button]` y el `iframe` queda a 0x0, así que se mira cualquier elemento visible.
         setTimeout(() => {
-          if (active && !element.querySelector("iframe")?.offsetHeight) {
-            setBlocked(true);
-          }
+          const rendered = Array.from(element.querySelectorAll("*")).some(
+            (node) => (node as HTMLElement).offsetHeight > 0,
+          );
+          if (active && !rendered) setBlocked(true);
         }, 4000);
       })
       .catch(() => active && setFailed(true));

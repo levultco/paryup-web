@@ -1,5 +1,7 @@
 import "server-only";
 
+import { isBasicProfileComplete } from "@/lib/signup-state";
+
 export const API_URL = process.env.API_URL ?? "http://localhost:4000";
 export const SESSION_COOKIE = "paryup_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
@@ -10,6 +12,9 @@ export type SessionUser = {
   email: string;
   nickname: string | null;
   image: string | null;
+  emailVerified: boolean;
+  /** Nombre y nombre de usuario válidos guardados (independiente del onboarding social del móvil). */
+  basicProfileComplete: boolean;
 };
 
 type BackendInit = Omit<RequestInit, "headers"> & {
@@ -44,6 +49,12 @@ export async function fetchSessionUser(
       email: user.email ?? "",
       nickname: user.nickname ?? null,
       image: user.avatarTabUrl ?? user.image ?? null,
+      emailVerified: user.emailVerified === true,
+      basicProfileComplete: isBasicProfileComplete({
+        name: user.name,
+        nickname: user.nickname,
+        basicProfileCompletedAt: user.basicProfileCompletedAt,
+      }),
     };
   } catch {
     return null;

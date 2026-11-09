@@ -10,8 +10,8 @@ import { orgFetch } from "@/lib/org-api";
 import { formatMoney, type SalesOrder, type SalesSummary } from "@/lib/sales";
 import { Select } from "@/components/organizations/select";
 import {
-  ListSkeleton,
-  StatsSkeleton,
+  SalesOrdersSkeleton,
+  SalesSummarySkeleton,
 } from "@/components/organizations/skeletons";
 
 const STATUS_FILTERS = ["", "PAID", "PENDING", "REFUNDED", "FAILED"] as const;
@@ -213,9 +213,7 @@ export function EventSales({ eventId }: { eventId: string }) {
           </ul>
         </>
       ) : !failed ? (
-        <div className="grid gap-3 sm:grid-cols-3">
-          <StatsSkeleton count={3} />
-        </div>
+        <SalesSummarySkeleton />
       ) : null}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
@@ -237,7 +235,7 @@ export function EventSales({ eventId }: { eventId: string }) {
         />
       </div>
       {orders === null ? (
-        <ListSkeleton rows={3} />
+        <SalesOrdersSkeleton rows={3} />
       ) : orders.length === 0 ? (
         <p className="mt-3 text-sm text-white/45">{t("orgs.sl.noOrders")}</p>
       ) : (

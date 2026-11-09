@@ -2,13 +2,19 @@
 
 import { useEffect, useId, useState } from "react";
 import type { PointerEvent } from "react";
+import { playSound } from "@/lib/sounds";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { useOrg } from "@/components/organizations/OrgShell";
 import { Card } from "@/components/organizations/ui";
 import { DISCOVERY_TZ } from "@/lib/discovery";
 import { intlLocale } from "@/lib/i18n";
 import { orgFetch } from "@/lib/org-api";
-import { buildSalesSeries, formatMoney, type SalesDay } from "@/lib/sales";
+import {
+  buildEmptySalesSeries,
+  buildSalesSeries,
+  formatMoney,
+  type SalesDay,
+} from "@/lib/sales";
 import { ChartSkeleton } from "@/components/organizations/skeletons";
 
 type Metric = "tickets" | "amount";
@@ -99,8 +105,12 @@ export function SalesChart({ eventId }: { eventId: string }) {
   }, [slug, eventId]);
 
   const loc = intlLocale(locale);
+  const windowDays = range === "all" ? null : Number(range);
+  // Sin ventas también se dibuja la gráfica (a cero) con su rango de fechas.
   const series = days
-    ? buildSalesSeries(days, today, range === "all" ? null : Number(range))
+    ? days.length === 0
+      ? buildEmptySalesSeries(today, windowDays)
+      : buildSalesSeries(days, today, windowDays)
     : [];
   const values = series.map((p) =>
     metric === "tickets" ? p.cumTickets : p.cumAmount,
@@ -121,8 +131,6 @@ export function SalesChart({ eventId }: { eventId: string }) {
     body = <p className="text-white/55">{t("orgs.sl.loadError")}</p>;
   } else if (!days) {
     body = <ChartSkeleton />;
-  } else if (series.length === 0) {
-    body = <p className="text-white/55">{t("orgs.sl.chart.empty")}</p>;
   } else {
     const hi = Math.max(...values, 1);
     const y = (v: number) => H - 16 - (v / hi) * (H - 40);
@@ -133,15 +141,15 @@ export function SalesChart({ eventId }: { eventId: string }) {
     const idx = hover ?? series.length - 1;
     const onMove = (e: PointerEvent<HTMLDivElement>) => {
       const r = e.currentTarget.getBoundingClientRect();
-      setHover(
-        Math.max(
-          0,
-          Math.min(
-            series.length - 1,
-            Math.round(((e.clientX - r.left) / r.width) * (series.length - 1)),
-          ),
+      const next = Math.max(
+        0,
+        Math.min(
+          series.length - 1,
+          Math.round(((e.clientX - r.left) / r.width) * (series.length - 1)),
         ),
       );
+      if (next !== hover) playSound("notch", 30);
+      setHover(next);
     };
     const left = `${(pts[idx][0] / W) * 100}%`;
     const point = series[idx];
@@ -233,6 +241,11 @@ export function SalesChart({ eventId }: { eventId: string }) {
           <span>{label(series[0].date)}</span>
           <span>{label(series[series.length - 1].date)}</span>
         </div>
+        {days?.length === 0 ? (
+          <p className="mt-3 text-sm text-white/45">
+            {t("orgs.sl.chart.empty")}
+          </p>
+        ) : null}
       </>
     );
   }

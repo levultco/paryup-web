@@ -207,15 +207,86 @@ export function FormSkeleton({ sections = 2 }: { sections?: number }) {
 
 /** Gráfica de ventas: barras de alturas variadas. */
 export function ChartSkeleton() {
-  const heights = [40, 62, 48, 80, 58, 90, 70, 52, 84, 66, 76, 94];
+  // Misma forma que la gráfica real: etiqueta + cifra, área con rejilla punteada y fechas.
   return (
-    <Wrap className="flex h-56 items-end gap-2 px-1">
-      {heights.map((h, i) => (
+    <Wrap>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-2">
+          <Sk className="h-3 w-20 rounded-full" />
+          <Sk className="h-8 w-16 rounded-lg" />
+        </div>
+        <Sk className="h-3 w-16 rounded-full" />
+      </div>
+      <div className="relative mt-4 h-56 overflow-hidden">
+        {[0.25, 0.5, 0.75].map((f) => (
+          <div
+            key={f}
+            aria-hidden
+            className="absolute inset-x-0 border-t border-dotted border-white/10"
+            style={{ top: `${f * 100}%` }}
+          />
+        ))}
         <Sk
-          key={i}
-          className="flex-1 rounded-t-lg"
-          style={{ height: `${h}%` }}
+          className="absolute inset-0"
+          style={{
+            clipPath:
+              "polygon(0 82%, 10% 76%, 22% 70%, 34% 60%, 46% 56%, 58% 44%, 70% 38%, 82% 26%, 91% 22%, 100% 14%, 100% 100%, 0 100%)",
+          }}
         />
+      </div>
+      <div className="mt-2 flex justify-between" aria-hidden>
+        <Sk className="h-3 w-10 rounded-full" />
+        <Sk className="h-3 w-10 rounded-full" />
+      </div>
+    </Wrap>
+  );
+}
+
+/** Resumen de ventas de un evento: mismas medidas que las cifras, "Por entrada" y un renglón. */
+export function SalesSummarySkeleton() {
+  return (
+    <Wrap>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {range(4).map((i) => (
+          <div
+            key={i}
+            className="flex flex-col gap-2 rounded-2xl border border-white/10 p-4"
+          >
+            <Sk className="h-3 w-24 rounded-full" />
+            <Sk className="h-8 w-16 rounded-lg" />
+          </div>
+        ))}
+      </div>
+      <Sk className="mt-3 h-3 w-40 rounded-full" />
+      <Sk className="mt-6 h-4 w-24 rounded-full" />
+      <div className="mt-3 flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <Sk className="h-4 w-36 rounded-full" />
+          <Sk className="h-4 w-14 rounded-full" />
+        </div>
+        <Sk className="h-1.5 w-full rounded-full" />
+        <Sk className="h-3 w-56 max-w-full rounded-full" />
+      </div>
+    </Wrap>
+  );
+}
+
+/** Órdenes de un evento: filas simples (sin avatar ni tarjeta), como la lista real. */
+export function SalesOrdersSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <Wrap className="mt-3 flex flex-col divide-y divide-white/10">
+      {range(rows).map((i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+        >
+          <div className="flex flex-1 flex-col gap-2">
+            <Sk className="h-4 w-28 rounded-full" />
+            <Sk className="h-3 w-48 max-w-full rounded-full" />
+          </div>
+          <Sk className="h-4 w-16 rounded-full" />
+          <Sk className="h-6 w-20 rounded-full" />
+        </div>
       ))}
     </Wrap>
   );

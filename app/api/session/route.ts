@@ -7,24 +7,7 @@ import {
   backendFetch,
   fetchSessionUser,
 } from "@/lib/backend";
-
-// SESSION_COOKIE_DOMAIN=.paryup.com comparte la sesión entre paryup.com y backstage.paryup.com.
-// En local los navegadores no comparten cookies entre localhost y backstage.localhost:
-// inicia sesión una vez en http://backstage.localhost:3001/login.
-const cookieOptions = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-  ...(process.env.SESSION_COOKIE_DOMAIN
-    ? { domain: process.env.SESSION_COOKIE_DOMAIN }
-    : {}),
-};
-
-/** Borra la cookie con el mismo dominio y ruta con que se creó. */
-function clearSession(store: Awaited<ReturnType<typeof cookies>>) {
-  store.set(SESSION_COOKIE, "", { ...cookieOptions, maxAge: 0 });
-}
+import { clearSession, cookieOptions } from "@/lib/session-cookie";
 
 export async function GET() {
   const store = await cookies();
@@ -45,6 +28,9 @@ export async function POST(request: Request) {
   const password = typeof body?.password === "string" ? body.password : "";
   const googleIdToken =
     typeof body?.googleIdToken === "string" ? body.googleIdToken : "";
+  // Registro explícito (pantalla "Crear cuenta"): permite crear la cuenta con Google. Sin esta
+  // marca el backend rechaza un Google sin cuenta (`disableImplicitSignUp`).
+  const requestSignUp = body?.register === true;
 
   if (!googleIdToken && (!email || !password)) {
     return NextResponse.json(
@@ -65,7 +51,11 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify(
           googleIdToken
-            ? { provider: "google", idToken: { token: googleIdToken } }
+            ? {
+                provider: "google",
+                idToken: { token: googleIdToken },
+                ...(requestSignUp ? { requestSignUp: true } : {}),
+              }
             : { email, password },
         ),
       },
@@ -80,7 +70,7 @@ export async function POST(request: Request) {
   const token = res.headers.get("set-auth-token");
   if (!res.ok || !token) {
     // El backend no crea cuentas con Google si no se pide el registro: la web
-    // solo inicia sesión, el registro se hace desde la app.
+    // solo registra con `register: true`, el registro es explícito.
     if (googleIdToken && !res.ok) {
       const detail = await res.json().catch(() => null);
       const text = JSON.stringify(detail ?? "").toLowerCase();
@@ -91,7 +81,7 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             error:
-              "No hay ninguna cuenta con ese Google. Regístrate primero desde la app de ParyUp.",
+              "No hay ninguna cuenta con ese Google. Crea una cuenta.",
             code: "noAccount",
           },
           { status: 403 },

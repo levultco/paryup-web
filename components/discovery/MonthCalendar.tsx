@@ -1,5 +1,6 @@
 "use client";
 
+import { playSound } from "@/lib/sounds";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useI18n } from "@/components/i18n/LocaleProvider";
@@ -192,7 +193,11 @@ function CalendarPanel({
                   ? `, ${t(count === 1 ? "disc.eventsOne" : "disc.eventsMany", { n: count })}`
                   : ""
               }`}
-              onClick={() => onSelect(key)}
+              data-sound="off"
+              onClick={() => {
+                playSound("pick");
+                onSelect(key);
+              }}
               className={`relative mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-full text-sm tabular-nums transition-colors ${
                 active
                   ? "bg-white font-semibold text-black"

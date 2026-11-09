@@ -11,6 +11,7 @@ export default function BackstageCatalog({
   alt = "backstage.feature.entradas.title",
   centered = false,
   fill = false,
+  zoom = 100,
   children,
 }: {
   src?: string;
@@ -21,6 +22,8 @@ export default function BackstageCatalog({
   centered?: boolean;
   /** Ocupa todo el ancho, pegada arriba y recortada por abajo (sin sombra). */
   fill?: boolean;
+  /** Amplía la captura dentro de la ventana (porcentaje, centrada): recorta márgenes vacíos y gana altura. */
+  zoom?: number;
   /** Contenido propio en lugar de la imagen. */
   children?: React.ReactNode;
 } = {}) {
@@ -56,7 +59,8 @@ export default function BackstageCatalog({
           width={width}
           height={height}
           unoptimized
-          className="h-auto w-full"
+          className="h-auto max-w-none"
+          style={{ width: `${zoom}%`, marginLeft: `${(100 - zoom) / 2}%` }}
         />
         )}
       </div>

@@ -22,6 +22,7 @@ export function EventTile({
   return (
     <Link
       href={`/events/${event.id}`}
+      data-hover-sound
       className="group block rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-white/50"
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-raised">

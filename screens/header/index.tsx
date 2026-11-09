@@ -23,6 +23,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import type { Locale } from "@/lib/i18n";
 import { PANEL_DIR, panelCleanPath } from "@/lib/backstage-host";
+import { backstageUrl } from "@/lib/site-urls";
 import { FloatingDisclosure } from "@/components/watermelon/floating-disclosure";
 
 // Degradado negro con curva suave (ease) para que el texto se funda sin que se note dónde acaba.
@@ -65,6 +66,22 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
     if (href === PANEL_DIR || href.startsWith(`${PANEL_DIR}/`)) return panelCleanPath(href);
     return `${mainOrigin}${href}`;
   };
+  const [isAdmin, setIsAdmin] = useState(false);
+  const userId = user?.id;
+  useEffect(() => {
+    if (!userId) {
+      setIsAdmin(false);
+      return;
+    }
+    let active = true;
+    fetch("/api/admin/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => active && setIsAdmin(data?.admin === true))
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [userId]);
   const orgAccess = useOrganizations();
   const hasOrganizations =
     orgAccess.status === "ready" &&
@@ -451,7 +468,8 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                   }
                   items={ProfileMenuItems.filter(
                     (item) =>
-                      item.requires !== "organizations" || hasOrganizations,
+                      (item.requires !== "organizations" || hasOrganizations) &&
+                      (item.requires !== "admin" || isAdmin),
                   ).map((item) => ({
                     title: t(item.labelKey),
                     description: t(item.descriptionKey),
@@ -464,6 +482,18 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                         return;
                       }
                       if (item.href) {
+                        // El panel está en otro dominio (backstage.*): navegación completa, sin
+                        // intentar el RSC entre orígenes (fallaría y dejaría un error en consola).
+                        if (
+                          !mainOrigin &&
+                          (item.href === PANEL_DIR ||
+                            item.href.startsWith(`${PANEL_DIR}/`))
+                        ) {
+                          window.location.assign(
+                            backstageUrl(panelCleanPath(item.href)),
+                          );
+                          return;
+                        }
                         const target = to(item.href);
                         if (target.startsWith("http")) window.location.assign(target);
                         else router.push(target);
