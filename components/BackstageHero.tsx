@@ -114,7 +114,7 @@ const EASE = [0.32, 0.72, 0, 1] as const;
 
 // Mismos botones que la home (StoreButtons): misma altura, relleno, bordes y hover.
 const BTN =
-  "inline-flex h-[58px] items-center gap-3 rounded-full px-7 text-[17px] font-semibold transition-[transform,translate,scale,background-color,box-shadow,border-color] duration-300 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:scale-[1.04] active:translate-y-0 active:scale-[0.97]";
+  "inline-flex h-[58px] items-center gap-3 rounded-full px-7 text-[17px] font-semibold transition-[transform,translate,scale,background-color,box-shadow,border-color] duration-300 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-[0.97]";
 
 /**
  * Cambia un contenido con un fundido corto. Las dos versiones se apilan en la misma celda
@@ -488,14 +488,14 @@ export default function BackstageHero({
           <button
             type="button"
             onClick={onRequest}
-            className={`${BTN} bg-white text-black hover:shadow-[0_14px_44px_-12px_rgba(255,255,255,0.55)]`}
+            className={`${BTN} bg-white text-black`}
           >
             {t("backstage.cta")}
             <ArrowRightIcon aria-hidden className="size-5" />
           </button>
           <a
             href="#como"
-            className={`${BTN} border border-white/10 bg-white/10 text-white backdrop-blur-xl hover:border-white/25 hover:bg-white/20 hover:shadow-[0_14px_44px_-12px_rgba(255,255,255,0.3)]`}
+            className={`${BTN} border border-white/10 bg-white/10 text-white backdrop-blur-xl hover:border-white/25 hover:bg-white/20`}
           >
             {t("backstage.ctaSecondary")}
           </a>

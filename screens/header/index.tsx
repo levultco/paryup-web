@@ -17,6 +17,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { LanguageItemProps, LanguageItems } from "@/constants/language";
 import NumberFlow from "@number-flow/react";
 import { ProfileMenuItems } from "@/constants/profile";
+import { VerifiedBadge } from "@/components/profile/VerifiedBadge";
 import { useOrganizations } from "@/components/organizations/useOrganizations";
 import BorderBeam from "@/components/common/borderBeam";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -440,7 +441,7 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                   }
                   header={
                     <div className="flex items-center gap-3 pr-2">
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/15">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/15">
                         {user.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -455,8 +456,16 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                         )}
                       </span>
                       <span className="flex min-w-0 flex-col leading-tight">
-                        <span className="truncate text-[15px] font-semibold text-neutral-100">
-                          {displayName}
+                        <span className="flex min-w-0 items-center gap-1.5">
+                          <span className="truncate text-[15px] font-semibold text-neutral-100">
+                            {displayName}
+                          </span>
+                          {user.badge ? (
+                            <VerifiedBadge
+                              type={user.badge}
+                              className="h-[18px] w-[18px] shrink-0"
+                            />
+                          ) : null}
                         </span>
                         {handle ? (
                           <span className="truncate text-[13px] text-neutral-500">

@@ -170,7 +170,7 @@ export function OrgShell({
     <OrgContext value={value}>
       <div className="org-panel flex flex-col gap-6 lg:flex-row lg:gap-12">
         <aside className="lg:sticky lg:top-32 lg:w-64 lg:shrink-0 lg:self-start">
-          <div className="flex items-center gap-3 rounded-[22px] bg-raised p-4 ring-1 ring-white/[0.08]">
+          <div className="flex items-center gap-3 rounded-[28px] bg-raised p-5 ring-1 ring-white/[0.04]">
             <OrgAvatar org={value.org} size={44} />
             <span className="flex min-w-0 flex-col leading-tight">
               <span className="font-display truncate text-[15px] font-semibold text-white">
@@ -203,8 +203,8 @@ export function OrgShell({
                     aria-current={active ? "page" : undefined}
                     className={`flex shrink-0 items-center gap-3 rounded-full px-4 py-3 text-sm transition-colors ${
                       active
-                        ? "bg-white text-black"
-                        : "text-white/60 hover:bg-white/10 hover:text-white"
+                        ? "bg-[#f4efe6] font-medium text-[#1b1916]"
+                        : "text-white/60 hover:bg-white/[0.07] hover:text-white"
                     }`}
                   >
                     <Icon className="h-[18px] w-[18px]" />

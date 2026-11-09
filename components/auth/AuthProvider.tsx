@@ -18,6 +18,7 @@ export type AuthUser = {
   image: string | null;
   emailVerified: boolean;
   basicProfileComplete: boolean;
+  badge?: "verified" | "pro" | null;
 };
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";

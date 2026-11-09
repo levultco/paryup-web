@@ -1,6 +1,7 @@
 import "server-only";
 
 import { isBasicProfileComplete } from "@/lib/signup-state";
+import { resolveBadge, type BadgeType } from "@/lib/social";
 
 export const API_URL = process.env.API_URL ?? "http://localhost:4000";
 export const SESSION_COOKIE = "paryup_session";
@@ -15,6 +16,8 @@ export type SessionUser = {
   emailVerified: boolean;
   /** Nombre y nombre de usuario válidos guardados (independiente del onboarding social del móvil). */
   basicProfileComplete: boolean;
+  /** Insignia del usuario (verificado / pro), si la tiene. */
+  badge: BadgeType | null;
 };
 
 type BackendInit = Omit<RequestInit, "headers"> & {
@@ -38,8 +41,15 @@ export async function fetchSessionUser(
   token: string,
 ): Promise<SessionUser | null> {
   try {
-    const res = await backendFetch("/api/auth/get-session", { token });
+    // `/users/me` aporta los datos de la insignia; es un extra y no bloquea la sesión.
+    const [res, meRes] = await Promise.all([
+      backendFetch("/api/auth/get-session", { token }),
+      backendFetch("/users/me", { token }).catch(() => null),
+    ]);
     if (!res.ok) return null;
+    const me = meRes?.ok
+      ? ((await meRes.json().catch(() => null))?.user ?? null)
+      : null;
     const data = await res.json();
     const user = data?.user;
     if (!user?.id) return null;
@@ -50,6 +60,7 @@ export async function fetchSessionUser(
       nickname: user.nickname ?? null,
       image: user.avatarTabUrl ?? user.image ?? null,
       emailVerified: user.emailVerified === true,
+      badge: resolveBadge(me),
       basicProfileComplete: isBasicProfileComplete({
         name: user.name,
         nickname: user.nickname,

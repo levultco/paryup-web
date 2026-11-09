@@ -252,15 +252,24 @@ export function Dialog({
     if (open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setMounted(true);
-      const id = requestAnimationFrame(() =>
-        requestAnimationFrame(() => setShown(true)),
-      );
-      return () => cancelAnimationFrame(id);
+      return;
     }
     setShown(false);
     const timer = setTimeout(() => setMounted(false), 250);
     return () => clearTimeout(timer);
   }, [open]);
+
+  // La entrada solo se lanza cuando el panel ya está en el DOM y con su estado inicial
+  // calculado (reflow forzado): con doble rAF, a veces el navegador no llegaba a pintar el
+  // estado inicial y el panel aparecía de golpe, sin transición.
+  useEffect(() => {
+    if (!open || !mounted) return;
+    const el = panel.current;
+    if (!el) return;
+    void el.getBoundingClientRect();
+    const id = requestAnimationFrame(() => setShown(true));
+    return () => cancelAnimationFrame(id);
+  }, [open, mounted]);
 
   const onKey = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") closeRef.current();

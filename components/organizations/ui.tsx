@@ -41,12 +41,12 @@ export function Card({
     <section
       id={id}
       data-card
-      className={`scroll-mt-32 rounded-[22px] bg-raised p-5 ring-1 ring-white/[0.08] sm:p-7 ${className}`}
+      className={`scroll-mt-32 rounded-[32px] bg-raised p-6 ring-1 ring-white/[0.04] sm:p-9 ${className}`}
     >
       {title || action ? (
-        <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="mb-6 flex items-center justify-between gap-3">
           {title ? (
-            <h2 className="font-display text-lg font-semibold text-white">
+            <h2 className="font-display text-xl font-semibold text-white">
               {title}
             </h2>
           ) : (
@@ -61,11 +61,11 @@ export function Card({
 }
 
 export const pillButton =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#2e2e2e] px-4 text-sm font-medium text-white transition-[background-color,color,transform] duration-100 hover:bg-[#3a3a3a] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white/[0.07] px-5 text-sm font-medium text-white transition-[background-color,color,transform] duration-100 hover:bg-white/[0.13] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
 export const primaryButton =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-black transition-[opacity,transform] duration-100 hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#f4efe6] px-6 text-sm font-semibold text-[#1b1916] transition-[background-color,transform] duration-100 hover:bg-white active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
 export const dangerButton =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium text-red-400 transition-[background-color,transform] duration-100 hover:bg-red-500/10 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium text-red-400 transition-[background-color,transform] duration-100 hover:bg-red-500/10 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
 
 export function Notice({
   tone,

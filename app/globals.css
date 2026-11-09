@@ -205,8 +205,13 @@ html [data-sileo-description] {
 
 /* Panel de organización: las cards (bg-raised) se despegan más del fondo negro. */
 .org-panel {
-  --bg-raised: #1a1a1a;
-  --color-raised: #1a1a1a;
+  --bg-raised: #211f1c;
+  --color-raised: #211f1c;
+}
+/* Fondo cálido del panel (negro con un punto marrón), como las superficies. */
+html:has(.org-panel),
+html:has(.org-panel) body {
+  background: #151412;
 }
 
 /* Backstage: al cambiar de modo, el contenido del panel entra con un fundido corto. */
@@ -336,3 +341,52 @@ html[data-no-scrollbar]::-webkit-scrollbar {
   }
 }
 
+
+@keyframes tip-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Cursores propios (public/cursors): normal, click, texto y enfoque (palabras con tooltip). */
+:root {
+  --cursor-default: url("/cursors/default.svg") 7 4, default;
+  --cursor-pointer: url("/cursors/pointer.svg") 10 2, pointer;
+  --cursor-text: url("/cursors/text.svg") 12 12, text;
+  --cursor-focus: url("/cursors/focus.svg") 7 4, default;
+}
+html,
+body {
+  cursor: var(--cursor-default);
+}
+a[href],
+button:not(:disabled),
+summary,
+select,
+label[for],
+[role="button"],
+[role="tab"],
+[role="option"],
+[role="menuitem"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="submit"],
+input[type="file"],
+.cursor-pointer {
+  cursor: var(--cursor-pointer);
+}
+input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="file"], [type="range"], [type="color"]),
+textarea,
+[contenteditable="true"],
+.cursor-text {
+  cursor: var(--cursor-text);
+}
+button:disabled,
+[aria-disabled="true"] {
+  cursor: var(--cursor-default);
+}

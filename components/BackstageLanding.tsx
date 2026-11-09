@@ -135,7 +135,7 @@ export default function BackstageLanding() {
           <button
             type="button"
             onClick={request}
-            className="relative mt-10 inline-flex h-[58px] items-center gap-3 rounded-full bg-white px-7 text-[17px] font-semibold text-black transition-[transform,translate,scale,box-shadow] duration-300 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:scale-[1.04] hover:shadow-[0_14px_44px_-12px_rgba(255,255,255,0.55)] active:translate-y-0 active:scale-[0.97]"
+            className="relative mt-10 inline-flex h-[58px] items-center gap-3 rounded-full bg-white px-7 text-[17px] font-semibold text-black transition-[transform,translate,scale,box-shadow] duration-300 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-[0.97]"
           >
             {t("backstage.cta")}
             <ArrowRightIcon aria-hidden className="size-5" />

@@ -24,7 +24,7 @@ function PlayIcon(props: React.ComponentProps<"svg">) {
 }
 
 const base =
-  "inline-flex items-center gap-3 rounded-full py-3 pl-5 pr-7 transition-[transform,translate,scale,background-color,box-shadow,border-color] duration-300 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:scale-[1.04] active:translate-y-0 active:scale-[0.97]";
+  "inline-flex items-center gap-3 rounded-full py-3 pl-5 pr-7 transition-[transform,translate,scale,background-color,box-shadow,border-color] duration-300 ease-[var(--ease-out)] hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-[0.97]";
 
 // Blanco para App Store y cristal oscuro para Google Play, como los botones de la app.
 export default function StoreButtons({
@@ -37,7 +37,7 @@ export default function StoreButtons({
     <div className={`flex flex-wrap gap-3 ${className}`}>
       <a
         href={APP_STORE_URL}
-        className={`${base} bg-white text-black hover:shadow-[0_14px_44px_-12px_rgba(255,255,255,0.55)]`}
+        className={`${base} bg-white text-black`}
       >
         <AppleIcon className="size-6" />
         <span className="flex flex-col text-left leading-none">
@@ -49,7 +49,7 @@ export default function StoreButtons({
       </a>
       <a
         href={PLAY_STORE_URL}
-        className={`${base} border border-white/10 bg-white/10 text-white backdrop-blur-xl hover:border-white/25 hover:bg-white/20 hover:shadow-[0_14px_44px_-12px_rgba(255,255,255,0.3)]`}
+        className={`${base} border border-white/10 bg-white/10 text-white backdrop-blur-xl hover:border-white/25 hover:bg-white/20`}
       >
         <PlayIcon className="size-6" />
         <span className="flex flex-col text-left leading-none">
