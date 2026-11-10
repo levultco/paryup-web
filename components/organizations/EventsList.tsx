@@ -184,7 +184,7 @@ export function EventsList() {
       </div>
 
       {failed ? (
-        <p className="rounded-3xl border border-white/10 bg-raised p-6 text-center text-white/55">
+        <p className="rounded-3xl bg-raised shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] p-6 text-center text-white/55">
           {t("orgs.ev.loadError")}
         </p>
       ) : !data ? (
@@ -219,7 +219,7 @@ export function EventsList() {
                 <li key={event.id}>
                   <Link
                     href={`${base}/${event.id}`}
-                    className="group flex items-center gap-4 rounded-[22px] bg-raised p-3 pr-5 ring-1 ring-white/[0.08] transition-[background-color,transform] duration-150 hover:bg-[color-mix(in_srgb,var(--bg-raised),white_7%)] active:scale-[0.99] sm:gap-5"
+                    className="group flex items-center gap-4 rounded-[28px] bg-raised p-3 pr-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-[background-color,transform] duration-150 hover:bg-[color-mix(in_srgb,var(--bg-raised),white_7%)] active:scale-[0.99] sm:gap-5"
                   >
                     <span
                       className={`relative h-[84px] w-[84px] shrink-0 overflow-hidden rounded-2xl bg-white/10 sm:h-24 sm:w-24 ${faded ? "opacity-60 saturate-50" : ""}`}

@@ -41,7 +41,7 @@ export function Card({
     <section
       id={id}
       data-card
-      className={`scroll-mt-32 rounded-[32px] bg-raised p-6 ring-1 ring-white/[0.04] sm:p-9 ${className}`}
+      className={`scroll-mt-32 rounded-[32px] bg-raised p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] sm:p-9 ${className}`}
     >
       {title || action ? (
         <div className="mb-6 flex items-center justify-between gap-3">
@@ -65,7 +65,7 @@ export const pillButton =
 export const primaryButton =
   "inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#f4efe6] px-6 text-sm font-semibold text-[#1b1916] transition-[background-color,transform] duration-100 hover:bg-white active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
 export const dangerButton =
-  "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium text-red-400 transition-[background-color,transform] duration-100 hover:bg-red-500/10 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-11 items-center justify-center gap-2 rounded-full bg-red-500/15 px-5 text-sm font-medium text-red-400 transition-[background-color,transform] duration-100 hover:bg-red-500/25 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40";
 
 export function Notice({
   tone,

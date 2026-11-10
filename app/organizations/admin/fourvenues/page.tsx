@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
-import { Header } from "@/screens/header";
 import { backendFetch } from "@/lib/backend";
 import { sessionToken } from "@/lib/organizations-server";
 import { FourvenuesAdminView } from "@/components/admin/FourvenuesAdminView";
@@ -32,15 +31,8 @@ async function AdminGate() {
 
 export default function Page() {
   return (
-    <>
-      <Suspense fallback={null}>
-        <Header />
-      </Suspense>
-      <main className="mx-auto w-full max-w-[1100px] px-[clamp(1.25rem,3vw,3.5rem)] pb-28 pt-28 md:pt-36">
-        <Suspense fallback={null}>
-          <AdminGate />
-        </Suspense>
-      </main>
-    </>
+    <Suspense fallback={null}>
+      <AdminGate />
+    </Suspense>
   );
 }

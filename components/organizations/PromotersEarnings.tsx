@@ -320,7 +320,7 @@ export function PromotersEarnings({ refreshKey }: { refreshKey: number }) {
               return (
                 <li
                   key={r.key}
-                  className="flex flex-col gap-5 rounded-[22px] bg-raised p-5 ring-1 ring-white/[0.08]"
+                  className="flex flex-col gap-5 rounded-[28px] bg-raised p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
                 >
                   <div className="flex items-center gap-3">
                     <Avatar name={r.name} size={36} />

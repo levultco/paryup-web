@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
 import useMeasure from "react-use-measure";
+import { ChevronRightIcon } from "@/components/icons/solar";
 
 export interface DisclosureItem {
   title: string;
@@ -19,9 +20,14 @@ export function FloatingDisclosure({
   header,
   items,
   label,
+  onHeaderSelect,
+  headerLabel,
 }: {
   trigger: ReactNode;
   header: ReactNode;
+  /** Si se indica, la cabecera es un botón (con flecha y hover) que ejecuta esto. */
+  onHeaderSelect?: () => void;
+  headerLabel?: string;
   items: DisclosureItem[];
   label: string;
 }) {
@@ -89,16 +95,36 @@ export function FloatingDisclosure({
                 <motion.div
                   key="open"
                   className="flex w-64 shrink-0 flex-col"
+                  // Todo el contenido se apaga rápido, antes de que la caja termine de encogerse.
+                  exit={{ opacity: 0, transition: { duration: 0.1, ease: "easeOut" } }}
                 >
                   <motion.div
-                    className="px-3 pb-3.5 pt-2.5"
+                    className="pb-2"
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, transition: { duration: 0.08, ease: "easeOut" } }}
                     transition={
                       reduce ? { duration: 0 } : { delay: 0.08, type: "spring", bounce: 0, duration: 0.4 }
                     }
                   >
-                    {header}
+                    {onHeaderSelect ? (
+                      <button
+                        type="button"
+                        aria-label={headerLabel}
+                        onClick={() => {
+                          setIsOpen(false);
+                          onHeaderSelect();
+                        }}
+                        className="group flex w-full cursor-pointer items-center justify-between gap-2 rounded-2xl bg-white/[0.07] p-2.5 text-left ring-1 ring-white/[0.06] transition-[background-color,transform] duration-100 hover:bg-white/[0.12] active:scale-[0.98]"
+                      >
+                        {header}
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/60 transition-[transform,background-color,color] duration-150 group-hover:translate-x-0.5 group-hover:bg-white/20 group-hover:text-white">
+                          <ChevronRightIcon className="h-[18px] w-[18px]" />
+                        </span>
+                      </button>
+                    ) : (
+                      header
+                    )}
                   </motion.div>
                   <div className="flex flex-col gap-1">
                     {items.map((item, index) => (
@@ -115,7 +141,7 @@ export function FloatingDisclosure({
                           }`}
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, transition: { duration: 0.15, ease: "easeOut" } }}
+                          exit={{ opacity: 0, transition: { duration: 0.08, ease: "easeOut" } }}
                           transition={
                             reduce
                               ? { duration: 0 }

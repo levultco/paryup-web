@@ -1,5 +1,6 @@
 "use client";
 
+import ContentBackdrop from "./ContentBackdrop";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
@@ -80,6 +81,8 @@ export default function Hero() {
       id="top"
       className="relative flex min-h-[100svh] flex-col items-center px-[clamp(1.25rem,3vw,3.5rem)] pb-0 pt-28 md:pt-32"
     >
+      {/* Fondo estático (ya en el HTML): la escena 3D aparece encima con un fundido, sin pasar por negro */}
+      <ContentBackdrop src={SCREEN} />
       <HeroScene screen={SCREEN} />
 
       <div className="relative z-20 flex flex-col items-center text-center">

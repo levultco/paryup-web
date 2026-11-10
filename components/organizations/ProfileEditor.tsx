@@ -360,7 +360,7 @@ export function ProfileEditor() {
 
         <aside className="xl:sticky xl:top-32 xl:self-start">
           <p className="mb-2 text-sm text-white/45">{t("orgs.pf.preview")}</p>
-          <div className="overflow-hidden rounded-3xl border border-white/10 bg-raised">
+          <div className="overflow-hidden rounded-3xl bg-raised shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
             <div className="h-24 bg-gradient-to-br from-white/[0.12] to-white/[0.02]">
               {draft.banner ? (
                 // eslint-disable-next-line @next/next/no-img-element

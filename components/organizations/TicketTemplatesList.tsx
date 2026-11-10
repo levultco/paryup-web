@@ -95,7 +95,7 @@ export function TicketTemplatesList() {
       {!allowed ? (
         <p className="text-white/55">{t("orgs.cat.tk.noAccess")}</p>
       ) : failed ? (
-        <p className="rounded-3xl border border-white/10 bg-raised p-6 text-center text-white/55">
+        <p className="rounded-3xl bg-raised shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] p-6 text-center text-white/55">
           {t("orgs.cat.err.generic")}
         </p>
       ) : !items ? (
@@ -129,7 +129,7 @@ export function TicketTemplatesList() {
             return (
               <li
                 key={item.id}
-                className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[22px] bg-raised p-4 ring-1 ring-white/[0.08] sm:px-5"
+                className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[28px] bg-raised p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] sm:px-5"
               >
                 <span
                   className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-b from-white/20 to-white/[0.05] text-white transition-opacity ${item.isActive ? "" : "opacity-40"}`}

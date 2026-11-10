@@ -14,6 +14,7 @@ import {
   Switch,
 } from "@/components/organizations/promoters-ui";
 import { Select } from "@/components/organizations/select";
+import { MorphingButton } from "@/components/watermelon/morphing-button";
 import {
   Notice,
   PageHeader,
@@ -348,53 +349,54 @@ export function PromotersView() {
         title={t("orgs.pr.title")}
         subtitle={t("orgs.pr.subtitle")}
         aside={
-          <button
-            type="button"
-            aria-expanded={panel}
-            className={`${primaryButton} ${press}`}
-            onClick={() => setPanel((p) => !p)}
+          <MorphingButton
+            open={panel}
+            onOpenChange={setPanel}
+            icon={<AddIcon aria-hidden className="h-4 w-4" />}
+            label={t("orgs.pr.new")}
+            title={t("orgs.pr.new")}
+            closeLabel={t("orgs.pr.close")}
+            buttonClassName={`${primaryButton} ${press}`}
           >
-            <AddIcon
-              aria-hidden
-              className={`h-4 w-4 transition-transform duration-300 motion-reduce:transition-none ${panel ? "rotate-45" : ""}`}
-            />
-            {t("orgs.pr.new")}
-          </button>
+            {promoters.length === 0 && items ? (
+              <p className="text-sm text-white/50">
+                {t("orgs.pr.noPromoters")}
+              </p>
+            ) : (
+              <div className="grid gap-3">
+                <Select
+                  label={t("orgs.pr.promoter")}
+                  placeholder={t("orgs.pr.promoter")}
+                  value={promoterId}
+                  onChange={setPromoterId}
+                  options={promoters.map((p) => ({
+                    value: p.id,
+                    label: p.name,
+                  }))}
+                />
+                <Select
+                  label={t("orgs.pr.event")}
+                  placeholder={t("orgs.pr.event")}
+                  value={eventId}
+                  onChange={setEventId}
+                  options={events.map((ev) => ({
+                    value: ev.id,
+                    label: ev.name,
+                  }))}
+                />
+                <button
+                  type="button"
+                  className={`${primaryButton} w-full ${press}`}
+                  disabled={!promoterId || !eventId || creating}
+                  onClick={create}
+                >
+                  {t("orgs.pr.create")}
+                </button>
+              </div>
+            )}
+          </MorphingButton>
         }
       />
-
-      <Disclosure open={panel}>
-        <div className="rounded-[22px] bg-raised p-4 ring-1 ring-white/[0.08]">
-          {promoters.length === 0 && items ? (
-            <p className="text-sm text-white/50">{t("orgs.pr.noPromoters")}</p>
-          ) : (
-            <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-              <Select
-                label={t("orgs.pr.promoter")}
-                placeholder={t("orgs.pr.promoter")}
-                value={promoterId}
-                onChange={setPromoterId}
-                options={promoters.map((p) => ({ value: p.id, label: p.name }))}
-              />
-              <Select
-                label={t("orgs.pr.event")}
-                placeholder={t("orgs.pr.event")}
-                value={eventId}
-                onChange={setEventId}
-                options={events.map((ev) => ({ value: ev.id, label: ev.name }))}
-              />
-              <button
-                type="button"
-                className={`${primaryButton} h-11 ${press}`}
-                disabled={!promoterId || !eventId || creating}
-                onClick={create}
-              >
-                {t("orgs.pr.create")}
-              </button>
-            </div>
-          )}
-        </div>
-      </Disclosure>
 
       <Flash message={message} />
 

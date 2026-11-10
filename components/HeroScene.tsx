@@ -94,7 +94,9 @@ export default function HeroScene({ screen }: Props) {
     renderer.setPixelRatio(1);
     renderer.setClearColor("#000000", 1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.domElement.style.cssText = "display:block;width:100%;height:100%";
+    // Empieza transparente: debajo está el fondo estático del Hero, así nunca hay un fogonazo negro.
+    renderer.domElement.style.cssText =
+      "display:block;width:100%;height:100%;opacity:0";
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -104,7 +106,7 @@ export default function HeroScene({ screen }: Props) {
       uTime: { value: 0 },
       uAspect: { value: 1 },
       uImgAspect: { value: SCREEN_ASPECT },
-      uFade: { value: 0 },
+      uFade: { value: 1 },
       uMouse: { value: new THREE.Vector2(0.5, 0.7) },
     };
     const material = new THREE.ShaderMaterial({
@@ -156,7 +158,7 @@ export default function HeroScene({ screen }: Props) {
       uniforms.uTex.value = texture;
       loadedAt = performance.now();
       if (reduced) {
-        uniforms.uFade.value = 1;
+        renderer.domElement.style.opacity = "1";
         draw();
       }
     };
@@ -192,8 +194,9 @@ export default function HeroScene({ screen }: Props) {
       clock += dt;
       mouseSmooth.lerp(mouse, 1 - Math.pow(0.02, dt));
       uniforms.uTime.value = clock;
-      uniforms.uFade.value =
-        loadedAt < 0 ? 0 : easeOut((now - loadedAt) / 1400);
+      renderer.domElement.style.opacity = String(
+        loadedAt < 0 ? 0 : easeOut((now - loadedAt) / 1400),
+      );
       uniforms.uMouse.value.copy(mouseSmooth);
       draw();
     };

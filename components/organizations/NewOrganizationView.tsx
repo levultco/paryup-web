@@ -85,7 +85,7 @@ export function NewOrganizationView() {
     <div className="mx-auto flex w-full max-w-md flex-col gap-8">
       <BackPill href="/?all=1" />
       {limitReached ? (
-        <p className="rounded-3xl border border-white/10 bg-raised p-6 text-white/70">
+        <p className="rounded-3xl bg-raised shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] p-6 text-white/70">
           {t("orgs.limitReached", {
             owned: state.ownedOrganizations,
             max: state.maxOrganizations,

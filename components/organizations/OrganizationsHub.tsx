@@ -99,18 +99,25 @@ export function OrganizationsHub() {
           <li key={m.organizationId}>
             <Link
               href={`/${m.organization.slug}`}
-              className="group flex items-center gap-4 rounded-3xl border border-white/10 bg-raised p-4 transition-colors hover:border-white/30 hover:bg-[color-mix(in_srgb,var(--bg-raised),white_7%)]"
+              className="group flex items-center gap-5 rounded-[32px] bg-raised p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-[background-color,transform] duration-200 ease-out hover:bg-[color-mix(in_srgb,var(--bg-raised),white_5%)] active:scale-[0.985] active:bg-[color-mix(in_srgb,var(--bg-raised),white_8%)]"
             >
-              <OrgAvatar org={m.organization} />
-              <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                <span className="font-display text-lg font-semibold text-white">
+              <OrgAvatar org={m.organization} size={64} />
+              <span className="flex min-w-0 flex-1 flex-col gap-1.5 leading-tight">
+                <span className="font-display text-xl font-semibold text-white">
                   <OrgName org={m.organization} />
                 </span>
-                <span className="truncate text-sm text-white/45">
-                  @{m.organization.slug} · {t(`orgs.role.${m.role as OrgRole}`)}
+                <span className="flex min-w-0 items-center gap-2 text-sm">
+                  <span className="truncate text-white/45">
+                    @{m.organization.slug}
+                  </span>
+                  <span className="shrink-0 rounded-full bg-white/[0.08] px-2.5 py-0.5 text-xs font-medium text-white/70">
+                    {t(`orgs.role.${m.role as OrgRole}`)}
+                  </span>
                 </span>
               </span>
-              <ArrowRightIcon className="h-5 w-5 text-white/40 transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.07] text-white/45 transition-[transform,background-color,color] duration-200 group-hover:translate-x-0.5 group-hover:bg-white/[0.14] group-hover:text-white">
+                <ArrowRightIcon className="h-[18px] w-[18px]" />
+              </span>
             </Link>
           </li>
         ))}

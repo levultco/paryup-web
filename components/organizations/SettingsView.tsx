@@ -94,7 +94,7 @@ export function SettingsView() {
     <div className="flex flex-col gap-7">
       <PageHeader title={t("orgs.st.title")} subtitle={t("orgs.st.subtitle")} />
 
-      <section className="flex flex-col items-center gap-4 rounded-[22px] bg-raised px-6 py-8 text-center ring-1 ring-white/[0.08] sm:flex-row sm:text-left">
+      <section className="flex flex-col items-center gap-4 rounded-[28px] bg-raised px-6 py-8 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] sm:flex-row sm:text-left">
         <OrgAvatar org={org} size={72} />
         <div className="flex min-w-0 flex-col items-center gap-1 sm:items-start">
           <h2 className="font-display text-2xl font-semibold tracking-[-0.02em] text-white">

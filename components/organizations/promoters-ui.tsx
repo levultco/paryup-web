@@ -155,7 +155,7 @@ export function Group({
           {title}
         </h2>
       ) : null}
-      <ul className="divide-y divide-white/[0.07] overflow-hidden rounded-[22px] bg-raised ring-1 ring-white/[0.08]">
+      <ul className="divide-y divide-white/[0.07] overflow-hidden rounded-[28px] bg-raised shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
         {children}
       </ul>
     </section>

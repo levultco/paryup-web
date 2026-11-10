@@ -17,7 +17,7 @@ import {
 import { intlLocale } from "@/lib/i18n";
 import { orgFetch } from "@/lib/org-api";
 
-const card = "rounded-[22px] bg-raised p-5 ring-1 ring-white/[0.08] sm:p-7";
+const card = "rounded-[28px] bg-raised p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] sm:p-7";
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (

@@ -440,7 +440,7 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                     )
                   }
                   header={
-                    <div className="flex items-center gap-3 pr-2">
+                    <div className="flex min-w-0 items-center gap-3">
                       <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/15">
                         {user.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -475,8 +475,16 @@ export const Header = ({ isLoading = false, showLogo = true }: HeaderProps) => {
                       </span>
                     </div>
                   }
+                  headerLabel={t("menu.profile")}
+                  onHeaderSelect={() => {
+                    const target = to("/profile");
+                    if (target.startsWith("http")) window.location.assign(target);
+                    else router.push(target);
+                  }}
                   items={ProfileMenuItems.filter(
                     (item) =>
+                      // "Mi perfil" es ahora la cabecera del menú (nombre y avatar).
+                      item.href !== "/profile" &&
                       (item.requires !== "organizations" || hasOrganizations) &&
                       (item.requires !== "admin" || isAdmin),
                   ).map((item) => ({

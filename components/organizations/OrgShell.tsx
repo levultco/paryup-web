@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeftRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -126,6 +127,40 @@ export function OrgShell({
     );
   }, []);
 
+  // Aviso del plan Backstage: prueba en curso o modo limitado por impago.
+  const planNotice = (() => {
+    if (access.status !== "ready") return null;
+    const m = access.organizations.find((o) => o.organization.slug === slug);
+    if (m?.role !== "OWNER" && m?.role !== "MANAGER") return null;
+    if (m?.backstagePlanStatus === "LIMITED") {
+      return (
+        <div className="mb-6 rounded-[20px] bg-[#3a1c1c] px-5 py-4 text-sm text-red-100">
+          <p className="font-medium">Tu plan está en modo limitado</p>
+          <p className="mt-1 text-red-100/70">
+            No se pudo cobrar la suscripción. No puedes crear eventos nuevos ni
+            usar promotores, pero tus datos y lo ya vendido siguen intactos.
+            Actualiza tu método de pago para recuperar todo.
+          </p>
+        </div>
+      );
+    }
+    if (m?.backstagePlanStatus === "TRIAL" && m.backstageTrialEndsAt) {
+      const days = Math.max(
+        0,
+        Math.ceil(
+          (new Date(m.backstageTrialEndsAt).getTime() - Date.now()) / 86_400_000,
+        ),
+      );
+      return (
+        <div className="mb-6 rounded-[20px] bg-white/[0.06] px-5 py-3 text-sm text-white/70">
+          Prueba de Backstage: te {days === 1 ? "queda 1 día" : `quedan ${days} días`}.
+          El primer cobro se hará automáticamente al terminar.
+        </div>
+      );
+    }
+    return null;
+  })();
+
   const value = useMemo<OrgValue | null>(
     () =>
       ctx
@@ -170,7 +205,7 @@ export function OrgShell({
     <OrgContext value={value}>
       <div className="org-panel flex flex-col gap-6 lg:flex-row lg:gap-12">
         <aside className="lg:sticky lg:top-32 lg:w-64 lg:shrink-0 lg:self-start">
-          <div className="flex items-center gap-3 rounded-[28px] bg-raised p-5 ring-1 ring-white/[0.04]">
+          <div className="flex items-center gap-3 rounded-[28px] bg-raised p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
             <OrgAvatar org={value.org} size={44} />
             <span className="flex min-w-0 flex-col leading-tight">
               <span className="font-display truncate text-[15px] font-semibold text-white">
@@ -221,13 +256,20 @@ export function OrgShell({
           {canSwitch ? (
             <Link
               href="/?all=1"
-              className="mt-3 inline-flex h-10 items-center rounded-full border border-white/15 px-4 text-sm text-white/70 transition-colors hover:border-white/50 hover:text-white"
+              className="switch-org group mt-3 inline-flex h-11 items-center gap-2.5 rounded-full px-5 text-sm font-medium text-white/75 transition-[color,transform] duration-200 hover:text-white active:scale-[0.97]"
             >
+              <ArrowLeftRight
+                aria-hidden
+                className="h-4 w-4 text-white/50 transition-[transform,color] duration-300 group-hover:rotate-180 group-hover:text-white"
+              />
               {t("orgs.panel.switch")}
             </Link>
           ) : null}
         </aside>
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1">
+          {planNotice}
+          {children}
+        </div>
       </div>
     </OrgContext>
   );

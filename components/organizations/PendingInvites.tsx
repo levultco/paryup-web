@@ -47,7 +47,7 @@ export function PendingInvites({ invites }: { invites: PendingInvite[] }) {
         {visible.map((i) => (
           <li
             key={i.id}
-            className="flex flex-wrap items-center gap-3 rounded-3xl border border-white/10 bg-raised p-4"
+            className="flex flex-wrap items-center gap-3 rounded-3xl bg-raised shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] p-4"
           >
             <OrgAvatar
               org={{ name: i.organization.name, logo: i.organization.logo }}

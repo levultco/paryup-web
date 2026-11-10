@@ -1,3 +1,4 @@
+import { backendFetch } from "@/lib/backend";
 import { COMPANY } from "@/lib/legal/company";
 import { sendAccessRequest, type AccessRequest } from "@/lib/mailer";
 
@@ -46,13 +47,39 @@ export async function POST(request: Request) {
     );
   }
 
+  // 1) Se guarda en el backend (embudo de altas, visible en administración).
+  let stored = false;
+  try {
+    const res = await backendFetch("/backstage-leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        venue: data.venue,
+        city: data.city,
+        system: data.system.toUpperCase(),
+        ...(data.phone ? { phone: data.phone } : {}),
+        ...(data.message ? { message: data.message } : {}),
+      }),
+    });
+    if (res.status === 429) {
+      return Response.json({ error: "rate_limited" }, { status: 429 });
+    }
+    stored = res.ok;
+    if (!res.ok) console.error("Backstage: no se guardó la solicitud", res.status);
+  } catch (error) {
+    console.error("Backstage: error al guardar la solicitud", error);
+  }
+
+  // 2) Aviso al equipo por correo. Si ya se guardó, un fallo del correo no pierde la solicitud.
   try {
     const sent = await sendAccessRequest(data, COMPANY.email);
-    if (!sent)
+    if (!sent && !stored)
       return Response.json({ error: "server_misconfigured" }, { status: 500 });
   } catch (error) {
     console.error("Backstage: error al enviar la solicitud", error);
-    return Response.json({ error: "send_failed" }, { status: 502 });
+    if (!stored) return Response.json({ error: "send_failed" }, { status: 502 });
   }
   return Response.json({ ok: true });
 }

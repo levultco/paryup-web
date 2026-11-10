@@ -371,7 +371,7 @@ export function BackstagePricing({ onRequest }: { onRequest: () => void }) {
   const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
   useReveal(root);
-  const [orgs, setOrgs] = useState(3);
+  const [orgs, setOrgs] = useState(MIN_ORGS);
   const each = BASE_PRICE * (1 - MULTI_DISCOUNT);
 
   const bigPrice = "font-display text-[clamp(3rem,5vw,4.25rem)] font-bold leading-none tracking-[-0.03em]";
@@ -455,7 +455,7 @@ export function BackstagePricing({ onRequest }: { onRequest: () => void }) {
                   value={(BASE_PRICE - each) * orgs}
                   locales="es-ES"
                   format={euro}
-                  className="font-semibold text-[#0a84ff]"
+                  className="font-semibold text-[#30d158]"
                 />
                 {t("backstage.pricing.perMonth")}
               </p>

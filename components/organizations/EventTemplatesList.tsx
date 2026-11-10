@@ -73,7 +73,7 @@ export function EventTemplatesList() {
       />
       <Flash message={message} />
       {failed ? (
-        <p className="rounded-3xl border border-white/10 bg-raised p-6 text-center text-white/55">
+        <p className="rounded-3xl bg-raised shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] p-6 text-center text-white/55">
           {t("orgs.cat.err.generic")}
         </p>
       ) : !items ? (
@@ -101,7 +101,7 @@ export function EventTemplatesList() {
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[22px] bg-raised p-3 pr-4 ring-1 ring-white/[0.08] sm:pr-5"
+              className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[28px] bg-raised p-3 pr-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] sm:pr-5"
             >
               <span className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-white/10">
                 {item.imageUrl ? (

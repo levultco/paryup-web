@@ -12,6 +12,9 @@ export type MyOrganization = {
   organizationId: string;
   role: OrgRole;
   commercialMode?: CommercialMode;
+  /** Plan Backstage: NONE (sin plan), TRIAL, ACTIVE o LIMITED (sin pagar). */
+  backstagePlanStatus?: "NONE" | "TRIAL" | "ACTIVE" | "LIMITED";
+  backstageTrialEndsAt?: string | null;
   organization: OrgSummary;
 };
 

@@ -477,7 +477,7 @@ export function FourvenuesAdminView() {
       {links === null ? (
         <p className="text-sm text-white/50">Cargando solicitudes…</p>
       ) : links.length === 0 ? (
-        <p className="rounded-3xl bg-raised p-8 text-center text-white/50 ring-1 ring-white/[0.08]">
+        <p className="rounded-3xl bg-raised p-8 text-center text-white/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
           No hay solicitudes en este estado.
         </p>
       ) : (
@@ -499,7 +499,7 @@ export function FourvenuesAdminView() {
                     type="button"
                     onClick={() => openRequest(l.id)}
                     style={{ borderRadius: 28 }}
-                    className="flex h-full w-full flex-col gap-4 bg-raised p-5 text-left ring-1 ring-white/[0.08] transition-[background-color,transform] duration-150 hover:bg-white/[0.07] active:scale-[0.985]"
+                    className="flex h-full w-full flex-col gap-4 bg-raised p-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-[background-color,transform] duration-150 hover:bg-white/[0.07] active:scale-[0.985]"
                   >
                     <RequestFace row={l} />
                   </button>
@@ -534,7 +534,7 @@ export function FourvenuesAdminView() {
                 role="dialog"
                 aria-modal="true"
                 aria-label="Revisión de la solicitud"
-                className="fixed z-[1100] flex flex-col overflow-hidden bg-raised ring-1 ring-white/[0.08]"
+                className="fixed z-[1100] flex flex-col overflow-hidden bg-raised shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
               >
                 {/* Cara de tarjeta: visible solo cuando la caja es del tamaño de la tarjeta. */}
                 {faceRow ? (

@@ -353,7 +353,7 @@ export function ReservedCatalog() {
       ) : null}
 
       {failed ? (
-        <p className="rounded-3xl border border-white/10 bg-raised p-6 text-center text-white/55">
+        <p className="rounded-3xl bg-raised shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] p-6 text-center text-white/55">
           {t("orgs.cat.err.generic")}
         </p>
       ) : !areas ? (

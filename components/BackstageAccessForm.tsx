@@ -2,14 +2,8 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import {
-  CheckCircleIcon,
-  CheckIcon,
-  HistoryIcon,
-  LetterOpenedIcon,
-} from "@/components/icons/solar";
+import { CheckIcon } from "@/components/icons/solar";
 import { useI18n } from "@/components/i18n/LocaleProvider";
-import { SealCheck } from "@/components/profile/VerifiedBadge";
 import { Dialog } from "@/components/organizations/promoters-ui";
 import { Select } from "@/components/organizations/select";
 import { notify } from "@/lib/toast";
@@ -134,46 +128,68 @@ export default function BackstageAccessForm({
       variant="side"
     >
       {done ? (
-        <div className="flex min-h-[calc(100dvh-9rem)] flex-col items-center justify-center gap-7 px-1 pb-6 text-center">
-          <span className="bs-pop relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#30d158]/15 text-[#30d158]">
-            <span
-              aria-hidden
-              className="bs-ring absolute inset-0 rounded-full ring-2 ring-[#30d158]/40"
-            />
-            <CheckCircleIcon aria-hidden className="h-10 w-10" />
-          </span>
-          <div className="flex flex-col items-center gap-2">
-            <h3 className="font-display text-3xl font-semibold tracking-[-0.02em] text-white">
-              {t("backstage.form.doneTitle")}
-            </h3>
-            <p className="max-w-[34ch] text-[15px] leading-snug text-white/55">
-              {t("backstage.form.doneText", { email: form.email.trim() })}
-            </p>
-          </div>
-          <ul className="w-full divide-y divide-white/[0.07] overflow-hidden rounded-2xl bg-white/[0.05] text-left">
-            {(
-              [
-                [CheckIcon, "backstage.form.step1", true],
-                [HistoryIcon, "backstage.form.step2", false],
-                [LetterOpenedIcon, "backstage.form.step3", false],
-              ] as const
-            ).map(([Icon, key, ok]) => (
-              <li key={key} className="flex items-center gap-3.5 px-4 py-3.5">
-                {ok ? (
-                  <SealCheck className="h-8 w-8 shrink-0" />
-                ) : (
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/60">
-                    <Icon aria-hidden className="h-[18px] w-[18px]" />
-                  </span>
-                )}
+        <div className="flex min-h-[calc(100dvh-9rem)] flex-col justify-between gap-10 pb-6">
+          <div className="flex flex-col gap-10 pt-6">
+            <div className="flex flex-col items-start gap-5">
+              <span className="bs-pop relative flex h-14 w-14 items-center justify-center rounded-full bg-[#30d158] text-black">
                 <span
-                  className={`text-[15px] ${ok ? "text-white" : "text-white/60"}`}
-                >
-                  {t(key)}
-                </span>
-              </li>
-            ))}
-          </ul>
+                  aria-hidden
+                  className="bs-ring absolute inset-0 rounded-full ring-2 ring-[#30d158]/50"
+                />
+                <CheckIcon aria-hidden className="h-7 w-7" />
+              </span>
+              <div className="flex flex-col gap-2">
+                <h3 className="font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.025em] text-white">
+                  {t("backstage.form.doneTitle")}
+                </h3>
+                <p className="max-w-[36ch] text-[15px] leading-snug text-white/55">
+                  {t("backstage.form.doneText", { email: form.email.trim() })}
+                </p>
+              </div>
+            </div>
+            <ol className="flex flex-col">
+              {(
+                [
+                  ["backstage.form.step1", "done"],
+                  ["backstage.form.step2", "now"],
+                  ["backstage.form.step3", "next"],
+                ] as const
+              ).map(([key, state], i, all) => (
+                <li key={key} className="relative flex gap-4 pb-7 last:pb-0">
+                  {i < all.length - 1 && (
+                    <span
+                      aria-hidden
+                      className={`absolute left-[11px] top-7 h-[calc(100%-1.75rem)] w-px ${
+                        state === "done" ? "bg-[#30d158]/60" : "bg-white/12"
+                      }`}
+                    />
+                  )}
+                  <span
+                    className={`relative mt-px flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                      state === "done"
+                        ? "bg-[#30d158] text-black"
+                        : state === "now"
+                          ? "ring-2 ring-white/70"
+                          : "ring-1 ring-white/20"
+                    }`}
+                  >
+                    {state === "done" ? (
+                      <CheckIcon aria-hidden className="h-3.5 w-3.5" />
+                    ) : state === "now" ? (
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
+                    ) : null}
+                  </span>
+                  <span
+                    className={`text-[16px] leading-6 ${
+                      state === "next" ? "text-white/40" : "text-white"
+                    }`}
+                  >
+                    {t(key)}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
           <button
             type="button"
             onClick={close}

@@ -208,11 +208,6 @@ html [data-sileo-description] {
   --bg-raised: #211f1c;
   --color-raised: #211f1c;
 }
-/* Fondo cálido del panel (negro con un punto marrón), como las superficies. */
-html:has(.org-panel),
-html:has(.org-panel) body {
-  background: #151412;
-}
 
 /* Backstage: al cambiar de modo, el contenido del panel entra con un fundido corto. */
 @keyframes bs-swap {
@@ -390,3 +385,43 @@ button:disabled,
 [aria-disabled="true"] {
   cursor: var(--cursor-default);
 }
+
+/* Botón "Cambiar de organización": superficie como las cards del panel (hilo de luz arriba) y,
+   al pasar el ratón, una pasada de brillo blanco muy suave. Sin colores: encaja con el resto. */
+.switch-org {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg-raised), white 4%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+  transition:
+    background-color 0.2s ease-out,
+    color 0.2s ease-out,
+    transform 0.1s ease-out;
+}
+.switch-org:hover {
+  background: color-mix(in srgb, var(--bg-raised), white 9%);
+}
+.switch-org::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.1) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+}
+.switch-org:hover::after {
+  transform: translateX(120%);
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch-org::after {
+    display: none;
+  }
+}
+
+/* touch */
