@@ -2,14 +2,15 @@
 
 import { SealCheck } from "@/components/profile/VerifiedBadge";
 import { CheckIcon, CopyIcon, LockIcon } from "@/components/icons/solar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n/LocaleProvider";
 import { OrgAvatar, OrgName } from "@/components/organizations/OrgAvatar";
 import { useOrg } from "@/components/organizations/OrgShell";
+import { useOrganizations } from "@/components/organizations/useOrganizations";
 import { FourvenuesCard } from "@/components/organizations/FourvenuesCard";
 import { PaymentsCard } from "@/components/organizations/PaymentsCard";
 import { Group } from "@/components/organizations/promoters-ui";
-import { PageHeader } from "@/components/organizations/ui";
+import { PageHeader, pillButton } from "@/components/organizations/ui";
 import { intlLocale } from "@/lib/i18n";
 import { ORG_PERMISSIONS } from "@/lib/organizations";
 import { notify } from "@/lib/toast";
@@ -65,6 +66,16 @@ function Chip({
   );
 }
 
+type SectionId = "identity" | "subscription" | "payments" | "integrations" | "roles";
+
+const SECTION_LABEL: Record<SectionId, string> = {
+  identity: "Identidad",
+  subscription: "Suscripción",
+  payments: "Pagos",
+  integrations: "Integraciones",
+  roles: "Roles y permisos",
+};
+
 const CAPABILITIES = [
   { key: "profileEdit", permission: ORG_PERMISSIONS.profileEdit },
   { key: "staffInvite", permission: ORG_PERMISSIONS.staffInvite },
@@ -72,9 +83,227 @@ const CAPABILITIES = [
   { key: "rolesManage", permission: ORG_PERMISSIONS.rolesManage },
 ] as const;
 
+/** Datos del plan Backstage de esta organización (solo los ve OWNER/MANAGER). */
+function useBackstagePlan() {
+  const { slug } = useOrg();
+  const access = useOrganizations();
+  if (access.status !== "ready") return null;
+  const m = access.organizations.find((o) => o.organization.slug === slug);
+  if (!m || (m.role !== "OWNER" && m.role !== "MANAGER")) return null;
+  return m;
+}
+
+const PLAN_LABEL = {
+  NONE: "Sin plan",
+  TRIAL: "Periodo de prueba",
+  ACTIVE: "Activo",
+  LIMITED: "Limitado por impago",
+} as const;
+
+type Billing = {
+  hasSubscription: boolean;
+  canManage: boolean;
+  price: { amount: number; currency: string; interval: string; taxIncluded: boolean } | null;
+  nextBillingAt: string | null;
+  hasPaymentMethod: boolean;
+  cancelAtPeriodEnd: boolean;
+  autoRenew: boolean;
+};
+
+function SubscriptionSection() {
+  const { locale } = useI18n();
+  const { slug } = useOrg();
+  const m = useBackstagePlan();
+  const [now] = useState(() => Date.now());
+  const [billing, setBilling] = useState<Billing | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  const url = `/api/organizations/${encodeURIComponent(slug)}/billing`;
+
+  useEffect(() => {
+    let active = true;
+    fetch(url)
+      .then((r) => (r.ok ? (r.json() as Promise<Billing>) : null))
+      .catch(() => null)
+      .then((data) => {
+        if (active) setBilling(data);
+      });
+    return () => {
+      active = false;
+    };
+  }, [url]);
+
+  if (!m) return null;
+  const status = m.backstagePlanStatus ?? "NONE";
+  const fmtDate = (iso: string | Date) =>
+    new Date(iso).toLocaleDateString(intlLocale(locale), {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  const ends = m.backstageTrialEndsAt ? new Date(m.backstageTrialEndsAt) : null;
+  const days = ends ? Math.max(0, Math.ceil((ends.getTime() - now) / 86_400_000)) : null;
+  const price = billing?.price
+    ? `${new Intl.NumberFormat(intlLocale(locale), {
+        style: "currency",
+        currency: billing.price.currency.toUpperCase(),
+      }).format(billing.price.amount / 100)} / ${billing.price.interval === "year" ? "año" : "mes"}${
+        billing.price.taxIncluded ? "" : " + IVA"
+      }`
+    : null;
+
+  const manage = async () => {
+    setBusy(true);
+    setError(false);
+    const res = await fetch(url, { method: "POST" }).catch(() => null);
+    const data = res?.ok ? await res.json().catch(() => null) : null;
+    setBusy(false);
+    if (data?.url) window.location.assign(data.url);
+    else setError(true);
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Group title="Suscripción">
+        <Row label="Plan Backstage">
+          <span className="text-sm text-white/70">{PLAN_LABEL[status]}</span>
+        </Row>
+        {price ? (
+          <Row label="Precio">
+            <span className="text-sm text-white/70">{price}</span>
+          </Row>
+        ) : null}
+        {status === "TRIAL" && ends && days !== null ? (
+          <>
+            <Row label="Días de prueba restantes">
+              <span className="text-sm text-white/70">{days}</span>
+            </Row>
+            <Row label="Fin de la prueba">
+              <span className="text-sm text-white/70">{fmtDate(ends)}</span>
+            </Row>
+          </>
+        ) : null}
+        {billing?.nextBillingAt ? (
+          <Row
+            label={status === "TRIAL" ? "Primer cobro" : "Próximo cobro"}
+            note={
+              billing.autoRenew
+                ? "Se cobrará automáticamente con tu método de pago."
+                : undefined
+            }
+          >
+            <span className="text-sm text-white/70">{fmtDate(billing.nextBillingAt)}</span>
+          </Row>
+        ) : null}
+        {billing?.hasSubscription && !billing.hasPaymentMethod ? (
+          <li className="px-4 py-3.5 text-[13px] text-[#ffd60a]">
+            No hay un método de pago configurado: la suscripción no se renovará
+            sola.
+          </li>
+        ) : null}
+        {billing?.cancelAtPeriodEnd ? (
+          <li className="px-4 py-3.5 text-[13px] text-white/50">
+            La suscripción está cancelada y no se renovará.
+          </li>
+        ) : null}
+        {status === "LIMITED" ? (
+          <li className="px-4 py-3.5 text-[13px] text-white/50">
+            No se pudo cobrar la suscripción: no puedes crear eventos nuevos ni
+            usar promotores hasta actualizar el método de pago.
+          </li>
+        ) : null}
+        {billing?.canManage ? (
+          <li className="flex flex-wrap items-center gap-3 px-4 py-4">
+            <button type="button" className={pillButton} disabled={busy} onClick={manage}>
+              Gestionar suscripción
+            </button>
+            <span className="text-xs text-white/40">
+              Método de pago, facturas y cancelación en Stripe.
+            </span>
+            {error ? (
+              <span className="w-full text-sm text-red-400">
+                No se pudo abrir la gestión de la suscripción.
+              </span>
+            ) : null}
+          </li>
+        ) : null}
+      </Group>
+    </div>
+  );
+}
+
+function RolesSection() {
+  const { t } = useI18n();
+  const { role, can } = useOrg();
+  return (
+    <div className="flex flex-col gap-3">
+      <Group title="Roles y permisos">
+        <Row label="Tu rol">
+          <Chip>{t(`orgs.role.${role}`)}</Chip>
+        </Row>
+        <li>
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3.5 text-[15px] text-white/90 [&::-webkit-details-marker]:hidden">
+              Ver mis permisos
+              <span
+                aria-hidden
+                className="text-white/40 transition-transform duration-150 group-open:rotate-90"
+              >
+                ›
+              </span>
+            </summary>
+            <ul className="divide-y divide-white/[0.07] border-t border-white/[0.07]">
+              {CAPABILITIES.map((c) => {
+                const allowed = can(c.permission);
+                return (
+                  <li key={c.key} className="flex items-center gap-3.5 px-4 py-3">
+                    {allowed ? (
+                      <SealCheck className="h-5 w-5 shrink-0" />
+                    ) : (
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/35">
+                        <LockIcon aria-hidden className="h-3 w-3" />
+                      </span>
+                    )}
+                    <span
+                      className={`text-[14px] ${allowed ? "text-white/90" : "text-white/40"}`}
+                    >
+                      {t(`orgs.st.can.${c.key}`)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </details>
+        </li>
+      </Group>
+    </div>
+  );
+}
+
 export function SettingsView() {
   const { t, locale } = useI18n();
-  const { org, role, can } = useOrg();
+  const { org, role, can, slug, capabilities } = useOrg();
+  const access = useOrganizations();
+  const membership =
+    access.status === "ready"
+      ? access.organizations.find((o) => o.organization.slug === slug)
+      : undefined;
+  // Stripe Connect lo decide el backend (capability): una org Fourvenues no lo tiene y no se muestra.
+  const pendingFourvenues = membership?.fourvenuesLinkStatus === "PENDING_REVIEW";
+  const sections: SectionId[] = [
+    "identity",
+    ...(membership?.role === "OWNER" || membership?.role === "MANAGER"
+      ? (["subscription"] as const)
+      : []),
+    ...(can(ORG_PERMISSIONS.paymentsManage) && capabilities.stripeConnect
+      ? (["payments"] as const)
+      : []),
+    ...(can(ORG_PERMISSIONS.fourvenuesLinkManage) ? (["integrations"] as const) : []),
+    "roles",
+  ];
+  const [selected, setSelected] = useState<SectionId>("identity");
+  const section = sections.includes(selected) ? selected : "identity";
+  const setSection = setSelected;
   const [copied, setCopied] = useState(false);
   // Identificador interno solo para quien gestiona el equipo (soporte e integraciones futuras).
   const showInternalId = can(ORG_PERMISSIONS.rolesManage);
@@ -109,6 +338,26 @@ export function SettingsView() {
         </div>
       </section>
 
+      <div role="tablist" aria-label="Secciones de ajustes" className="flex flex-wrap gap-2">
+        {sections.map((id) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={section === id}
+            onClick={() => setSection(id)}
+            className={`h-10 rounded-full px-4 text-sm font-medium transition-[background-color,color,transform] duration-100 active:scale-[0.97] ${
+              section === id
+                ? "bg-[#f4efe6] text-[#1b1916]"
+                : "bg-white/[0.07] text-white/70 hover:bg-white/[0.13] hover:text-white"
+            }`}
+          >
+            {SECTION_LABEL[id]}
+          </button>
+        ))}
+      </div>
+
+      {section === "identity" ? (
       <div>
         <Group title={t("orgs.st.identity")}>
           <Row label={t("orgs.pf.name")}>{org.name}</Row>
@@ -148,32 +397,26 @@ export function SettingsView() {
           {t("orgs.pf.verifiedNote")}
         </p>
       </div>
+      ) : null}
 
-      {can(ORG_PERMISSIONS.paymentsManage) ? <PaymentsCard /> : null}
+      {section === "subscription" ? <SubscriptionSection /> : null}
 
-      {can(ORG_PERMISSIONS.fourvenuesLinkManage) ? <FourvenuesCard /> : null}
+      {section === "payments" ? (
+        <>
+          {pendingFourvenues ? (
+            <p className="rounded-[20px] bg-white/[0.06] px-5 py-3 text-sm text-white/60">
+              Tienes una solicitud de Fourvenues pendiente. Los pagos de Stripe
+              solo se usan para las ventas nativas de ParyUp; no hacen falta
+              para las ventas gestionadas por Fourvenues.
+            </p>
+          ) : null}
+          <PaymentsCard />
+        </>
+      ) : null}
 
-      <Group title={t("orgs.st.permissions")}>
-        {CAPABILITIES.map((c) => {
-          const allowed = can(c.permission);
-          return (
-            <li key={c.key} className="flex items-center gap-3.5 px-4 py-3.5">
-              {allowed ? (
-                <SealCheck className="h-6 w-6 shrink-0" />
-              ) : (
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/35">
-                  <LockIcon aria-hidden className="h-3 w-3" />
-                </span>
-              )}
-              <span
-                className={`text-[15px] ${allowed ? "text-white/90" : "text-white/40"}`}
-              >
-                {t(`orgs.st.can.${c.key}`)}
-              </span>
-            </li>
-          );
-        })}
-      </Group>
+      {section === "integrations" ? <FourvenuesCard /> : null}
+
+      {section === "roles" ? <RolesSection /> : null}
     </div>
   );
 }

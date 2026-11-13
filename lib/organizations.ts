@@ -12,6 +12,8 @@ export type MyOrganization = {
   organizationId: string;
   role: OrgRole;
   commercialMode?: CommercialMode;
+  /** Estado de la vinculación con Fourvenues (PENDING_REVIEW, ACTIVE, REJECTED…), si existe. */
+  fourvenuesLinkStatus?: string | null;
   /** Plan Backstage: NONE (sin plan), TRIAL, ACTIVE o LIMITED (sin pagar). */
   backstagePlanStatus?: "NONE" | "TRIAL" | "ACTIVE" | "LIMITED";
   backstageTrialEndsAt?: string | null;

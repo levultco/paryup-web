@@ -151,10 +151,16 @@ export function OrgShell({
           (new Date(m.backstageTrialEndsAt).getTime() - Date.now()) / 86_400_000,
         ),
       );
+      // Durante la prueba el detalle vive en Ajustes; aquí solo avisa al propietario al final.
+      if (m.role !== "OWNER" || days > 7) return null;
       return (
         <div className="mb-6 rounded-[20px] bg-white/[0.06] px-5 py-3 text-sm text-white/70">
           Prueba de Backstage: te {days === 1 ? "queda 1 día" : `quedan ${days} días`}.
-          El primer cobro se hará automáticamente al terminar.
+          Revisa tu suscripción en{" "}
+          <Link href={`/${slug}/settings`} className="underline underline-offset-2 hover:text-white">
+            Ajustes
+          </Link>
+          .
         </div>
       );
     }
